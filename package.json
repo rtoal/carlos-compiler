@@ -1,0 +1,35 @@
+{
+  "name": "carlos-compiler",
+  "version": "1.0.0",
+  "description": "A compiler for the language Carlos",
+  "main": "carlos.js",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "type": "module",
+  "dependencies": {
+    "c8": "^7.4.0",
+    "ohm-js": "^15.3.0"
+  },
+  "devDependencies": {
+    "mocha": "^8.2.1"
+  },
+  "scripts": {
+    "test": "c8 node_modules/.bin/mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rtoal/carlos-compiler.git"
+  },
+  "keywords": [
+    "Carlos",
+    "compiler"
+  ],
+  "author": "Ray Toal",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rtoal/carlos-compiler/issues"
+  },
+  "homepage": "https://github.com/rtoal/carlos-compiler#readme"
+}
