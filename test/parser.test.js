@@ -4,10 +4,11 @@ import parse from "../src/parser.js"
 
 const source = `let two = 2 - 0
   print(1 * two)   // TADA 🥑 
-  two = sqrt 101.3E-5 //`
+  two = sqrt 101.3
+  const x = 8`
 
 const expectedAst = `   1 | program: Program
-   2 |   statements[0]: Declaration name='two'
+   2 |   statements[0]: Declaration name='two' readOnly=false
    3 |     initializer: BinaryExpression op='-'
    4 |       left: LiteralExpression value=2
    5 |       right: LiteralExpression value=0
@@ -18,7 +19,9 @@ const expectedAst = `   1 | program: Program
   10 |   statements[2]: Assignment
   11 |     target: IdentifierExpression name='two'
   12 |     source: UnaryExpression op='sqrt'
-  13 |       operand: LiteralExpression value=0.001013`
+  13 |       operand: LiteralExpression value=101.3
+  14 |   statements[3]: Declaration name='x' readOnly=true
+  15 |     initializer: LiteralExpression value=8`
 
 const errorFixture = [
   ["a missing right operand", "print 5 -", /Line 1, col 10:/],

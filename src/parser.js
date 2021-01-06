@@ -8,7 +8,7 @@ import * as ast from "./ast.js"
 
 const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Program   = Statement+
-  Statement = let id "=" Exp                  --declare
+  Statement = (let | const) id "=" Exp        --declare
             | id "=" Exp                      --assign
             | print Exp                       --print
   Exp       = Exp ("+" | "-") Term            --binary
@@ -21,10 +21,11 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
             | ("-" | abs | sqrt) Factor       --unary
   num       = digit+ ("." digit+)? (("E" | "e") ("+" | "-")? digit+)?
   let       = "let" ~alnum
+  const     = "const" ~alnum
   print     = "print" ~alnum
   abs       = "abs" ~alnum
   sqrt      = "sqrt" ~alnum
-  keyword   = let | print | abs | sqrt
+  keyword   = let | const | print | abs | sqrt
   id        = ~keyword letter alnum*
   space    += "//" (~"\n" any)* ("\n" | end)  --comment
 }`)
@@ -33,8 +34,12 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Program(body) {
     return new ast.Program(body.ast())
   },
-  Statement_declare(_let, id, _eq, expression) {
-    return new ast.Declaration(id.sourceString, expression.ast())
+  Statement_declare(kind, id, _eq, expression) {
+    return new ast.Declaration(
+      id.sourceString,
+      kind.sourceString === "const",
+      expression.ast()
+    )
   },
   Statement_assign(id, _eq, expression) {
     return new ast.Assignment(

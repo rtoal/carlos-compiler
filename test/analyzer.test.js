@@ -5,10 +5,11 @@ import analyze from "../src/analyzer.js"
 
 const source = `let two = 2 - 0
   print(1 * two)   // TADA 🥑 
-  two = sqrt 101.3`
+  two = sqrt 101.3
+  const x = 8`
 
 const expectedAst = String.raw`   1 | program: Program
-   2 |   statements[0]: Declaration name='two'
+   2 |   statements[0]: Declaration name='two' readOnly=false
    3 |     initializer: BinaryExpression op='-'
    4 |       left: LiteralExpression value=2
    5 |       right: LiteralExpression value=0
@@ -19,11 +20,14 @@ const expectedAst = String.raw`   1 | program: Program
   10 |   statements[2]: Assignment
   11 |     target: IdentifierExpression name='two' ref=$2
   12 |     source: UnaryExpression op='sqrt'
-  13 |       operand: LiteralExpression value=101.3`
+  13 |       operand: LiteralExpression value=101.3
+  14 |   statements[3]: Declaration name='x' readOnly=true
+  15 |     initializer: LiteralExpression value=8`
 
 const errorFixture = [
   ["redeclarations", "print x", /Identifier x not declared/],
   ["non declared ids", "let x = 1\nlet x = 1", /Identifier x already declared/],
+  ["assign to const", "const x = 1\nx = 2", /Cannot assign to constant x/],
 ]
 
 describe("The analyzer", () => {

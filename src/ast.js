@@ -22,8 +22,8 @@ export class Program {
 }
 
 export class Declaration {
-  constructor(name, initializer) {
-    Object.assign(this, { name, initializer })
+  constructor(name, readOnly, initializer) {
+    Object.assign(this, { name, readOnly, initializer })
   }
 }
 

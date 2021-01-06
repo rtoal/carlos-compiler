@@ -50,6 +50,9 @@ const analyzers = {
   Assignment(s, context) {
     analyze(s.source, context)
     analyze(s.target, context)
+    if (s.target.ref.readOnly) {
+      throw new Error(`Cannot assign to constant ${s.target.ref.name}`)
+    }
   },
   PrintStatement(s, context) {
     analyze(s.expression, context)
