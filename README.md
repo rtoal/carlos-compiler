@@ -1,4 +1,4 @@
-![Logo](https://raw.githubusercontent.com/rtoal/carlos/main/docs/carlos.png)
+![Logo](https://raw.githubusercontent.com/rtoal/carlos-compiler/main/docs/carlos.png)
 
 # Carlos
 
