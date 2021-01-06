@@ -1,6 +1,4 @@
-![Logo](https://raw.githubusercontent.com/rtoal/carlos-compiler/main/docs/carlos.png)
-
-# Carlos
+![Carlos](https://raw.githubusercontent.com/rtoal/carlos-compiler/main/docs/carlos.png)
 
 This is a compiler for the language **Carlos** written with the help of the amazing [Ohm language library](https://ohmlang.github.io/).
 
