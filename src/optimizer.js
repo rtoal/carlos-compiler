@@ -57,6 +57,8 @@ const optimizers = {
           return new LiteralExpression(x * y)
         } else if (e.op == "/") {
           return new LiteralExpression(x / y)
+        } else if (e.op == "**") {
+          return new LiteralExpression(x ** y)
         }
       } else if (x === 0 && e.op === "+") {
         return e.right
@@ -68,6 +70,8 @@ const optimizers = {
         return new LiteralExpression(0)
       } else if (x === 0 && e.op === "/") {
         return new LiteralExpression(0)
+      } else if (x === 1 && e.op === "**") {
+        return new LiteralExpression(1)
       }
     } else if (e.right.constructor === LiteralExpression) {
       const y = e.right.value
@@ -77,6 +81,8 @@ const optimizers = {
         return e.left
       } else if (e.op === "*" && y === 0) {
         return new LiteralExpression(0)
+      } else if (e.op === "**" && y === 0) {
+        return new LiteralExpression(1)
       }
     }
     return e

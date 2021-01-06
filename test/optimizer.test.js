@@ -9,6 +9,7 @@ const binaryOptimizationFixture = [
   ["folds -", "print 8 - 5", "print 3"],
   ["folds *", "print 8 * 5", "print 40"],
   ["folds /", "print 8 / 5", "print 1.6"],
+  ["folds **", "print 3 ** 5", "print 243"],
   ["optimizes -0", "let x = 8\nprint x - 0", "let x = 8\nprint x"],
   ["optimizes +0", "let x = 8\nprint x + 0", "let x = 8\nprint x"],
   ["optimizes *1", "let x = 8\nprint x * 1", "let x = 8\nprint x"],
@@ -19,6 +20,8 @@ const binaryOptimizationFixture = [
   ["optimizes 0-", "let x = 8\nprint 0 - x", "let x = 8\nprint -x"],
   ["optimizes 0+", "let x = 8\nprint 0 + x", "let x = 8\nprint x"],
   ["optimizes 1*", "let x = 8\nprint 1 * x", "let x = 8\nprint x"],
+  ["optimizes 1**", "let x = 8\nprint 1 ** x", "let x = 8\nprint 1"],
+  ["optimizes **0", "let x = 8\nprint x ** 0", "let x = 8\nprint 1"],
 ]
 
 const unaryOptimizationFixture = [
