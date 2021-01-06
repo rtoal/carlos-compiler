@@ -15,12 +15,12 @@ const smallFixture = {
   name: "small",
   source: `
     let x = 3.1
-    x = 5 * sqrt x / -x + x - abs x
+    x = 5 ** -x / -x + x - abs x
     print x
   `,
   expected: dedent`
       let x_1 = 3.1;
-      x_1 = ((((5 * Math.sqrt(x_1)) / -(x_1)) + x_1) - Math.abs(x_1));
+      x_1 = ((((5 ** -(x_1)) / -(x_1)) + x_1) - Math.abs(x_1));
       console.log(x_1);
     `,
 }

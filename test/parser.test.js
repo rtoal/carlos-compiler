@@ -3,7 +3,7 @@ import util from "util"
 import parse from "../src/parser.js"
 
 const source = `let two = 2 - 0
-  print(1 * two)   // TADA 🥑 
+  print(1 ** two)   // TADA 🥑
   two = sqrt 101.3
   const x = 8`
 
@@ -13,7 +13,7 @@ const expectedAst = `   1 | program: Program
    4 |       left: LiteralExpression value=2
    5 |       right: LiteralExpression value=0
    6 |   statements[1]: PrintStatement
-   7 |     expression: BinaryExpression op='*'
+   7 |     expression: BinaryExpression op='**'
    8 |       left: LiteralExpression value=1
    9 |       right: IdentifierExpression name='two'
   10 |   statements[2]: Assignment
@@ -32,6 +32,7 @@ const errorFixture = [
   ["a statement starting with a )", "print 5\n) * 5", /Line 2, col 1:/],
   ["an expression starting with a *", "let x = * 71", /Line 1, col 9:/],
   ["a number with an E but no exponent", "let x = 5E * 11", /Line 1, col 12:/],
+  ["negation before exponentiation", "print -2**2", /Line 1, col 10:/],
 ]
 
 describe("The parser", () => {

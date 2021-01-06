@@ -15,10 +15,12 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
             | Term
   Term      = Term ("*"| "/") Factor          --binary
             | Factor
-  Factor    = id
+  Factor    = Primary "**" Factor             --binary
+            | Primary
+            | ("-" | abs | sqrt) Primary      --unary
+  Primary   = id
             | num
             | "(" Exp ")"                     --parens
-            | ("-" | abs | sqrt) Factor       --unary
   num       = digit+ ("." digit+)? (("E" | "e") ("+" | "-")? digit+)?
   let       = "let" ~alnum
   const     = "const" ~alnum
@@ -56,10 +58,13 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Term_binary(left, op, right) {
     return new ast.BinaryExpression(op.sourceString, left.ast(), right.ast())
   },
+  Factor_binary(left, op, right) {
+    return new ast.BinaryExpression(op.sourceString, left.ast(), right.ast())
+  },
   Factor_unary(op, operand) {
     return new ast.UnaryExpression(op.sourceString, operand.ast())
   },
-  Factor_parens(_open, expression, _close) {
+  Primary_parens(_open, expression, _close) {
     return expression.ast()
   },
   num(_base, _radix, _fraction, _e, _sign, _exponent) {
