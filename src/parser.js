@@ -19,7 +19,7 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
             | num
             | "(" Exp ")"                     --parens
             | ("-" | abs | sqrt) Factor       --unary
-  num       = digit+ ("." digit+)?
+  num       = digit+ ("." digit+)? (("E" | "e") ("+" | "-")? digit+)?
   let       = "let" ~alnum
   print     = "print" ~alnum
   abs       = "abs" ~alnum
@@ -57,7 +57,7 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Factor_parens(_open, expression, _close) {
     return expression.ast()
   },
-  num(_base, _radix, _fraction) {
+  num(_base, _radix, _fraction, _e, _sign, _exponent) {
     return new ast.LiteralExpression(+this.sourceString)
   },
   id(_firstChar, _restChars) {
