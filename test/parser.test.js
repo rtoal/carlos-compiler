@@ -23,6 +23,15 @@ const expectedAst = `   1 | program: Program
   14 |   statements[3]: Declaration name='x' readOnly=true
   15 |     initializer: LiteralExpression value=8`
 
+const acceptableFixture = [
+  ["ors can be chained", "print 1 || 2 || 3 || 4 || 5"],
+  ["ands can be chained", "print 1 && 2 && 3 && 4 && 5"],
+  [
+    "relational operators",
+    "print 1 < 2 || 3 <= 4 || 5 == 6 || 7 != 8 || 9 >= 10 || 10 > 11",
+  ],
+]
+
 const errorFixture = [
   ["a missing right operand", "print 5 -", /Line 1, col 10:/],
   ["a non-operator", "print 7 * ((2 _ 3)", /Line 1, col 15:/],
@@ -33,6 +42,9 @@ const errorFixture = [
   ["an expression starting with a *", "let x = * 71", /Line 1, col 9:/],
   ["a number with an E but no exponent", "let x = 5E * 11", /Line 1, col 12:/],
   ["negation before exponentiation", "print -2**2", /Line 1, col 10:/],
+  ["mixing ands and ors", "print 1 && 2 || 3", /Line 1, col 14:/],
+  ["mixing ors and ands", "print 1 || 2 && 3", /Line 1, col 14:/],
+  ["associating relational operators", "print 1 < 2 < 3", /Line 1, col 13:/],
 ]
 
 describe("The parser", () => {
@@ -43,6 +55,12 @@ describe("The parser", () => {
   for (const [scenario, source, errorMessagePattern] of errorFixture) {
     it(`throws on ${scenario}`, done => {
       assert.throws(() => parse(source), errorMessagePattern)
+      done()
+    })
+  }
+  for (const [scenario, source] of acceptableFixture) {
+    it(`recognizes that ${scenario}`, done => {
+      assert(parse(source))
       done()
     })
   }

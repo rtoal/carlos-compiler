@@ -39,6 +39,18 @@ export class PrintStatement {
   }
 }
 
+export class OrExpression {
+  constructor(disjuncts) {
+    Object.assign(this, { disjuncts })
+  }
+}
+
+export class AndExpression {
+  constructor(conjuncts) {
+    Object.assign(this, { conjuncts })
+  }
+}
+
 export class BinaryExpression {
   constructor(op, left, right) {
     Object.assign(this, { op, left, right })

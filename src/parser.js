@@ -11,16 +11,22 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Statement = (let | const) id "=" Exp        --declare
             | id "=" Exp                      --assign
             | print Exp                       --print
-  Exp       = Exp ("+" | "-") Term            --binary
-            | Term
-  Term      = Term ("*"| "/") Factor          --binary
-            | Factor
-  Factor    = Primary "**" Factor             --binary
-            | Primary
-            | ("-" | abs | sqrt) Primary      --unary
-  Primary   = id
+  Exp       = Exp1 ("||" Exp1)+               --or
+            | Exp1 ("&&" Exp1)+               --and
+            | Exp1
+  Exp1      = Exp2 relop Exp2                 --binary
+            | Exp2
+  Exp2      = Exp2 ("+" | "-") Exp3           --binary
+            | Exp3
+  Exp3      = Exp3 ("*"| "/") Exp4            --binary
+            | Exp4
+  Exp4      = Exp5 "**" Exp4                  --binary
+            | Exp5
+            | ("-" | abs | sqrt) Exp5         --unary
+  Exp5      = id
             | num
             | "(" Exp ")"                     --parens
+  relop     = "<=" | "<" | "==" | "!=" | ">=" | ">"
   num       = digit+ ("." digit+)? (("E" | "e") ("+" | "-")? digit+)?
   let       = "let" ~alnum
   const     = "const" ~alnum
@@ -52,19 +58,28 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Statement_print(_print, expression) {
     return new ast.PrintStatement(expression.ast())
   },
-  Exp_binary(left, op, right) {
+  Exp_or(first, _ors, rest) {
+    return new ast.OrExpression([first.ast(), ...rest.ast()])
+  },
+  Exp_and(first, _ors, rest) {
+    return new ast.AndExpression([first.ast(), ...rest.ast()])
+  },
+  Exp1_binary(left, op, right) {
     return new ast.BinaryExpression(op.sourceString, left.ast(), right.ast())
   },
-  Term_binary(left, op, right) {
+  Exp2_binary(left, op, right) {
     return new ast.BinaryExpression(op.sourceString, left.ast(), right.ast())
   },
-  Factor_binary(left, op, right) {
+  Exp3_binary(left, op, right) {
     return new ast.BinaryExpression(op.sourceString, left.ast(), right.ast())
   },
-  Factor_unary(op, operand) {
+  Exp4_binary(left, op, right) {
+    return new ast.BinaryExpression(op.sourceString, left.ast(), right.ast())
+  },
+  Exp4_unary(op, operand) {
     return new ast.UnaryExpression(op.sourceString, operand.ast())
   },
-  Primary_parens(_open, expression, _close) {
+  Exp5_parens(_open, expression, _close) {
     return expression.ast()
   },
   num(_base, _radix, _fraction, _e, _sign, _exponent) {
