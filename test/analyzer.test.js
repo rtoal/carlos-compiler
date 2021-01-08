@@ -6,7 +6,7 @@ import analyze from "../src/analyzer.js"
 const source = `let two = 2 - 0
   print(1 * two)   // TADA 🥑 
   two = sqrt 101.3
-  const x = 8`
+  const x = true + true`
 
 const expectedAst = String.raw`   1 | program: Program
    2 |   statements[0]: Declaration name='two' readOnly=false
@@ -22,7 +22,11 @@ const expectedAst = String.raw`   1 | program: Program
   12 |     source: UnaryExpression op='sqrt'
   13 |       operand: LiteralExpression value=101.3
   14 |   statements[3]: Declaration name='x' readOnly=true
-  15 |     initializer: LiteralExpression value=8`
+  15 |     initializer: BinaryExpression op='+'
+  16 |       left: IdentifierExpression name='true'
+  17 |         ref: Declaration name='true' readOnly=true
+  18 |           initializer: LiteralExpression value=true
+  19 |       right: IdentifierExpression name='true' ref=$17`
 
 const errorFixture = [
   ["redeclarations", "print x", /Identifier x not declared/],
