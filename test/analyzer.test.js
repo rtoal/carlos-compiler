@@ -28,6 +28,10 @@ const errorFixture = [
   ["redeclarations", "print x", /Identifier x not declared/],
   ["non declared ids", "let x = 1\nlet x = 1", /Identifier x already declared/],
   ["assign to const", "const x = 1\nx = 2", /Cannot assign to constant x/],
+  ["redeclare true", "let true = 1", /Identifier true already declared/],
+  ["assign to true", "true = 1", /Cannot assign to constant true/],
+  ["redeclare false", "let false = 1", /Identifier false already declared/],
+  ["assign to false", "false = 1", /Cannot assign to constant false/],
 ]
 
 describe("The analyzer", () => {

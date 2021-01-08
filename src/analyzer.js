@@ -4,6 +4,8 @@
 // Checks are made relative to a semantic context that is passed to the analyzer
 // function for each node.
 
+import { Declaration, LiteralExpression } from "./ast.js"
+
 class Context {
   constructor(context) {
     // Currently, the only analysis context needed is the set of declared
@@ -29,9 +31,19 @@ class Context {
     }
     throw new Error(`Identifier ${name} not declared`)
   }
+  static get initial() {
+    const context = new Context()
+    context.addDeclaration(
+      new Declaration("false", true, new LiteralExpression(false))
+    )
+    context.addDeclaration(
+      new Declaration("true", true, new LiteralExpression(true))
+    )
+    return context
+  }
 }
 
-export default function analyze(node, context = new Context()) {
+export default function analyze(node, context = Context.initial) {
   analyzers[node.constructor.name](node, context)
   return node
 }
