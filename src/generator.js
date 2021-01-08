@@ -43,7 +43,8 @@ export default function generate(program) {
       return `(${e.conjuncts.map(gen).join(" && ")})`
     },
     BinaryExpression(e) {
-      return `(${gen(e.left)} ${e.op} ${gen(e.right)})`
+      const op = { "==": "===", "!=": "!==" }[e.op] ?? e.op
+      return `(${gen(e.left)} ${op} ${gen(e.right)})`
     },
     UnaryExpression(e) {
       const op = { abs: "Math.abs", sqrt: "Math.sqrt" }[e.op] ?? e.op
