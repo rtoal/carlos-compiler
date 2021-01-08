@@ -42,6 +42,12 @@ const optimizers = {
     s.expression = optimize(s.expression)
     return s
   },
+  OrExpression(e) {
+    e.disjuncts = e.disjuncts.map(optimize)
+  },
+  AndExpression(e) {
+    e.conjuncts = e.conjuncts.map(optimize)
+  },
   BinaryExpression(e) {
     e.left = optimize(e.left)
     e.right = optimize(e.right)
