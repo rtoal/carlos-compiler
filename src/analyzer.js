@@ -69,6 +69,16 @@ const analyzers = {
   PrintStatement(s, context) {
     analyze(s.expression, context)
   },
+  OrExpression(e, context) {
+    for (const disjunct of e.disjuncts) {
+      analyze(disjunct, context)
+    }
+  },
+  AndExpression(e, context) {
+    for (const conjunct of e.conjuncts) {
+      analyze(conjunct, context)
+    }
+  },
   BinaryExpression(e, context) {
     analyze(e.left, context)
     analyze(e.right, context)

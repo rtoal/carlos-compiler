@@ -36,6 +36,12 @@ export default function generate(program) {
     PrintStatement(s) {
       output.push(`console.log(${gen(s.expression)});`)
     },
+    OrExpression(e) {
+      return `(${e.disjuncts.map(gen).join(" || ")})`
+    },
+    AndExpression(e) {
+      return `(${e.conjuncts.map(gen).join(" && ")})`
+    },
     BinaryExpression(e) {
       return `(${gen(e.left)} ${e.op} ${gen(e.right)})`
     },
