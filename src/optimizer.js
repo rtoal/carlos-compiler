@@ -8,6 +8,9 @@
 //   - assignments to self (x = x) turn into no-ops
 //   - constant folding
 //   - some strength reductions (+0, -0, *0, *1, etc.)
+//   - turn references to built-ins true and false to be literals
+//   - remove all disjuncts in || list after literal true
+//   - remove all conjuncts in && list after literal false
 
 import {
   IdentifierExpression,
@@ -43,11 +46,29 @@ const optimizers = {
     return s
   },
   OrExpression(e) {
-    e.disjuncts = e.disjuncts.map(optimize)
+    // Get rid of all disjuncts after a literal true
+    const optimizedDisjuncts = []
+    for (const d of e.disjuncts) {
+      const optimized = optimize(d)
+      optimizedDisjuncts.push(optimized)
+      if (optimized.constructor === LiteralExpression && optimized.value) {
+        break
+      }
+    }
+    e.disjuncts = optimizedDisjuncts
     return e
   },
   AndExpression(e) {
-    e.conjuncts = e.conjuncts.map(optimize)
+    // Get rid of all conjuncts after a literal false
+    const optimizedConjuncts = []
+    for (const d of e.conjuncts) {
+      const optimized = optimize(d)
+      optimizedConjuncts.push(optimized)
+      if (optimized.constructor === LiteralExpression && !optimized.value) {
+        break
+      }
+    }
+    e.conjuncts = optimizedConjuncts
     return e
   },
   BinaryExpression(e) {
@@ -110,6 +131,10 @@ const optimizers = {
     return e
   },
   IdentifierExpression(e) {
+    if (e.name === "true" || e.name === "false") {
+      // Who needs references when we can have straight up literals
+      return e.referent.initializer
+    }
     return e
   },
   LiteralExpression(e) {

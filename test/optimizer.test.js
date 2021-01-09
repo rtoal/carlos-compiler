@@ -35,6 +35,19 @@ const statementOptimizationFixture = [
   ["removes x=x in middle", "let x = 0\nx = x\nprint x", "let x = 0\nprint x"],
 ]
 
+const logicalOperatorOptimizationFixture = [
+  [
+    "removes disjuncts after true",
+    "print false || true || 0 > 1",
+    "print false || true",
+  ],
+  [
+    "removes conjuncts after false",
+    "print true && false && 1 <= 1",
+    "print true && false",
+  ],
+]
+
 // We have to test that non-optimizable constructs are left unchanged!
 const nothingToOptimizeFixture = [
   [
@@ -49,11 +62,12 @@ describe("The optimizer", () => {
     unaryOptimizationFixture,
     statementOptimizationFixture,
     nothingToOptimizeFixture,
+    logicalOperatorOptimizationFixture,
   ]) {
     for (const [scenario, before, after] of fixture) {
       it(`${scenario}`, done => {
         const actual = util.format(optimize(analyze(parse(before))))
-        const expected = util.format(analyze(parse(after)))
+        const expected = util.format(optimize(analyze(parse(after))))
         assert.deepStrictEqual(actual, expected)
         done()
       })
