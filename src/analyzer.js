@@ -50,8 +50,8 @@ const analyzers = {
   Assignment(s, context) {
     analyze(s.source, context)
     analyze(s.target, context)
-    if (s.target.ref.readOnly) {
-      throw new Error(`Cannot assign to constant ${s.target.ref.name}`)
+    if (s.target.referent.readOnly) {
+      throw new Error(`Cannot assign to constant ${s.target.referent.name}`)
     }
   },
   PrintStatement(s, context) {
@@ -66,7 +66,7 @@ const analyzers = {
   },
   IdentifierExpression(e, context) {
     // Tag this variable reference with the declaration it references
-    e.ref = context.lookup(e.name)
+    e.referent = context.lookup(e.name)
   },
   LiteralExpression(e, context) {
     // There is LITERALly nothing to analyze here (sorry)

@@ -1,11 +1,11 @@
 // Optimizer
 //
-// This module exports a single funciton to perform machine-independent
+// This module exports a single function to perform machine-independent
 // optimizations on the analyzed semantic graph.
 //
 // The only optimizations supported here are:
 //
-//   - assignments to self turn into no-ops
+//   - assignments to self (x = x) turn into no-ops
 //   - constant folding
 //   - some strength reductions (+0, -0, *0, *1, etc.)
 
@@ -32,7 +32,7 @@ const optimizers = {
     s.source = optimize(s.source)
     s.target = optimize(s.target)
     if (s.target.constructor == IdentifierExpression) {
-      if (s.source.ref === s.target.ref) {
+      if (s.source.referent === s.target.referent) {
         return null
       }
     }
