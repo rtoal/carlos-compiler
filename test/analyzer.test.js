@@ -21,7 +21,7 @@ const expectedAst = String.raw`   1 | program: Program
   12 |     source: UnaryExpression op='sqrt'
   13 |       operand: LiteralExpression value=101.3`
 
-const errorFixture = [
+const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
   ["non declared ids", "let x = 1\nlet x = 1", /Identifier x already declared/],
 ]
@@ -31,7 +31,7 @@ describe("The analyzer", () => {
     assert.deepStrictEqual(util.format(analyze(parse(source))), expectedAst)
     done()
   })
-  for (const [scenario, source, errorMessagePattern] of errorFixture) {
+  for (const [scenario, source, errorMessagePattern] of semanticErrors) {
     it(`throws on ${scenario}`, done => {
       assert.throws(() => analyze(parse(source)), errorMessagePattern)
       done()
