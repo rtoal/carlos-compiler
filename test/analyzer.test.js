@@ -5,7 +5,7 @@ import analyze from "../src/analyzer.js"
 
 const source = `let two = 2 - 0
   print(1 * two)   // TADA 🥑 
-  two = sqrt 101.3`
+  two = sqrt 101.3E-5`
 
 const expectedAst = String.raw`   1 | program: Program
    2 |   statements[0]: Declaration name='two'
@@ -15,13 +15,13 @@ const expectedAst = String.raw`   1 | program: Program
    6 |   statements[1]: PrintStatement
    7 |     expression: BinaryExpression op='*'
    8 |       left: LiteralExpression value=1
-   9 |       right: IdentifierExpression name='two' ref=$2
+   9 |       right: IdentifierExpression name='two' referent=$2
   10 |   statements[2]: Assignment
-  11 |     target: IdentifierExpression name='two' ref=$2
+  11 |     target: IdentifierExpression name='two' referent=$2
   12 |     source: UnaryExpression op='sqrt'
-  13 |       operand: LiteralExpression value=101.3`
+  13 |       operand: LiteralExpression value=0.001013`
 
-const errorFixture = [
+const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
   ["non declared ids", "let x = 1\nlet x = 1", /Identifier x already declared/],
 ]
@@ -31,7 +31,7 @@ describe("The analyzer", () => {
     assert.deepStrictEqual(util.format(analyze(parse(source))), expectedAst)
     done()
   })
-  for (const [scenario, source, errorMessagePattern] of errorFixture) {
+  for (const [scenario, source, errorMessagePattern] of semanticErrors) {
     it(`throws on ${scenario}`, done => {
       assert.throws(() => analyze(parse(source)), errorMessagePattern)
       done()
