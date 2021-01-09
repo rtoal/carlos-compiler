@@ -39,6 +39,7 @@ const syntaxErrors = [
   ["an illegal statement on line 2", "print 5\nx * 5", /Line 2, col 3:/],
   ["a statement starting with a )", "print 5\n) * 5", /Line 2, col 1:/],
   ["an expression starting with a *", "let x = * 71", /Line 1, col 9:/],
+  ["a number with an E but no exponent", "let x = 5E * 11", /Line 1, col 12:/],
 ]
 
 describe("The parser", () => {
