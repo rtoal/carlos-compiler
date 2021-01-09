@@ -88,6 +88,18 @@ const optimizers = {
           return new LiteralExpression(x / y)
         } else if (e.op == "**") {
           return new LiteralExpression(x ** y)
+        } else if (e.op == "<") {
+          return new LiteralExpression(x < y)
+        } else if (e.op == "<=") {
+          return new LiteralExpression(x <= y)
+        } else if (e.op == "==") {
+          return new LiteralExpression(x === y)
+        } else if (e.op == "!=") {
+          return new LiteralExpression(x !== y)
+        } else if (e.op == ">=") {
+          return new LiteralExpression(x >= y)
+        } else if (e.op == ">") {
+          return new LiteralExpression(x > y)
         }
       } else if (x === 0 && e.op === "+") {
         return e.right

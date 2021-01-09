@@ -16,13 +16,13 @@ const smallFixture = {
   source: `
     let x = 3.1
     x = 5 ** -x / -100 && false - abs x
-    print x || x || false || (1<2) != 5
+    print x || x || false || (x<2) != 5
 
   `,
   expected: dedent`
       let x_1 = 3.1;
       x_1 = (((5 ** -(x_1)) / -100) && (false - Math.abs(x_1)));
-      console.log((x_1 || x_1 || false || ((1 < 2) !== 5)));
+      console.log((x_1 || x_1 || false || ((x_1 < 2) !== 5)));
     `,
 }
 
