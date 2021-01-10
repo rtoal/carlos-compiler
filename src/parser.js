@@ -77,7 +77,8 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
     )
   },
   Block(_open, body, _close) {
-    return new ast.Block(body.ast())
+    // This one is fun, don't wrap the statements, just return the list
+    return body.ast()
   },
   Exp_or(first, _ors, rest) {
     return new ast.OrExpression([first.ast(), ...rest.ast()])

@@ -24,7 +24,7 @@ export default function optimize(node) {
 
 const optimizers = {
   Program(p) {
-    p.statements = p.statements.map(optimize).filter(s => s !== null)
+    p.statements = optimize(p.statements)
     return p
   },
   Declaration(d) {
@@ -43,6 +43,26 @@ const optimizers = {
   },
   PrintStatement(s) {
     s.expression = optimize(s.expression)
+    return s
+  },
+  IfStatement(s) {
+    s.test = optimize(s.test)
+    s.consequent = optimize(s.consequent)
+    if (s.alternative) {
+      s.alternative = optimize(s.alternative)
+    }
+    if (s.test.constructor === LiteralExpression) {
+      return s.test.value ? s.consequent : s.alternative
+    }
+    return s
+  },
+  WhileStatement(s) {
+    s.test = optimize(s.test)
+    if (s.test.constructor === LiteralExpression && !s.test.value) {
+      // while false is a no-op
+      return null
+    }
+    s.body = optimize(s.body)
     return s
   },
   OrExpression(e) {
@@ -151,5 +171,8 @@ const optimizers = {
   },
   LiteralExpression(e) {
     return e
+  },
+  Array(a) {
+    return a.flatMap(optimize).filter(s => s !== null)
   },
 }

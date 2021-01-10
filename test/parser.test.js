@@ -3,7 +3,7 @@ import util from "util"
 import parse from "../src/parser.js"
 
 const source = `let x = 1024 - 0
-  while x < 3 {
+  while x > 3 {
     let y = false && (true || 2 >= x)
     x = (0 + x) / 2 ** 1
     if false {
@@ -23,50 +23,46 @@ const expectedAst = `   1 | program: Program
    4 |       left: LiteralExpression value=1024
    5 |       right: LiteralExpression value=0
    6 |   statements[1]: WhileStatement
-   7 |     test: BinaryExpression op='<'
+   7 |     test: BinaryExpression op='>'
    8 |       left: IdentifierExpression name='x'
    9 |       right: LiteralExpression value=3
-  10 |     body: Block
-  11 |       statements[0]: Declaration name='y' readOnly=false
-  12 |         initializer: AndExpression
-  13 |           conjuncts[0]: IdentifierExpression name='false'
-  14 |           conjuncts[1]: OrExpression
-  15 |             disjuncts[0]: IdentifierExpression name='true'
-  16 |             disjuncts[1]: BinaryExpression op='>='
-  17 |               left: LiteralExpression value=2
-  18 |               right: IdentifierExpression name='x'
-  19 |       statements[1]: Assignment
-  20 |         target: IdentifierExpression name='x'
-  21 |         source: BinaryExpression op='/'
-  22 |           left: BinaryExpression op='+'
-  23 |             left: LiteralExpression value=0
-  24 |             right: IdentifierExpression name='x'
-  25 |           right: BinaryExpression op='**'
-  26 |             left: LiteralExpression value=2
-  27 |             right: LiteralExpression value=1
-  28 |       statements[2]: IfStatement
-  29 |         test: IdentifierExpression name='false'
-  30 |         consequent: Block
-  31 |           statements[0]: Declaration name='hello' readOnly=true
-  32 |             initializer: BinaryExpression op='-'
-  33 |               left: BinaryExpression op='-'
-  34 |                 left: UnaryExpression op='sqrt'
-  35 |                   operand: LiteralExpression value=100
-  36 |                 right: UnaryExpression op='abs'
-  37 |                   operand: LiteralExpression value=3.1
-  38 |               right: LiteralExpression value=3
-  39 |           statements[1]: PrintStatement
-  40 |             expression: LiteralExpression value=1
-  41 |         alternative: IfStatement
-  42 |           test: IdentifierExpression name='true'
-  43 |           consequent: Block
-  44 |             statements[0]: Declaration name='hello' readOnly=false
-  45 |               initializer: IdentifierExpression name='false'
-  46 |           alternative: Block
-  47 |             statements[0]: PrintStatement
-  48 |               expression: IdentifierExpression name='y'
-  49 |       statements[3]: PrintStatement
-  50 |         expression: IdentifierExpression name='x'`
+  10 |     body[0]: Declaration name='y' readOnly=false
+  11 |       initializer: AndExpression
+  12 |         conjuncts[0]: IdentifierExpression name='false'
+  13 |         conjuncts[1]: OrExpression
+  14 |           disjuncts[0]: IdentifierExpression name='true'
+  15 |           disjuncts[1]: BinaryExpression op='>='
+  16 |             left: LiteralExpression value=2
+  17 |             right: IdentifierExpression name='x'
+  18 |     body[1]: Assignment
+  19 |       target: IdentifierExpression name='x'
+  20 |       source: BinaryExpression op='/'
+  21 |         left: BinaryExpression op='+'
+  22 |           left: LiteralExpression value=0
+  23 |           right: IdentifierExpression name='x'
+  24 |         right: BinaryExpression op='**'
+  25 |           left: LiteralExpression value=2
+  26 |           right: LiteralExpression value=1
+  27 |     body[2]: IfStatement
+  28 |       test: IdentifierExpression name='false'
+  29 |       consequent[0]: Declaration name='hello' readOnly=true
+  30 |         initializer: BinaryExpression op='-'
+  31 |           left: BinaryExpression op='-'
+  32 |             left: UnaryExpression op='sqrt'
+  33 |               operand: LiteralExpression value=100
+  34 |             right: UnaryExpression op='abs'
+  35 |               operand: LiteralExpression value=3.1
+  36 |           right: LiteralExpression value=3
+  37 |       consequent[1]: PrintStatement
+  38 |         expression: LiteralExpression value=1
+  39 |       alternative: IfStatement
+  40 |         test: IdentifierExpression name='true'
+  41 |         consequent[0]: Declaration name='hello' readOnly=false
+  42 |           initializer: IdentifierExpression name='false'
+  43 |         alternative[0]: PrintStatement
+  44 |           expression: IdentifierExpression name='y'
+  45 |     body[3]: PrintStatement
+  46 |       expression: IdentifierExpression name='x'`
 
 const syntaxChecks = [
   ["integers and floating point literals", "print 8 * 899.123"],
