@@ -4,22 +4,21 @@
 // Checks are made relative to a semantic context that is passed to the analyzer
 // function for each node.
 
-import { Declaration, LiteralExpression, Type } from "./ast.js"
+import { Declaration, LiteralExpression, Type, Block } from "./ast.js"
 
 class Context {
-  constructor(context) {
-    // Currently, the only analysis context needed is the set of declared
-    // variables. We store this as a map, indexed by the variable name,
-    // for efficient lookup.
-    //
-    // Later, contexts will need to record the current function or module,
-    // whether you were in a loop (for validating breaks and continues),
-    // and have a reference to the parent context for static scope analysis,
-    // among other things.
+  constructor(parent = null) {
+    // This is where we maintain the local variables of a block as well as
+    // a reference to the parent context for static scope analysis. Later
+    // we will have more to record.
+    this.parent = parent
     this.locals = new Map()
   }
+  sees(name) {
+    return this.locals.has(name) || this.parent?.sees(name)
+  }
   addDeclaration(variable) {
-    if (this.locals.has(variable.name)) {
+    if (this.sees(variable.name)) {
       throw new Error(`Identifier ${variable.name} already declared`)
     }
     this.locals.set(variable.name, variable)
@@ -28,8 +27,14 @@ class Context {
     const variable = this.locals.get(name)
     if (variable) {
       return variable
+    } else if (this.parent) {
+      return this.parent.lookup(name)
     }
     throw new Error(`Identifier ${name} not declared`)
+  }
+  newChild() {
+    const childContext = new Context(this)
+    return childContext
   }
   static get initial() {
     // The initial context for a compilation holds all the predefined
@@ -96,6 +101,27 @@ const analyzers = {
   },
   PrintStatement(s, context) {
     analyze(s.expression, context)
+  },
+  WhileStatement(s, context) {
+    analyze(s.test, context)
+    checkBoolean(s.test, "while")
+    analyze(s.body, context.newChild())
+  },
+  IfStatement(s, context) {
+    analyze(s.test, context)
+    checkBoolean(s.test, "if")
+    analyze(s.consequent, context.newChild())
+    if (s.alternative?.constructor === Block) {
+      analyze(s.alternative, context.newChild())
+    } else if (s.alternative) {
+      // It's a trailing if-statement, so same context
+      analyze(s.alternative, context)
+    }
+  },
+  Block(b, context) {
+    for (const s of b.statements) {
+      analyze(s, context)
+    }
   },
   OrExpression(e, context) {
     for (const disjunct of e.disjuncts) {

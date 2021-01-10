@@ -7,10 +7,10 @@ const source = `let x = 1024 - 0
     let y = false && (true || 2 >= x)
     x = (0 + x) / 2 ** 1
     if false {
-      const y = 1 // a different y
+      const hello = sqrt 100 - abs 3.1-3
       print 1
     } else if true {
-      print sqrt 100 - abs 3.1-3
+      let hello = false // A different hello
     } else {
       print y
     }
@@ -47,21 +47,21 @@ const expectedAst = `   1 | program: Program
   28 |       statements[2]: IfStatement
   29 |         test: IdentifierExpression name='false'
   30 |         consequent: Block
-  31 |           statements[0]: Declaration name='y' readOnly=true
-  32 |             initializer: LiteralExpression value=1
-  33 |           statements[1]: PrintStatement
-  34 |             expression: LiteralExpression value=1
-  35 |         alternative: IfStatement
-  36 |           test: IdentifierExpression name='true'
-  37 |           consequent: Block
-  38 |             statements[0]: PrintStatement
-  39 |               expression: BinaryExpression op='-'
-  40 |                 left: BinaryExpression op='-'
-  41 |                   left: UnaryExpression op='sqrt'
-  42 |                     operand: LiteralExpression value=100
-  43 |                   right: UnaryExpression op='abs'
-  44 |                     operand: LiteralExpression value=3.1
-  45 |                 right: LiteralExpression value=3
+  31 |           statements[0]: Declaration name='hello' readOnly=true
+  32 |             initializer: BinaryExpression op='-'
+  33 |               left: BinaryExpression op='-'
+  34 |                 left: UnaryExpression op='sqrt'
+  35 |                   operand: LiteralExpression value=100
+  36 |                 right: UnaryExpression op='abs'
+  37 |                   operand: LiteralExpression value=3.1
+  38 |               right: LiteralExpression value=3
+  39 |           statements[1]: PrintStatement
+  40 |             expression: LiteralExpression value=1
+  41 |         alternative: IfStatement
+  42 |           test: IdentifierExpression name='true'
+  43 |           consequent: Block
+  44 |             statements[0]: Declaration name='hello' readOnly=false
+  45 |               initializer: IdentifierExpression name='false'
   46 |           alternative: Block
   47 |             statements[0]: PrintStatement
   48 |               expression: IdentifierExpression name='y'
