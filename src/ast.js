@@ -47,6 +47,24 @@ export class PrintStatement {
   }
 }
 
+export class IfStatement {
+  constructor(test, consequent, alternative) {
+    Object.assign(this, { test, consequent, alternative })
+  }
+}
+
+export class WhileStatement {
+  constructor(test, body) {
+    Object.assign(this, { test, body })
+  }
+}
+
+export class Block {
+  constructor(statements) {
+    this.statements = statements
+  }
+}
+
 export class OrExpression {
   constructor(disjuncts) {
     Object.assign(this, { disjuncts })
