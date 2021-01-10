@@ -23,7 +23,7 @@ export default function generate(program) {
 
   const generators = {
     Program(p) {
-      p.statements.forEach(gen)
+      gen(p.statements)
     },
     Declaration(d) {
       output.push(`let ${targetName(d)} = ${gen(d.initializer)};`)
@@ -33,14 +33,16 @@ export default function generate(program) {
       const target = gen(s.target)
       output.push(`${target} = ${source};`)
     },
+    IfStatement(s) {},
+    WhileStatement(s) {},
     PrintStatement(s) {
       output.push(`console.log(${gen(s.expression)});`)
     },
     OrExpression(e) {
-      return `(${e.disjuncts.map(gen).join(" || ")})`
+      return `(${gen(e.disjuncts).join(" || ")})`
     },
     AndExpression(e) {
-      return `(${e.conjuncts.map(gen).join(" && ")})`
+      return `(${gen(e.conjuncts).join(" && ")})`
     },
     BinaryExpression(e) {
       const op = { "==": "===", "!=": "!==" }[e.op] ?? e.op
@@ -55,6 +57,9 @@ export default function generate(program) {
     },
     LiteralExpression(e) {
       return e.value
+    },
+    Array(a) {
+      return a.map(gen)
     },
   }
 
