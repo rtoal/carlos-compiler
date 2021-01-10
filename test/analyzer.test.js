@@ -44,6 +44,21 @@ const semanticErrors = [
   ["assign to true", "true = 1<1", /Cannot assign to constant true/],
   ["redeclare false", "let false = 1<1", /Identifier false already declared/],
   ["assign to false", "false = 1<1", /Cannot assign to constant false/],
+  ["assign bad type", "let x=1\nx=true", /'=' operands must have same types/],
+  ["bad types for ||", "print false||1", /'\|\|' operand must be a boolean/],
+  ["bad types for &&", "print false&&1", /'&&' operand must be a boolean/],
+  ["bad types for +", "print false+1", /'\+' operand must be a number/],
+  ["bad types for -", "print false-1", /'-' operand must be a number/],
+  ["bad types for *", "print false*1", /'\*' operand must be a number/],
+  ["bad types for /", "print false/1", /'\/' operand must be a number/],
+  ["bad types for **", "print false**1", /'\*\*' operand must be a number/],
+  ["bad types for <", "print false<1", /'<' operand must be a number/],
+  ["bad types for <=", "print false<=1", /'<=' operand must be a number/],
+  ["bad types for >", "print false>1", /'>' operand must be a number/],
+  ["bad types for >=", "print false>=1", /'>=' operand must be a number/],
+  ["bad types for sqrt", "print sqrt true", /sqrt' operand must be a number/],
+  ["bad types for abs", "print abs true", /'abs' operand must be a number/],
+  ["bad types for negation", "print -true", /'-' operand must be a number/],
 ]
 
 describe("The analyzer", () => {

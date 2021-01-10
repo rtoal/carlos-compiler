@@ -129,14 +129,9 @@ const analyzers = {
   },
   UnaryExpression(e, context) {
     analyze(e.operand, context)
-    if (e.op === "not") {
-      checkBoolean(e.operand, e.op)
-      e.type = Type.BOOLEAN
-    } else {
-      // All other unary operands (for now) are number -> number
-      checkNumber(e.operand, e.op)
-      e.type = Type.NUMBER
-    }
+    // All unary operands (for now) are number -> number
+    checkNumber(e.operand, e.op)
+    e.type = Type.NUMBER
   },
   IdentifierExpression(e, context) {
     // Tag this variable reference with the declaration it references
@@ -145,6 +140,7 @@ const analyzers = {
     e.type = e.referent.type
   },
   LiteralExpression(e, context) {
+    // We only have numbers and booleans for now
     e.type = typeof e.value === "number" ? Type.NUMBER : Type.BOOLEAN
   },
 }
