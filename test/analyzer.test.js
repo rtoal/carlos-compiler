@@ -4,9 +4,9 @@ import parse from "../src/parser.js"
 import analyze from "../src/analyzer.js"
 
 const source = `let two = 2 - 0
-  print(1 * two)   // TADA 🥑 
+  print (1 * two) / 1   // TADA 🥑 
   two = sqrt 101.3E-5
-  const x = true + true`
+  const x = 1 < 5 || false == true`
 
 const expectedAst = String.raw`   1 | program: Program
    2 |   statements[0]: Declaration name='two' readOnly=false
@@ -14,28 +14,36 @@ const expectedAst = String.raw`   1 | program: Program
    4 |       left: LiteralExpression value=2
    5 |       right: LiteralExpression value=0
    6 |   statements[1]: PrintStatement
-   7 |     expression: BinaryExpression op='*'
-   8 |       left: LiteralExpression value=1
-   9 |       right: IdentifierExpression name='two' referent=$2
-  10 |   statements[2]: Assignment
-  11 |     target: IdentifierExpression name='two' referent=$2
-  12 |     source: UnaryExpression op='sqrt'
-  13 |       operand: LiteralExpression value=0.001013
-  14 |   statements[3]: Declaration name='x' readOnly=true
-  15 |     initializer: BinaryExpression op='+'
-  16 |       left: IdentifierExpression name='true'
-  17 |         referent: Declaration name='true' readOnly=true
-  18 |           initializer: LiteralExpression value=true
-  19 |       right: IdentifierExpression name='true' referent=$17`
+   7 |     expression: BinaryExpression op='/'
+   8 |       left: BinaryExpression op='*'
+   9 |         left: LiteralExpression value=1
+  10 |         right: IdentifierExpression name='two' referent=$2
+  11 |       right: LiteralExpression value=1
+  12 |   statements[2]: Assignment
+  13 |     target: IdentifierExpression name='two' referent=$2
+  14 |     source: UnaryExpression op='sqrt'
+  15 |       operand: LiteralExpression value=0.001013
+  16 |   statements[3]: Declaration name='x' readOnly=true
+  17 |     initializer: OrExpression
+  18 |       disjuncts[0]: BinaryExpression op='<'
+  19 |         left: LiteralExpression value=1
+  20 |         right: LiteralExpression value=5
+  21 |       disjuncts[1]: BinaryExpression op='=='
+  22 |         left: IdentifierExpression name='false'
+  23 |           referent: Declaration name='false' readOnly=true
+  24 |             initializer: LiteralExpression value=false
+  25 |         right: IdentifierExpression name='true'
+  26 |           referent: Declaration name='true' readOnly=true
+  27 |             initializer: LiteralExpression value=true`
 
 const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
   ["non declared ids", "let x = 1\nlet x = 1", /Identifier x already declared/],
   ["assign to const", "const x = 1\nx = 2", /Cannot assign to constant x/],
-  ["redeclare true", "let true = 1", /Identifier true already declared/],
-  ["assign to true", "true = 1", /Cannot assign to constant true/],
-  ["redeclare false", "let false = 1", /Identifier false already declared/],
-  ["assign to false", "false = 1", /Cannot assign to constant false/],
+  ["redeclare true", "let true = 1<1", /Identifier true already declared/],
+  ["assign to true", "true = 1<1", /Cannot assign to constant true/],
+  ["redeclare false", "let false = 1<1", /Identifier false already declared/],
+  ["assign to false", "false = 1<1", /Cannot assign to constant false/],
 ]
 
 describe("The analyzer", () => {

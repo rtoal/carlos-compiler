@@ -21,6 +21,14 @@ export class Program {
   }
 }
 
+export class Type {
+  constructor(name) {
+    this.name = name
+  }
+  static BOOLEAN = new Type("boolean")
+  static NUMBER = new Type("number")
+}
+
 export class Declaration {
   constructor(name, readOnly, initializer) {
     Object.assign(this, { name, readOnly, initializer })
@@ -87,7 +95,9 @@ function prettied(node) {
     let descriptor = `${" ".repeat(indent)}${prefix}: ${node.constructor.name}`
     let [simpleProps, complexProps] = ["", []]
     for (const [prop, child] of Object.entries(node)) {
-      if (seen.has(child)) {
+      if (prop === "type") {
+        continue
+      } else if (seen.has(child)) {
         simpleProps += ` ${prop}=$${seen.get(child)}`
       } else if (Array.isArray(child) || (child && typeof child == "object")) {
         complexProps.push([prop, child])

@@ -4,7 +4,7 @@
 // Checks are made relative to a semantic context that is passed to the analyzer
 // function for each node.
 
-import { Declaration, LiteralExpression } from "./ast.js"
+import { Declaration, LiteralExpression, Type } from "./ast.js"
 
 class Context {
   constructor(context) {
@@ -36,14 +36,38 @@ class Context {
     // identifiers. In our case, so far, the only predefined identifiers
     // are the *constants* false and true.
     const context = new Context()
-    context.addDeclaration(
-      new Declaration("false", true, new LiteralExpression(false))
-    )
-    context.addDeclaration(
-      new Declaration("true", true, new LiteralExpression(true))
-    )
+    const builtIns = [
+      new Declaration("false", true, new LiteralExpression(false)),
+      new Declaration("true", true, new LiteralExpression(true)),
+    ]
+    for (let d of builtIns) {
+      context.addDeclaration(d)
+      d.type = Type.BOOLEAN
+    }
     return context
   }
+}
+
+function check(condition, errorMessage) {
+  if (!condition) {
+    throw new Error(errorMessage)
+  }
+}
+
+function checkNumber(e, op) {
+  check(e.type === Type.NUMBER, `'${op}' operand must be a number`)
+}
+
+function checkBoolean(e, op) {
+  check(e.type === Type.BOOLEAN, `'${op}' operand must be a boolean`)
+}
+
+function checkSameTypes(e1, e2, op) {
+  check(e1.type === e2.type, `'${op}' operands must have same types`)
+}
+
+function checkNotReadOnly(e) {
+  check(!e.readOnly, `Cannot assign to constant ${e.name}`)
 }
 
 export default function analyze(node, context = Context.initial) {
@@ -59,15 +83,16 @@ const analyzers = {
   },
   Declaration(d, context) {
     analyze(d.initializer, context)
+    // Tag this variable with the type of the expression initializing it
+    d.type = d.initializer.type
     // Record this variable in the context since we might have to look it up
     context.addDeclaration(d)
   },
   Assignment(s, context) {
     analyze(s.source, context)
     analyze(s.target, context)
-    if (s.target.referent.readOnly) {
-      throw new Error(`Cannot assign to constant ${s.target.referent.name}`)
-    }
+    checkSameTypes(s.target, s.source, "=")
+    checkNotReadOnly(s.target.referent)
   },
   PrintStatement(s, context) {
     analyze(s.expression, context)
@@ -75,25 +100,51 @@ const analyzers = {
   OrExpression(e, context) {
     for (const disjunct of e.disjuncts) {
       analyze(disjunct, context)
+      checkBoolean(disjunct, "||")
     }
+    e.type = Type.BOOLEAN
   },
   AndExpression(e, context) {
     for (const conjunct of e.conjuncts) {
       analyze(conjunct, context)
+      checkBoolean(conjunct, "&&")
     }
+    e.type = Type.BOOLEAN
   },
   BinaryExpression(e, context) {
     analyze(e.left, context)
     analyze(e.right, context)
+    if (["+", "-", "*", "/", "**"].includes(e.op)) {
+      checkNumber(e.left, e.op)
+      checkNumber(e.right, e.op)
+      e.type = Type.NUMBER
+    } else if (["<", "<=", ">", ">="].includes(e.op)) {
+      checkNumber(e.left, e.op)
+      checkNumber(e.right, e.op)
+      e.type = Type.BOOLEAN
+    } else if (["==", "!="].includes(e.op)) {
+      checkSameTypes(e.left, e.right, e.op)
+      e.type = Type.BOOLEAN
+    }
   },
   UnaryExpression(e, context) {
     analyze(e.operand, context)
+    if (e.op === "not") {
+      checkBoolean(e.operand, e.op)
+      e.type = Type.BOOLEAN
+    } else {
+      // All other unary operands (for now) are number -> number
+      checkNumber(e.operand, e.op)
+      e.type = Type.NUMBER
+    }
   },
   IdentifierExpression(e, context) {
     // Tag this variable reference with the declaration it references
     e.referent = context.lookup(e.name)
+    // And for convenience, mark the reference itself with a type
+    e.type = e.referent.type
   },
   LiteralExpression(e, context) {
-    // There is LITERALly nothing to analyze here (sorry)
+    e.type = typeof e.value === "number" ? Type.NUMBER : Type.BOOLEAN
   },
 }
