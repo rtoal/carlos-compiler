@@ -11,6 +11,8 @@
 //   - turn references to built-ins true and false to be literals
 //   - remove all disjuncts in || list after literal true
 //   - remove all conjuncts in && list after literal false
+//   - while-false becomes a no-op
+//   - if-true and if-false reduce to only the taken arm
 
 import {
   IdentifierExpression,

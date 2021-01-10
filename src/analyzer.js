@@ -115,11 +115,6 @@ const analyzers = {
       analyze(s.alternative, context)
     }
   },
-  Block(b, context) {
-    for (const s of b.statements) {
-      analyze(s, context)
-    }
-  },
   OrExpression(e, context) {
     for (const disjunct of e.disjuncts) {
       analyze(disjunct, context)
