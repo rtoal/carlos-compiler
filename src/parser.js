@@ -11,6 +11,11 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Statement = (let | const) id "=" Exp        --declare
             | id "=" Exp                      --assign
             | print Exp                       --print
+            | WhileStmt
+            | IfStmt
+  WhileStmt = while Exp Block
+  IfStmt    = if Exp Block (else (Block | IfStmt))?
+  Block     = "{" Statement* "}"
   Exp       = Exp1 ("||" Exp1)+               --or
             | Exp1 ("&&" Exp1)+               --and
             | Exp1
@@ -31,9 +36,12 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   let       = "let" ~alnum
   const     = "const" ~alnum
   print     = "print" ~alnum
+  if        = "if" ~alnum
+  while     = "while" ~alnum
+  else      = "else" ~alnum
   abs       = "abs" ~alnum
   sqrt      = "sqrt" ~alnum
-  keyword   = let | const | print | abs | sqrt
+  keyword   = let | const | print | if | while | else | abs | sqrt
   id        = ~keyword letter alnum*
   space    += "//" (~"\n" any)* ("\n" | end)  --comment
 }`)
@@ -57,6 +65,19 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   },
   Statement_print(_print, expression) {
     return new ast.PrintStatement(expression.ast())
+  },
+  WhileStmt(_while, test, body) {
+    return new ast.WhileStatement(test.ast(), body.ast())
+  },
+  IfStmt(_if, test, consequent, _elses, alternatives) {
+    return new ast.IfStatement(
+      test.ast(),
+      consequent.ast(),
+      alternatives.ast().length > 0 ? alternatives.ast()[0] : null
+    )
+  },
+  Block(_open, body, _close) {
+    return new ast.Block(body.ast())
   },
   Exp_or(first, _ors, rest) {
     return new ast.OrExpression([first.ast(), ...rest.ast()])
