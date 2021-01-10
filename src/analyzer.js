@@ -4,7 +4,7 @@
 // Checks are made relative to a semantic context that is passed to the analyzer
 // function for each node.
 
-import { Declaration, LiteralExpression, Type, Block } from "./ast.js"
+import { Declaration, LiteralExpression, Type } from "./ast.js"
 
 class Context {
   constructor(parent = null) {
@@ -82,9 +82,7 @@ export default function analyze(node, context = Context.initial) {
 
 const analyzers = {
   Program(p, context) {
-    for (const s of p.statements) {
-      analyze(s, context)
-    }
+    analyze(p.statements, context)
   },
   Declaration(d, context) {
     analyze(d.initializer, context)
@@ -105,13 +103,15 @@ const analyzers = {
   WhileStatement(s, context) {
     analyze(s.test, context)
     checkBoolean(s.test, "while")
-    analyze(s.body, context.newChild())
+    const bodyContext = context.newChild()
+    s.body.forEach(s => analyze(s, bodyContext))
   },
   IfStatement(s, context) {
     analyze(s.test, context)
     checkBoolean(s.test, "if")
     analyze(s.consequent, context.newChild())
-    if (s.alternative?.constructor === Block) {
+    if (s.alternative?.constructor === Array) {
+      // It's a block of statements, make a new context
       analyze(s.alternative, context.newChild())
     } else if (s.alternative) {
       // It's a trailing if-statement, so same context
@@ -168,5 +168,8 @@ const analyzers = {
   LiteralExpression(e, context) {
     // We only have numbers and booleans for now
     e.type = typeof e.value === "number" ? Type.NUMBER : Type.BOOLEAN
+  },
+  Array(a, context) {
+    a.forEach(s => analyze(s, context))
   },
 }

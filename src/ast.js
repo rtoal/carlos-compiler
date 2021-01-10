@@ -59,12 +59,6 @@ export class WhileStatement {
   }
 }
 
-export class Block {
-  constructor(statements) {
-    this.statements = statements
-  }
-}
-
 export class OrExpression {
   constructor(disjuncts) {
     Object.assign(this, { disjuncts })

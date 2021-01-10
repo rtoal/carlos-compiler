@@ -4,7 +4,7 @@ import parse from "../src/parser.js"
 import analyze from "../src/analyzer.js"
 
 const source = `let x = 1024 - 0
-  while x < 3 {
+  while x > 3 {
     let y = false && (true || 2 >= x)
     x = (0 + x) / 2 ** 1
     if false {
@@ -24,54 +24,50 @@ const expectedAst = String.raw`   1 | program: Program
    4 |       left: LiteralExpression value=1024
    5 |       right: LiteralExpression value=0
    6 |   statements[1]: WhileStatement
-   7 |     test: BinaryExpression op='<'
+   7 |     test: BinaryExpression op='>'
    8 |       left: IdentifierExpression name='x' referent=$2
    9 |       right: LiteralExpression value=3
-  10 |     body: Block
-  11 |       statements[0]: Declaration name='y' readOnly=false
-  12 |         initializer: AndExpression
-  13 |           conjuncts[0]: IdentifierExpression name='false'
-  14 |             referent: Declaration name='false' readOnly=true
-  15 |               initializer: LiteralExpression value=false
-  16 |           conjuncts[1]: OrExpression
-  17 |             disjuncts[0]: IdentifierExpression name='true'
-  18 |               referent: Declaration name='true' readOnly=true
-  19 |                 initializer: LiteralExpression value=true
-  20 |             disjuncts[1]: BinaryExpression op='>='
-  21 |               left: LiteralExpression value=2
-  22 |               right: IdentifierExpression name='x' referent=$2
-  23 |       statements[1]: Assignment
-  24 |         target: IdentifierExpression name='x' referent=$2
-  25 |         source: BinaryExpression op='/'
-  26 |           left: BinaryExpression op='+'
-  27 |             left: LiteralExpression value=0
-  28 |             right: IdentifierExpression name='x' referent=$2
-  29 |           right: BinaryExpression op='**'
-  30 |             left: LiteralExpression value=2
-  31 |             right: LiteralExpression value=1
-  32 |       statements[2]: IfStatement
-  33 |         test: IdentifierExpression name='false' referent=$14
-  34 |         consequent: Block
-  35 |           statements[0]: Declaration name='hello' readOnly=true
-  36 |             initializer: BinaryExpression op='-'
-  37 |               left: BinaryExpression op='-'
-  38 |                 left: UnaryExpression op='sqrt'
-  39 |                   operand: LiteralExpression value=100
-  40 |                 right: UnaryExpression op='abs'
-  41 |                   operand: LiteralExpression value=3.1
-  42 |               right: LiteralExpression value=3
-  43 |           statements[1]: PrintStatement
-  44 |             expression: LiteralExpression value=1
-  45 |         alternative: IfStatement
-  46 |           test: IdentifierExpression name='true' referent=$18
-  47 |           consequent: Block
-  48 |             statements[0]: Declaration name='hello' readOnly=false
-  49 |               initializer: IdentifierExpression name='false' referent=$14
-  50 |           alternative: Block
-  51 |             statements[0]: PrintStatement
-  52 |               expression: IdentifierExpression name='y' referent=$11
-  53 |       statements[3]: PrintStatement
-  54 |         expression: IdentifierExpression name='x' referent=$2`
+  10 |     body[0]: Declaration name='y' readOnly=false
+  11 |       initializer: AndExpression
+  12 |         conjuncts[0]: IdentifierExpression name='false'
+  13 |           referent: Declaration name='false' readOnly=true
+  14 |             initializer: LiteralExpression value=false
+  15 |         conjuncts[1]: OrExpression
+  16 |           disjuncts[0]: IdentifierExpression name='true'
+  17 |             referent: Declaration name='true' readOnly=true
+  18 |               initializer: LiteralExpression value=true
+  19 |           disjuncts[1]: BinaryExpression op='>='
+  20 |             left: LiteralExpression value=2
+  21 |             right: IdentifierExpression name='x' referent=$2
+  22 |     body[1]: Assignment
+  23 |       target: IdentifierExpression name='x' referent=$2
+  24 |       source: BinaryExpression op='/'
+  25 |         left: BinaryExpression op='+'
+  26 |           left: LiteralExpression value=0
+  27 |           right: IdentifierExpression name='x' referent=$2
+  28 |         right: BinaryExpression op='**'
+  29 |           left: LiteralExpression value=2
+  30 |           right: LiteralExpression value=1
+  31 |     body[2]: IfStatement
+  32 |       test: IdentifierExpression name='false' referent=$13
+  33 |       consequent[0]: Declaration name='hello' readOnly=true
+  34 |         initializer: BinaryExpression op='-'
+  35 |           left: BinaryExpression op='-'
+  36 |             left: UnaryExpression op='sqrt'
+  37 |               operand: LiteralExpression value=100
+  38 |             right: UnaryExpression op='abs'
+  39 |               operand: LiteralExpression value=3.1
+  40 |           right: LiteralExpression value=3
+  41 |       consequent[1]: PrintStatement
+  42 |         expression: LiteralExpression value=1
+  43 |       alternative: IfStatement
+  44 |         test: IdentifierExpression name='true' referent=$17
+  45 |         consequent[0]: Declaration name='hello' readOnly=false
+  46 |           initializer: IdentifierExpression name='false' referent=$13
+  47 |         alternative[0]: PrintStatement
+  48 |           expression: IdentifierExpression name='y' referent=$10
+  49 |     body[3]: PrintStatement
+  50 |       expression: IdentifierExpression name='x' referent=$2`
 
 const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
