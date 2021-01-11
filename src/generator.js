@@ -39,7 +39,7 @@ export default function generate(program) {
       output.push(`if (${gen(s.test)}) {`)
       gen(s.consequent)
       if (s.alternative.constructor === IfStatement) {
-        output.push("} else ")
+        output.push("} else")
         gen(s.alternative)
       } else {
         output.push("} else {")
