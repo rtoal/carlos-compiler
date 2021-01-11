@@ -36,13 +36,10 @@ class Context {
     // identifiers. In our case, so far, the only predefined identifiers
     // are the *constants* false and true.
     const context = new Context()
-    const builtIns = [
-      new Declaration("false", true, new LiteralExpression(false)),
-      new Declaration("true", true, new LiteralExpression(true)),
-    ]
-    for (let d of builtIns) {
-      context.addDeclaration(d)
-      d.type = Type.BOOLEAN
+    for (let [name, value] of Object.entries({ false: false, true: true })) {
+      const literal = new LiteralExpression(value)
+      const declaration = new Declaration(name, true, literal)
+      analyze(declaration, context)
     }
     return context
   }
@@ -139,7 +136,7 @@ const analyzers = {
     // And for convenience, mark the reference itself with a type
     e.type = e.referent.type
   },
-  LiteralExpression(e, context) {
+  LiteralExpression(e) {
     // We only have numbers and booleans for now
     e.type = typeof e.value === "number" ? Type.NUMBER : Type.BOOLEAN
   },
