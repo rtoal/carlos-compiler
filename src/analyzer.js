@@ -107,13 +107,18 @@ const analyzers = {
     analyze(s.test, context)
     checkBoolean(s.test, "if")
     analyze(s.consequent, context.newChild())
-    if (s.alternative?.constructor === Array) {
+    if (s.alternative.constructor === Array) {
       // It's a block of statements, make a new context
       analyze(s.alternative, context.newChild())
     } else if (s.alternative) {
       // It's a trailing if-statement, so same context
       analyze(s.alternative, context)
     }
+  },
+  ShortIfStatement(s, context) {
+    analyze(s.test, context)
+    checkBoolean(s.test, "if")
+    analyze(s.consequent, context.newChild())
   },
   OrExpression(e, context) {
     for (const disjunct of e.disjuncts) {

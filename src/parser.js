@@ -70,11 +70,13 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
     return new ast.WhileStatement(test.ast(), body.ast())
   },
   IfStmt(_if, test, consequent, _elses, alternatives) {
-    return new ast.IfStatement(
-      test.ast(),
-      consequent.ast(),
-      alternatives.ast().length > 0 ? alternatives.ast()[0] : null
-    )
+    let testTree = test.ast()
+    let consequentTree = consequent.ast()
+    let alternativesTree = alternatives.ast()
+    if (alternativesTree.length === 0) {
+      return new ast.ShortIfStatement(testTree, consequentTree)
+    }
+    return new ast.IfStatement(testTree, consequentTree, alternativesTree[0])
   },
   Block(_open, body, _close) {
     // This one is fun, don't wrap the statements, just return the list

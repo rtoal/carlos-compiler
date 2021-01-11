@@ -3,6 +3,8 @@
 // Invoke generate(program) with the program node to get back the JavaScript
 // translation as a string.
 
+import { IfStatement } from "./ast.js"
+
 export default function generate(program) {
   const output = []
 
@@ -33,8 +35,28 @@ export default function generate(program) {
       const target = gen(s.target)
       output.push(`${target} = ${source};`)
     },
-    IfStatement(s) {},
-    WhileStatement(s) {},
+    IfStatement(s) {
+      output.push(`if (${gen(s.test)}) {`)
+      gen(s.consequent)
+      if (s.alternative.constructor === IfStatement) {
+        output.push("} else ")
+        gen(s.alternative)
+      } else {
+        output.push("} else {")
+        gen(s.alternative)
+        output.push("}")
+      }
+    },
+    ShortIfStatement(s) {
+      output.push(`if (${gen(s.test)}) {`)
+      gen(s.consequent)
+      output.push("}")
+    },
+    WhileStatement(s) {
+      output.push(`while (${gen(s.test)}) {`)
+      gen(s.body)
+      output.push("}")
+    },
     PrintStatement(s) {
       output.push(`console.log(${gen(s.expression)});`)
     },

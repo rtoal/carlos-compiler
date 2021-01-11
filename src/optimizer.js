@@ -58,6 +58,14 @@ const optimizers = {
     }
     return s
   },
+  ShortIfStatement(s) {
+    s.test = optimize(s.test)
+    s.consequent = optimize(s.consequent)
+    if (s.test.constructor === LiteralExpression) {
+      return s.test.value ? s.consequent : null
+    }
+    return s
+  },
   WhileStatement(s) {
     s.test = optimize(s.test)
     if (s.test.constructor === LiteralExpression && !s.test.value) {

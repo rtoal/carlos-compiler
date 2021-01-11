@@ -39,8 +39,10 @@ const unaryOptimizationFixture = [
 const statementOptimizationFixture = [
   ["removes x=x at end", "let x = 0\nx = x", "let x = 0"],
   ["removes x=x in middle", "let x = 0\nx = x\nprint x", "let x = 0\nprint x"],
-  ["optimizes if-true", "if (true) {print 1 + 1}", "print 2"],
+  ["optimizes if-true", "if (true) {print 1 + 1} else {}", "print 2"],
   ["optimizes if-false", "if (false) {} else {print 1}", "print 1"],
+  ["optimizes short-if-true", "if (true) {print 1 + 1}", "print 2"],
+  ["optimizes short-if-false", "print 8\nif (false) {print 1}", "print 8"],
   ["optimizes while-false", "print 1\nwhile false {print 2}", "print 1"],
   ["applies if-false after folding", "if (1 == 1) {print 1}", "print 1"],
 ]

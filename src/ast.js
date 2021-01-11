@@ -53,6 +53,12 @@ export class IfStatement {
   }
 }
 
+export class ShortIfStatement {
+  constructor(test, consequent) {
+    Object.assign(this, { test, consequent })
+  }
+}
+
 export class WhileStatement {
   constructor(test, body) {
     Object.assign(this, { test, body })
