@@ -38,9 +38,7 @@ export default function analyze(node, context = new Context()) {
 
 const analyzers = {
   Program(p, context) {
-    for (const s of p.statements) {
-      analyze(s, context)
-    }
+    analyze(p.statements, context)
   },
   Declaration(d, context) {
     analyze(d.initializer, context)
@@ -67,5 +65,8 @@ const analyzers = {
   },
   LiteralExpression(e, context) {
     // There is LITERALly nothing to analyze here (sorry)
+  },
+  Array(a, context) {
+    a.forEach(s => analyze(s, context))
   },
 }
