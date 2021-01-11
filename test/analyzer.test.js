@@ -94,6 +94,11 @@ const semanticErrors = [
   ["bad types for negation", "print -true", /'-' operand must be a number/],
   ["non-boolean if test", "if 1 {}", /if' operand must be a boolean/],
   ["non-boolean while test", "while 1 {}", /while' operand must be a boolean/],
+  [
+    "shadowing",
+    "let x = 1\nwhile true {let x = 1}",
+    /Identifier x already declared/,
+  ],
 ]
 
 describe("The analyzer", () => {
