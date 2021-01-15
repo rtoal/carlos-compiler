@@ -9,10 +9,13 @@ import { Declaration, LiteralExpression, Type } from "./ast.js"
 class Context {
   constructor(parent = null) {
     // This is where we maintain the local variables of a block as well as
-    // a reference to the parent context for static scope analysis. Later
-    // we will have more to record.
+    // a reference to the parent context for static scope analysis. Our
+    // language does not have functions yet, but we do have to keep track
+    // of whether we are in a loop, to make sure breaks and continues are
+    // legal
     this.parent = parent
     this.locals = new Map()
+    this.inLoop = false
   }
   sees(name) {
     return this.locals.has(name) || this.parent?.sees(name)
@@ -32,8 +35,9 @@ class Context {
     }
     throw new Error(`Identifier ${name} not declared`)
   }
-  newChild() {
+  newChild({ inLoop } = { inLoop: false }) {
     const childContext = new Context(this)
+    childContext.inLoop = inLoop
     return childContext
   }
   static get initial() {
@@ -72,6 +76,10 @@ function checkNotReadOnly(e) {
   check(!e.readOnly, `Cannot assign to constant ${e.name}`)
 }
 
+function checkInLoop(context, disruptor) {
+  check(context.inLoop, `'${disruptor}' can only appear in a loop`)
+}
+
 export default function analyze(node, context = Context.initial) {
   analyzers[node.constructor.name](node, context)
   return node
@@ -100,7 +108,7 @@ const analyzers = {
   WhileStatement(s, context) {
     analyze(s.test, context)
     checkBoolean(s.test, "while")
-    const bodyContext = context.newChild()
+    const bodyContext = context.newChild({ inLoop: true })
     s.body.forEach(s => analyze(s, bodyContext))
   },
   IfStatement(s, context) {
@@ -119,6 +127,12 @@ const analyzers = {
     analyze(s.test, context)
     checkBoolean(s.test, "if")
     analyze(s.consequent, context.newChild())
+  },
+  BreakStatement(s, context) {
+    checkInLoop(context, "break")
+  },
+  ContinueStatement(s, context) {
+    checkInLoop(context, "continue")
   },
   OrExpression(e, context) {
     for (const disjunct of e.disjuncts) {

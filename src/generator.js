@@ -57,6 +57,12 @@ export default function generate(program) {
       gen(s.body)
       output.push("}")
     },
+    BreakStatement(s) {
+      output.push("break;")
+    },
+    ContinueStatement(s) {
+      output.push("continue;")
+    },
     PrintStatement(s) {
       output.push(`console.log(${gen(s.expression)});`)
     },

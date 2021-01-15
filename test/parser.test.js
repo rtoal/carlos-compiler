@@ -13,6 +13,8 @@ const source = `let x = 1024 - 0
       let hello = false // A different hello
     } else {
       print y
+      break
+      continue
     }
     print x   // TADA 🥑
   }`
@@ -61,8 +63,10 @@ const expectedAst = `   1 | program: Program
   42 |           initializer: IdentifierExpression name='false'
   43 |         alternative[0]: PrintStatement
   44 |           expression: IdentifierExpression name='y'
-  45 |     body[3]: PrintStatement
-  46 |       expression: IdentifierExpression name='x'`
+  45 |         alternative[1]: BreakStatement
+  46 |         alternative[2]: ContinueStatement
+  47 |     body[3]: PrintStatement
+  48 |       expression: IdentifierExpression name='x'`
 
 const syntaxChecks = [
   ["integers and floating point literals", "print 8 * 899.123"],

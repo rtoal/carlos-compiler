@@ -75,6 +75,12 @@ const optimizers = {
     s.body = optimize(s.body)
     return s
   },
+  BreakStatement(s) {
+    return s
+  },
+  ContinueStatement(s) {
+    return s
+  },
   OrExpression(e) {
     // Get rid of all disjuncts after a literal true
     const optimizedDisjuncts = []

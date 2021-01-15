@@ -74,6 +74,8 @@ const fixtures = [
         y = y + 1
       }
       x = x + 1
+      continue
+      break
     }
   `,
     expected: dedent`
@@ -85,6 +87,8 @@ const fixtures = [
       y_2 = (y_2 + 1);
       }
       x_1 = (x_1 + 1);
+      continue;
+      break;
       }
     `,
   },

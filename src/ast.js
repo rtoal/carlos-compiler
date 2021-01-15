@@ -65,6 +65,14 @@ export class WhileStatement {
   }
 }
 
+export class BreakStatement {
+  // Intentionally empty
+}
+
+export class ContinueStatement {
+  // Intentionally empty
+}
+
 export class OrExpression {
   constructor(disjuncts) {
     Object.assign(this, { disjuncts })

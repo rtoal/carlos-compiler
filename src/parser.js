@@ -13,6 +13,8 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
             | print Exp                       --print
             | WhileStmt
             | IfStmt
+            | break                           --break
+            | continue                        --continue
   WhileStmt = while Exp Block
   IfStmt    = if Exp Block (else (Block | IfStmt))?
   Block     = "{" Statement* "}"
@@ -39,9 +41,12 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   if        = "if" ~alnum
   while     = "while" ~alnum
   else      = "else" ~alnum
+  break     = "break" ~alnum
+  continue  = "continue" ~alnum
   abs       = "abs" ~alnum
   sqrt      = "sqrt" ~alnum
-  keyword   = let | const | print | if | while | else | abs | sqrt
+  keyword   = let | const | print | if | while | else | break 
+            | continue | abs | sqrt
   id        = ~keyword letter alnum*
   space    += "//" (~"\n" any)* ("\n" | end)  --comment
 }`)
@@ -77,6 +82,12 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
       return new ast.ShortIfStatement(testTree, consequentTree)
     }
     return new ast.IfStatement(testTree, consequentTree, alternativesTree[0])
+  },
+  Statement_break(_break) {
+    return new ast.BreakStatement()
+  },
+  Statement_continue(_continue) {
+    return new ast.ContinueStatement()
   },
   Block(_open, body, _close) {
     // This one is fun, don't wrap the statements, just return the list
