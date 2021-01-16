@@ -8,13 +8,21 @@ import * as ast from "./ast.js"
 
 const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Program   = Statement+
-  Statement = (let | const) id "=" Exp        --declare
+  Statement = VarDecl
+            | FunDecl
             | id "=" Exp                      --assign
+            | id "(" Args ")"                 --call
             | print Exp                       --print
             | WhileStmt
             | IfStmt
             | break                           --break
             | continue                        --continue
+            | return Exp?                     --return
+  VarDecl   = (let | const) id "=" Exp
+  FunDecl   = function id Params ":" TypeExp Block
+  Params    = "(" Binding ("," Binding)* ")"
+  Binding   = id ":" TypeExp
+  TypeExp   = id
   WhileStmt = while Exp Block
   IfStmt    = if Exp Block (else (Block | IfStmt))?
   Block     = "{" Statement* "}"
@@ -30,23 +38,27 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Exp4      = Exp5 "**" Exp4                  --binary
             | Exp5
             | ("-" | abs | sqrt) Exp5         --unary
-  Exp5      = id
+  Exp5      = id "(" Args ")"                 --call
+            | id
             | num
             | "(" Exp ")"                     --parens
+  Args      = Exp ("," Exp)*
   relop     = "<=" | "<" | "==" | "!=" | ">=" | ">"
   num       = digit+ ("." digit+)? (("E" | "e") ("+" | "-")? digit+)?
   let       = "let" ~alnum
   const     = "const" ~alnum
+  function  = "function" ~alnum
   print     = "print" ~alnum
   if        = "if" ~alnum
   while     = "while" ~alnum
   else      = "else" ~alnum
   break     = "break" ~alnum
   continue  = "continue" ~alnum
+  return    = "return" ~alnum
   abs       = "abs" ~alnum
   sqrt      = "sqrt" ~alnum
   keyword   = let | const | print | if | while | else | break 
-            | continue | abs | sqrt
+            | continue | return | abs | sqrt
   id        = ~keyword letter alnum*
   space    += "//" (~"\n" any)* ("\n" | end)  --comment
 }`)
@@ -55,18 +67,28 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Program(body) {
     return new ast.Program(body.ast())
   },
-  Statement_declare(kind, id, _eq, expression) {
-    return new ast.Declaration(
-      id.sourceString,
-      kind.sourceString === "const",
-      expression.ast()
-    )
+  VarDecl(kind, id, _eq, expression) {
+    const name = id.sourceString
+    const readOnly = kind.sourceString === "const"
+    return new ast.Declaration(name, readOnly, expression.ast())
+  },
+  FunDecl(_fun, id, params, _colon, type, block) {
+    return new ast.Function(id.ast(), params.ast(), type.ast(), block.ast())
+  },
+  Params(_left, binding, _commas, moreBindings, _right) {
+    return [binding.ast(), ...moreBindings.ast()]
+  },
+  Binding(id, _colon, type) {
+    return new Binding(id.sourceString, type.ast())
+  },
+  TypeExp(id) {
+    return new TypeExp(id.sourceString)
   },
   Statement_assign(id, _eq, expression) {
-    return new ast.Assignment(
-      new ast.IdentifierExpression(id.sourceString),
-      expression.ast()
-    )
+    return new ast.Assignment(id.ast(), expression.ast())
+  },
+  Statement_call(id, _left, args, _right) {
+    return new ast.Call(id.ast(), args.ast())
   },
   Statement_print(_print, expression) {
     return new ast.PrintStatement(expression.ast())
@@ -88,6 +110,9 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   },
   Statement_continue(_continue) {
     return new ast.ContinueStatement()
+  },
+  Statement_return(_return, expression) {
+    return ReturnStatement(expression.length === 0 ? null : expression[0])
   },
   Block(_open, body, _close) {
     // This one is fun, don't wrap the statements, just return the list
@@ -114,13 +139,19 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Exp4_unary(op, operand) {
     return new ast.UnaryExpression(op.sourceString, operand.ast())
   },
+  Exp5_call(id, _left, args, _right) {
+    return new ast.Call(id.ast(), args.ast())
+  },
   Exp5_parens(_open, expression, _close) {
     return expression.ast()
+  },
+  Args(expression, _commas, moreExpressions) {
+    return [expression.ast(), ...moreExpressions.ast()]
   },
   num(_base, _radix, _fraction, _e, _sign, _exponent) {
     return new ast.LiteralExpression(+this.sourceString)
   },
-  id(_firstChar, _restChars) {
+  id(_firstChar, _moreChars) {
     return new ast.IdentifierExpression(this.sourceString)
   },
 })

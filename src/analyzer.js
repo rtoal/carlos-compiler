@@ -8,47 +8,60 @@ import { Declaration, LiteralExpression, Type } from "./ast.js"
 
 class Context {
   constructor(parent = null) {
-    // This is where we maintain the local variables of a block as well as
-    // a reference to the parent context for static scope analysis. Our
-    // language does not have functions yet, but we do have to keep track
-    // of whether we are in a loop, to make sure breaks and continues are
-    // legal
+    // Parent for static scoping
     this.parent = parent
+
+    // All local declarations. Names map to variable declarations, types, and
+    // function declarations.
     this.locals = new Map()
+
+    // Whether we are in a loop, so that we know whether breaks and continues
+    // are legal here
     this.inLoop = false
+
+    // Whether we are in a function, so that we know whether a return
+    // statement can appear here, and if so, how we typecheck it
+    this.function = null
   }
+
   sees(name) {
     return this.locals.has(name) || this.parent?.sees(name)
   }
-  addDeclaration(variable) {
-    if (this.sees(variable.name)) {
-      throw new Error(`Identifier ${variable.name} already declared`)
+
+  add(name, entity) {
+    if (this.sees(name)) {
+      throw new Error(`Identifier ${name} already declared`)
     }
-    this.locals.set(variable.name, variable)
+    this.locals.set(name, entity)
   }
+
   lookup(name) {
-    const variable = this.locals.get(name)
-    if (variable) {
-      return variable
+    const entity = this.locals.get(name)
+    if (entity) {
+      return entity
     } else if (this.parent) {
       return this.parent.lookup(name)
     }
     throw new Error(`Identifier ${name} not declared`)
   }
-  newChild({ inLoop } = { inLoop: false }) {
+
+  newChild({ inLoop = false, forFunction = null } = {}) {
     const childContext = new Context(this)
     childContext.inLoop = inLoop
+    childContext.function = forFunction
     return childContext
   }
+
   static get initial() {
     // The initial context for a compilation holds all the predefined
-    // identifiers. In our case, so far, the only predefined identifiers
-    // are the *constants* false and true.
+    // identifiers, which so far are the constants true and false and the
+    // types number and boolean.
     const context = new Context()
+    context.add("number", Type.NUMBER)
+    context.add("boolean", Type.BOOLEAN)
     for (let [name, value] of Object.entries({ false: false, true: true })) {
       const literal = new LiteralExpression(value)
-      const declaration = new Declaration(name, true, literal)
-      analyze(declaration, context)
+      analyze(new Declaration(name, true, literal), context)
     }
     return context
   }
@@ -94,8 +107,14 @@ const analyzers = {
     // Tag this variable with the type of the expression initializing it
     d.type = d.initializer.type
     // Record this variable in the context since we might have to look it up
-    context.addDeclaration(d)
+    context.add(d.name, d)
   },
+  NamedTypeExpression(t, context) {
+    // In syntax, it's just a name, but in semantics we find the real type
+    t.referent = context.lookup(t.name)
+  },
+  Function() {},
+  Binding() {},
   Assignment(s, context) {
     analyze(s.source, context)
     analyze(s.target, context)

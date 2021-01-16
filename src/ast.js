@@ -29,6 +29,12 @@ export class Type {
   static NUMBER = new Type("number")
 }
 
+export class NamedTypeExpression {
+  constructor(name) {
+    this.name = name
+  }
+}
+
 export class Declaration {
   constructor(name, readOnly, initializer) {
     Object.assign(this, { name, readOnly, initializer })
@@ -44,6 +50,12 @@ export class Assignment {
 export class PrintStatement {
   constructor(expression) {
     this.expression = expression
+  }
+}
+
+export class Call {
+  constructor(callee, args) {
+    Object.assign(this, { callee, args })
   }
 }
 
