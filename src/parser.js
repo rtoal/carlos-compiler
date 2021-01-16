@@ -19,8 +19,8 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
             | continue                        --continue
             | return Exp?                     --return
   VarDecl   = (let | const) id "=" Exp
-  FunDecl   = function id Params ":" TypeExp Block
-  Params    = "(" Binding ("," Binding)* ")"
+  FunDecl   = function id Params (":" TypeExp)? Block
+  Params    = "(" ListOf<Binding, ","> ")"
   Binding   = id ":" TypeExp
   TypeExp   = id
   WhileStmt = while Exp Block
@@ -42,7 +42,7 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
             | id
             | num
             | "(" Exp ")"                     --parens
-  Args      = Exp ("," Exp)*
+  Args      = ListOf<Exp, ",">
   relop     = "<=" | "<" | "==" | "!=" | ">=" | ">"
   num       = digit+ ("." digit+)? (("E" | "e") ("+" | "-")? digit+)?
   let       = "let" ~alnum
@@ -70,19 +70,24 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   VarDecl(kind, id, _eq, expression) {
     const name = id.sourceString
     const readOnly = kind.sourceString === "const"
-    return new ast.Declaration(name, readOnly, expression.ast())
+    return new ast.VarDeclaration(name, readOnly, expression.ast())
   },
-  FunDecl(_fun, id, params, _colon, type, block) {
-    return new ast.Function(id.ast(), params.ast(), type.ast(), block.ast())
+  FunDecl(_fun, id, parameters, _colon, type, block) {
+    return new ast.FunDeclaration(
+      id.ast(),
+      parameters.ast(),
+      type.ast(),
+      block.ast()
+    )
   },
-  Params(_left, binding, _commas, moreBindings, _right) {
-    return [binding.ast(), ...moreBindings.ast()]
+  Params(_left, bindings, _right) {
+    return bindings.asIteration().ast()
   },
   Binding(id, _colon, type) {
-    return new Binding(id.sourceString, type.ast())
+    return new ast.Binding(id.sourceString, type.ast())
   },
   TypeExp(id) {
-    return new TypeExp(id.sourceString)
+    return new ast.NamedTypeExpression(id.sourceString)
   },
   Statement_assign(id, _eq, expression) {
     return new ast.Assignment(id.ast(), expression.ast())
@@ -97,9 +102,9 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
     return new ast.WhileStatement(test.ast(), body.ast())
   },
   IfStmt(_if, test, consequent, _elses, alternatives) {
-    let testTree = test.ast()
-    let consequentTree = consequent.ast()
-    let alternativesTree = alternatives.ast()
+    const testTree = test.ast()
+    const consequentTree = consequent.ast()
+    const alternativesTree = alternatives.ast()
     if (alternativesTree.length === 0) {
       return new ast.ShortIfStatement(testTree, consequentTree)
     }
@@ -112,7 +117,9 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
     return new ast.ContinueStatement()
   },
   Statement_return(_return, expression) {
-    return ReturnStatement(expression.length === 0 ? null : expression[0])
+    return new ast.ReturnStatement(
+      expression.length === 0 ? null : expression[0]
+    )
   },
   Block(_open, body, _close) {
     // This one is fun, don't wrap the statements, just return the list
@@ -145,8 +152,8 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Exp5_parens(_open, expression, _close) {
     return expression.ast()
   },
-  Args(expression, _commas, moreExpressions) {
-    return [expression.ast(), ...moreExpressions.ast()]
+  Args(expressions) {
+    return expressions.asIteration().ast()
   },
   num(_base, _radix, _fraction, _e, _sign, _exponent) {
     return new ast.LiteralExpression(+this.sourceString)

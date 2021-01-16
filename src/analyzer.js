@@ -4,7 +4,7 @@
 // Checks are made relative to a semantic context that is passed to the analyzer
 // function for each node.
 
-import { Declaration, LiteralExpression, Type } from "./ast.js"
+import { VarDeclaration, LiteralExpression, Type } from "./ast.js"
 
 class Context {
   constructor(parent = null) {
@@ -61,7 +61,7 @@ class Context {
     context.add("boolean", Type.BOOLEAN)
     for (let [name, value] of Object.entries({ false: false, true: true })) {
       const literal = new LiteralExpression(value)
-      analyze(new Declaration(name, true, literal), context)
+      analyze(new VarDeclaration(name, true, literal), context)
     }
     return context
   }
@@ -102,7 +102,7 @@ const analyzers = {
   Program(p, context) {
     analyze(p.statements, context)
   },
-  Declaration(d, context) {
+  VarDeclaration(d, context) {
     analyze(d.initializer, context)
     // Tag this variable with the type of the expression initializing it
     d.type = d.initializer.type
@@ -190,7 +190,7 @@ const analyzers = {
     e.type = Type.NUMBER
   },
   IdentifierExpression(e, context) {
-    // Tag this variable reference with the declaration it references
+    // Tag this reference with the declaration it references
     e.referent = context.lookup(e.name)
     // And for convenience, mark the reference itself with a type
     e.type = e.referent.type

@@ -29,7 +29,7 @@ const optimizers = {
     p.statements = optimize(p.statements)
     return p
   },
-  Declaration(d) {
+  VarDeclaration(d) {
     d.initializer = optimize(d.initializer)
     return d
   },

@@ -35,9 +35,21 @@ export class NamedTypeExpression {
   }
 }
 
-export class Declaration {
+export class VarDeclaration {
   constructor(name, readOnly, initializer) {
     Object.assign(this, { name, readOnly, initializer })
+  }
+}
+
+export class FunDeclaration {
+  constructor(name, parameters, returnTypeExpression, body) {
+    Object.assign(this, { name, parameters, returnTypeExpression, body })
+  }
+}
+
+export class Binding {
+  constructor(name, typeExpression) {
+    Object.assign(this, { name, typeExpression })
   }
 }
 
@@ -83,6 +95,12 @@ export class BreakStatement {
 
 export class ContinueStatement {
   // Intentionally empty
+}
+
+export class ReturnStatement {
+  constructor(expression) {
+    Object.assign(this, { expression })
+  }
 }
 
 export class OrExpression {

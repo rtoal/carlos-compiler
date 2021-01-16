@@ -20,7 +20,7 @@ const source = `let x = 1024 - 0
   }`
 
 const expectedAst = `   1 | program: Program
-   2 |   statements[0]: Declaration name='x' readOnly=false
+   2 |   statements[0]: VarDeclaration name='x' readOnly=false
    3 |     initializer: BinaryExpression op='-'
    4 |       left: LiteralExpression value=1024
    5 |       right: LiteralExpression value=0
@@ -28,7 +28,7 @@ const expectedAst = `   1 | program: Program
    7 |     test: BinaryExpression op='>'
    8 |       left: IdentifierExpression name='x'
    9 |       right: LiteralExpression value=3
-  10 |     body[0]: Declaration name='y' readOnly=false
+  10 |     body[0]: VarDeclaration name='y' readOnly=false
   11 |       initializer: AndExpression
   12 |         conjuncts[0]: IdentifierExpression name='false'
   13 |         conjuncts[1]: OrExpression
@@ -47,7 +47,7 @@ const expectedAst = `   1 | program: Program
   26 |           right: LiteralExpression value=1
   27 |     body[2]: IfStatement
   28 |       test: IdentifierExpression name='false'
-  29 |       consequent[0]: Declaration name='hello' readOnly=true
+  29 |       consequent[0]: VarDeclaration name='hello' readOnly=true
   30 |         initializer: BinaryExpression op='-'
   31 |           left: BinaryExpression op='-'
   32 |             left: UnaryExpression op='sqrt'
@@ -59,7 +59,7 @@ const expectedAst = `   1 | program: Program
   38 |         expression: LiteralExpression value=1
   39 |       alternative: IfStatement
   40 |         test: IdentifierExpression name='true'
-  41 |         consequent[0]: Declaration name='hello' readOnly=false
+  41 |         consequent[0]: VarDeclaration name='hello' readOnly=false
   42 |           initializer: IdentifierExpression name='false'
   43 |         alternative[0]: PrintStatement
   44 |           expression: IdentifierExpression name='y'
@@ -84,6 +84,10 @@ const syntaxChecks = [
   ["while with one statement block", "while true { let x = 1 }"],
   ["while with long block", "while true { print 1\nprint 2\nprint 3 }"],
   ["if inside while", "while true { if true { print 1 } }"],
+  ["function with no params", "function f() {}"],
+  ["function with one param", "function f(x: number) {}"],
+  ["function with two params", "function f(x: number, y: boolean) {}"],
+  ["function with no params", "function f(): number {}"],
 ]
 
 const syntaxErrors = [

@@ -8,10 +8,10 @@ import { IfStatement } from "./ast.js"
 export default function generate(program) {
   const output = []
 
-  // Variable names in JS will be suffixed with _1, _2, _3, etc. This is
-  // because "while", for example, is a legal variable name in Carlos,
+  // Variable and function names in JS will be suffixed with _1, _2, _3,
+  // etc. This is because "while", for example, is a legal name in Carlos,
   // but not in JS. So we want to generate something like "while_1".
-  // We handle this by mapping each variable declaration to its suffix.
+  // We handle this by mapping each name to its suffix.
   const targetName = (mapping => {
     return declaration => {
       if (!mapping.has(declaration)) {
@@ -27,7 +27,7 @@ export default function generate(program) {
     Program(p) {
       gen(p.statements)
     },
-    Declaration(d) {
+    VarDeclaration(d) {
       output.push(`let ${targetName(d)} = ${gen(d.initializer)};`)
     },
     Assignment(s) {

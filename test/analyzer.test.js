@@ -19,7 +19,7 @@ const source = `let x = 1024 - 0
   }`
 
 const expectedAst = String.raw`   1 | program: Program
-   2 |   statements[0]: Declaration name='x' readOnly=false
+   2 |   statements[0]: VarDeclaration name='x' readOnly=false
    3 |     initializer: BinaryExpression op='-'
    4 |       left: LiteralExpression value=1024
    5 |       right: LiteralExpression value=0
@@ -27,14 +27,14 @@ const expectedAst = String.raw`   1 | program: Program
    7 |     test: BinaryExpression op='>'
    8 |       left: IdentifierExpression name='x' referent=$2
    9 |       right: LiteralExpression value=3
-  10 |     body[0]: Declaration name='y' readOnly=false
+  10 |     body[0]: VarDeclaration name='y' readOnly=false
   11 |       initializer: AndExpression
   12 |         conjuncts[0]: IdentifierExpression name='false'
-  13 |           referent: Declaration name='false' readOnly=true
+  13 |           referent: VarDeclaration name='false' readOnly=true
   14 |             initializer: LiteralExpression value=false
   15 |         conjuncts[1]: OrExpression
   16 |           disjuncts[0]: IdentifierExpression name='true'
-  17 |             referent: Declaration name='true' readOnly=true
+  17 |             referent: VarDeclaration name='true' readOnly=true
   18 |               initializer: LiteralExpression value=true
   19 |           disjuncts[1]: BinaryExpression op='>='
   20 |             left: LiteralExpression value=2
@@ -50,7 +50,7 @@ const expectedAst = String.raw`   1 | program: Program
   30 |           right: LiteralExpression value=1
   31 |     body[2]: IfStatement
   32 |       test: IdentifierExpression name='false' referent=$13
-  33 |       consequent[0]: Declaration name='hello' readOnly=true
+  33 |       consequent[0]: VarDeclaration name='hello' readOnly=true
   34 |         initializer: BinaryExpression op='-'
   35 |           left: BinaryExpression op='-'
   36 |             left: UnaryExpression op='sqrt'
@@ -62,7 +62,7 @@ const expectedAst = String.raw`   1 | program: Program
   42 |         expression: LiteralExpression value=1
   43 |       alternative: IfStatement
   44 |         test: IdentifierExpression name='true' referent=$17
-  45 |         consequent[0]: Declaration name='hello' readOnly=false
+  45 |         consequent[0]: VarDeclaration name='hello' readOnly=false
   46 |           initializer: IdentifierExpression name='false' referent=$13
   47 |         alternative[0]: PrintStatement
   48 |           expression: IdentifierExpression name='y' referent=$10
