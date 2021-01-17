@@ -21,7 +21,7 @@ export class Program {
   }
 }
 
-export class Declaration {
+export class VariableDeclaration {
   constructor(name, initializer) {
     Object.assign(this, { name, initializer })
   }
@@ -57,7 +57,7 @@ export class IdentifierExpression {
   }
 }
 
-export class LiteralExpression {
+export class Literal {
   constructor(value) {
     this.value = value
   }

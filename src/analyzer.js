@@ -40,7 +40,7 @@ const analyzers = {
   Program(p, context) {
     analyze(p.statements, context)
   },
-  Declaration(d, context) {
+  VariableDeclaration(d, context) {
     analyze(d.initializer, context)
     // Record this variable in the context since we might have to look it up
     context.addDeclaration(d)
@@ -63,7 +63,7 @@ const analyzers = {
     // Tag this variable reference with the declaration it references
     e.referent = context.lookup(e.name)
   },
-  LiteralExpression(e, context) {
+  Literal(e, context) {
     // There is LITERALly nothing to analyze here (sorry)
   },
   Array(a, context) {
