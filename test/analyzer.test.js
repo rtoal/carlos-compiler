@@ -13,7 +13,7 @@ const expectedAst = String.raw`   1 | program: Program
    4 |       left: Literal value=2
    5 |       right: Literal value=0
    6 |   statements[1]: PrintStatement
-   7 |     expression: BinaryExpression op='*'
+   7 |     argument: BinaryExpression op='*'
    8 |       left: Literal value=1
    9 |       right: IdentifierExpression name='two' referent=$2
   10 |   statements[2]: Assignment

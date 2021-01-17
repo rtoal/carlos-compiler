@@ -35,7 +35,7 @@ const optimizers = {
     return s
   },
   PrintStatement(s) {
-    s.expression = optimize(s.expression)
+    s.argument = optimize(s.argument)
     return s
   },
   BinaryExpression(e) {

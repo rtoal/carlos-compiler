@@ -34,8 +34,8 @@ export class Assignment {
 }
 
 export class PrintStatement {
-  constructor(expression) {
-    this.expression = expression
+  constructor(argument) {
+    this.argument = argument
   }
 }
 

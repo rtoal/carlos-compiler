@@ -50,7 +50,7 @@ const analyzers = {
     analyze(s.target, context)
   },
   PrintStatement(s, context) {
-    analyze(s.expression, context)
+    analyze(s.argument, context)
   },
   BinaryExpression(e, context) {
     analyze(e.left, context)

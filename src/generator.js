@@ -34,7 +34,7 @@ export default function generate(program) {
       output.push(`${target} = ${source};`)
     },
     PrintStatement(s) {
-      output.push(`console.log(${gen(s.expression)});`)
+      output.push(`console.log(${gen(s.argument)});`)
     },
     BinaryExpression(e) {
       return `(${gen(e.left)} ${e.op} ${gen(e.right)})`
