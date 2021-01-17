@@ -118,7 +118,7 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   },
   Statement_return(_return, expression) {
     return new ast.ReturnStatement(
-      expression.length === 0 ? null : expression[0]
+      expression.ast().length === 0 ? null : expression.ast()[0]
     )
   },
   Block(_open, body, _close) {
