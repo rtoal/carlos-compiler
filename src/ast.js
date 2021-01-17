@@ -29,9 +29,15 @@ export class Type {
   static NUMBER = new Type("number")
 }
 
-export class Declaration {
+export class VariableDeclaration {
   constructor(name, readOnly, initializer) {
     Object.assign(this, { name, readOnly, initializer })
+  }
+}
+
+export class Variable {
+  constructor(name, readOnly) {
+    Object.assign(this, { name, readOnly })
   }
 }
 
@@ -42,8 +48,8 @@ export class Assignment {
 }
 
 export class PrintStatement {
-  constructor(expression) {
-    this.expression = expression
+  constructor(argument) {
+    this.argument = argument
   }
 }
 
@@ -103,7 +109,7 @@ export class IdentifierExpression {
   }
 }
 
-export class LiteralExpression {
+export class Literal {
   constructor(value) {
     this.value = value
   }

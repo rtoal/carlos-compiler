@@ -13,11 +13,11 @@ export default function generate(program) {
   // but not in JS. So we want to generate something like "while_1".
   // We handle this by mapping each variable declaration to its suffix.
   const targetName = (mapping => {
-    return declaration => {
-      if (!mapping.has(declaration)) {
-        mapping.set(declaration, mapping.size + 1)
+    return entity => {
+      if (!mapping.has(entity)) {
+        mapping.set(entity, mapping.size + 1)
       }
-      return `${declaration.name}_${mapping.get(declaration)}`
+      return `${entity.name}_${mapping.get(entity)}`
     }
   })(new Map())
 
@@ -27,8 +27,8 @@ export default function generate(program) {
     Program(p) {
       gen(p.statements)
     },
-    Declaration(d) {
-      output.push(`let ${targetName(d)} = ${gen(d.initializer)};`)
+    VariableDeclaration(d) {
+      output.push(`let ${targetName(d.variable)} = ${gen(d.initializer)};`)
     },
     Assignment(s) {
       const source = gen(s.source)
@@ -64,7 +64,7 @@ export default function generate(program) {
       output.push("continue;")
     },
     PrintStatement(s) {
-      output.push(`console.log(${gen(s.expression)});`)
+      output.push(`console.log(${gen(s.argument)});`)
     },
     OrExpression(e) {
       return `(${gen(e.disjuncts).join(" || ")})`
@@ -83,7 +83,7 @@ export default function generate(program) {
     IdentifierExpression(e) {
       return targetName(e.referent)
     },
-    LiteralExpression(e) {
+    Literal(e) {
       return e.value
     },
     Array(a) {
