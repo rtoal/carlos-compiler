@@ -9,32 +9,32 @@ const source = `let two = 2 - 0
   const x = 1 < 5 || false == true`
 
 const expectedAst = String.raw`   1 | program: Program
-   2 |   statements[0]: Declaration name='two' readOnly=false
+   2 |   statements[0]: VariableDeclaration name='two' readOnly=false
    3 |     initializer: BinaryExpression op='-'
-   4 |       left: LiteralExpression value=2
-   5 |       right: LiteralExpression value=0
-   6 |   statements[1]: PrintStatement
-   7 |     expression: BinaryExpression op='/'
-   8 |       left: BinaryExpression op='*'
-   9 |         left: LiteralExpression value=1
-  10 |         right: IdentifierExpression name='two' referent=$2
-  11 |       right: LiteralExpression value=1
-  12 |   statements[2]: Assignment
-  13 |     target: IdentifierExpression name='two' referent=$2
-  14 |     source: UnaryExpression op='sqrt'
-  15 |       operand: LiteralExpression value=0.001013
-  16 |   statements[3]: Declaration name='x' readOnly=true
-  17 |     initializer: OrExpression
-  18 |       disjuncts[0]: BinaryExpression op='<'
-  19 |         left: LiteralExpression value=1
-  20 |         right: LiteralExpression value=5
-  21 |       disjuncts[1]: BinaryExpression op='=='
-  22 |         left: IdentifierExpression name='false'
-  23 |           referent: Declaration name='false' readOnly=true
-  24 |             initializer: LiteralExpression value=false
+   4 |       left: Literal value=2
+   5 |       right: Literal value=0
+   6 |     variable: Variable name='two' readOnly=false
+   7 |   statements[1]: PrintStatement
+   8 |     argument: BinaryExpression op='/'
+   9 |       left: BinaryExpression op='*'
+  10 |         left: Literal value=1
+  11 |         right: IdentifierExpression name='two' referent=$6
+  12 |       right: Literal value=1
+  13 |   statements[2]: Assignment
+  14 |     target: IdentifierExpression name='two' referent=$6
+  15 |     source: UnaryExpression op='sqrt'
+  16 |       operand: Literal value=0.001013
+  17 |   statements[3]: VariableDeclaration name='x' readOnly=true
+  18 |     initializer: OrExpression
+  19 |       disjuncts[0]: BinaryExpression op='<'
+  20 |         left: Literal value=1
+  21 |         right: Literal value=5
+  22 |       disjuncts[1]: BinaryExpression op='=='
+  23 |         left: IdentifierExpression name='false'
+  24 |           referent: Variable name='false' readOnly=true
   25 |         right: IdentifierExpression name='true'
-  26 |           referent: Declaration name='true' readOnly=true
-  27 |             initializer: LiteralExpression value=true`
+  26 |           referent: Variable name='true' readOnly=true
+  27 |     variable: Variable name='x' readOnly=true`
 
 const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],

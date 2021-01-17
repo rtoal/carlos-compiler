@@ -4,7 +4,7 @@
 // Checks are made relative to a semantic context that is passed to the analyzer
 // function for each node.
 
-import { Declaration, LiteralExpression, Type } from "./ast.js"
+import { Variable, Literal, Type, VariableDeclaration } from "./ast.js"
 
 class Context {
   constructor(context) {
@@ -18,16 +18,16 @@ class Context {
     // among other things.
     this.locals = new Map()
   }
-  addDeclaration(variable) {
-    if (this.locals.has(variable.name)) {
-      throw new Error(`Identifier ${variable.name} already declared`)
+  add(name, entity) {
+    if (this.locals.has(name)) {
+      throw new Error(`Identifier ${name} already declared`)
     }
-    this.locals.set(variable.name, variable)
+    this.locals.set(name, entity)
   }
   lookup(name) {
-    const variable = this.locals.get(name)
-    if (variable) {
-      return variable
+    const entity = this.locals.get(name)
+    if (entity) {
+      return entity
     }
     throw new Error(`Identifier ${name} not declared`)
   }
@@ -37,9 +37,7 @@ class Context {
     // are the *constants* false and true.
     const context = new Context()
     for (let [name, value] of Object.entries({ false: false, true: true })) {
-      const literal = new LiteralExpression(value)
-      const declaration = new Declaration(name, true, literal)
-      analyze(declaration, context)
+      analyze(new VariableDeclaration(name, true, new Literal(value)), context)
     }
     return context
   }
@@ -76,12 +74,13 @@ const analyzers = {
   Program(p, context) {
     analyze(p.statements, context)
   },
-  Declaration(d, context) {
+  VariableDeclaration(d, context) {
     analyze(d.initializer, context)
-    // Tag this variable with the type of the expression initializing it
-    d.type = d.initializer.type
-    // Record this variable in the context since we might have to look it up
-    context.addDeclaration(d)
+    // Declarations are syntactic, but the real variable is semantic
+    d.variable = new Variable(d.name, d.readOnly)
+    d.variable.type = d.initializer.type
+    // Record in context so we can look it up when used in expressions
+    context.add(d.name, d.variable)
   },
   Assignment(s, context) {
     analyze(s.source, context)
@@ -90,7 +89,7 @@ const analyzers = {
     checkNotReadOnly(s.target.referent)
   },
   PrintStatement(s, context) {
-    analyze(s.expression, context)
+    analyze(s.argument, context)
   },
   OrExpression(e, context) {
     for (const disjunct of e.disjuncts) {
@@ -129,16 +128,16 @@ const analyzers = {
     e.type = Type.NUMBER
   },
   IdentifierExpression(e, context) {
-    // Tag this variable reference with the declaration it references
+    // This expressions refers to an actual variable
     e.referent = context.lookup(e.name)
     // And for convenience, mark the reference itself with a type
     e.type = e.referent.type
   },
-  LiteralExpression(e) {
+  Literal(e) {
     // We only have numbers and booleans for now
     e.type = typeof e.value === "number" ? Type.NUMBER : Type.BOOLEAN
   },
   Array(a, context) {
-    a.forEach(s => analyze(s, context))
+    a.forEach(entity => analyze(entity, context))
   },
 }
