@@ -14,11 +14,7 @@
 //   - while-false becomes a no-op
 //   - if-true and if-false reduce to only the taken arm
 
-import {
-  IdentifierExpression,
-  LiteralExpression,
-  UnaryExpression,
-} from "./ast.js"
+import { IdentifierExpression, Literal, UnaryExpression } from "./ast.js"
 
 export default function optimize(node) {
   return optimizers[node.constructor.name](node)
@@ -29,7 +25,7 @@ const optimizers = {
     p.statements = optimize(p.statements)
     return p
   },
-  VarDeclaration(d) {
+  VariableDeclaration(d) {
     d.initializer = optimize(d.initializer)
     return d
   },
@@ -44,7 +40,7 @@ const optimizers = {
     return s
   },
   PrintStatement(s) {
-    s.expression = optimize(s.expression)
+    s.argument = optimize(s.argument)
     return s
   },
   IfStatement(s) {
@@ -53,7 +49,7 @@ const optimizers = {
     if (s.alternative) {
       s.alternative = optimize(s.alternative)
     }
-    if (s.test.constructor === LiteralExpression) {
+    if (s.test.constructor === Literal) {
       return s.test.value ? s.consequent : s.alternative
     }
     return s
@@ -61,14 +57,14 @@ const optimizers = {
   ShortIfStatement(s) {
     s.test = optimize(s.test)
     s.consequent = optimize(s.consequent)
-    if (s.test.constructor === LiteralExpression) {
+    if (s.test.constructor === Literal) {
       return s.test.value ? s.consequent : null
     }
     return s
   },
   WhileStatement(s) {
     s.test = optimize(s.test)
-    if (s.test.constructor === LiteralExpression && !s.test.value) {
+    if (s.test.constructor === Literal && !s.test.value) {
       // while false is a no-op
       return null
     }
@@ -87,7 +83,7 @@ const optimizers = {
     for (const d of e.disjuncts) {
       const optimized = optimize(d)
       optimizedDisjuncts.push(optimized)
-      if (optimized.constructor === LiteralExpression && optimized.value) {
+      if (optimized.constructor === Literal && optimized.value) {
         break
       }
     }
@@ -100,7 +96,7 @@ const optimizers = {
     for (const d of e.conjuncts) {
       const optimized = optimize(d)
       optimizedConjuncts.push(optimized)
-      if (optimized.constructor === LiteralExpression && !optimized.value) {
+      if (optimized.constructor === Literal && !optimized.value) {
         break
       }
     }
@@ -110,32 +106,32 @@ const optimizers = {
   BinaryExpression(e) {
     e.left = optimize(e.left)
     e.right = optimize(e.right)
-    if (e.left.constructor === LiteralExpression) {
+    if (e.left.constructor === Literal) {
       const x = e.left.value
-      if (e.right.constructor === LiteralExpression) {
+      if (e.right.constructor === Literal) {
         const y = e.right.value
         if (e.op == "+") {
-          return new LiteralExpression(x + y)
+          return new Literal(x + y)
         } else if (e.op == "-") {
-          return new LiteralExpression(x - y)
+          return new Literal(x - y)
         } else if (e.op == "*") {
-          return new LiteralExpression(x * y)
+          return new Literal(x * y)
         } else if (e.op == "/") {
-          return new LiteralExpression(x / y)
+          return new Literal(x / y)
         } else if (e.op == "**") {
-          return new LiteralExpression(x ** y)
+          return new Literal(x ** y)
         } else if (e.op == "<") {
-          return new LiteralExpression(x < y)
+          return new Literal(x < y)
         } else if (e.op == "<=") {
-          return new LiteralExpression(x <= y)
+          return new Literal(x <= y)
         } else if (e.op == "==") {
-          return new LiteralExpression(x === y)
+          return new Literal(x === y)
         } else if (e.op == "!=") {
-          return new LiteralExpression(x !== y)
+          return new Literal(x !== y)
         } else if (e.op == ">=") {
-          return new LiteralExpression(x >= y)
+          return new Literal(x >= y)
         } else if (e.op == ">") {
-          return new LiteralExpression(x > y)
+          return new Literal(x > y)
         }
       } else if (x === 0 && e.op === "+") {
         return e.right
@@ -144,36 +140,36 @@ const optimizers = {
       } else if (x === 0 && e.op === "-") {
         return new UnaryExpression("-", e.right)
       } else if (x === 0 && e.op === "*") {
-        return new LiteralExpression(0)
+        return new Literal(0)
       } else if (x === 0 && e.op === "/") {
-        return new LiteralExpression(0)
+        return new Literal(0)
       } else if (x === 1 && e.op === "**") {
-        return new LiteralExpression(1)
+        return new Literal(1)
       }
-    } else if (e.right.constructor === LiteralExpression) {
+    } else if (e.right.constructor === Literal) {
       const y = e.right.value
       if (["+", "-"].includes(e.op) && y === 0) {
         return e.left
       } else if (["*", "/"].includes(e.op) && y === 1) {
         return e.left
       } else if (e.op === "*" && y === 0) {
-        return new LiteralExpression(0)
+        return new Literal(0)
       } else if (e.op === "**" && y === 0) {
-        return new LiteralExpression(1)
+        return new Literal(1)
       }
     }
     return e
   },
   UnaryExpression(e) {
     e.operand = optimize(e.operand)
-    if (e.operand.constructor === LiteralExpression) {
+    if (e.operand.constructor === Literal) {
       const x = e.operand.value
       if (e.op === "-") {
-        return new LiteralExpression(-x)
+        return new Literal(-x)
       } else if (e.op === "abs") {
-        return new LiteralExpression(Math.abs(x))
+        return new Literal(Math.abs(x))
       } else if (e.op === "sqrt") {
-        return new LiteralExpression(Math.sqrt(x))
+        return new Literal(Math.sqrt(x))
       }
     }
     return e
@@ -181,11 +177,11 @@ const optimizers = {
   IdentifierExpression(e) {
     if (e.name === "true" || e.name === "false") {
       // Who needs references when we can have straight up literals
-      return e.referent.initializer
+      return new Literal(e.name === "true")
     }
     return e
   },
-  LiteralExpression(e) {
+  Literal(e) {
     return e
   },
   Array(a) {

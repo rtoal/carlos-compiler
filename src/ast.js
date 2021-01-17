@@ -35,7 +35,7 @@ export class NamedTypeExpression {
   }
 }
 
-export class VarDeclaration {
+export class VariableDeclaration {
   constructor(name, readOnly, initializer) {
     Object.assign(this, { name, readOnly, initializer })
   }
@@ -53,6 +53,12 @@ export class Binding {
   }
 }
 
+export class Variable {
+  constructor(name, readOnly) {
+    Object.assign(this, { name, readOnly })
+  }
+}
+
 export class Assignment {
   constructor(target, source) {
     Object.assign(this, { target, source })
@@ -60,8 +66,8 @@ export class Assignment {
 }
 
 export class PrintStatement {
-  constructor(expression) {
-    this.expression = expression
+  constructor(argument) {
+    this.argument = argument
   }
 }
 
@@ -133,7 +139,7 @@ export class IdentifierExpression {
   }
 }
 
-export class LiteralExpression {
+export class Literal {
   constructor(value) {
     this.value = value
   }

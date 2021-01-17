@@ -4,7 +4,7 @@
 // Checks are made relative to a semantic context that is passed to the analyzer
 // function for each node.
 
-import { VarDeclaration, LiteralExpression, Type } from "./ast.js"
+import { Variable, Literal, Type, VariableDeclaration } from "./ast.js"
 
 class Context {
   constructor(parent = null) {
@@ -60,8 +60,7 @@ class Context {
     context.add("number", Type.NUMBER)
     context.add("boolean", Type.BOOLEAN)
     for (let [name, value] of Object.entries({ false: false, true: true })) {
-      const literal = new LiteralExpression(value)
-      analyze(new VarDeclaration(name, true, literal), context)
+      analyze(new VariableDeclaration(name, true, new Literal(value)), context)
     }
     return context
   }
@@ -102,12 +101,13 @@ const analyzers = {
   Program(p, context) {
     analyze(p.statements, context)
   },
-  VarDeclaration(d, context) {
+  VariableDeclaration(d, context) {
     analyze(d.initializer, context)
-    // Tag this variable with the type of the expression initializing it
-    d.type = d.initializer.type
-    // Record this variable in the context since we might have to look it up
-    context.add(d.name, d)
+    // Declarations are syntactic, but the real variable is semantic
+    d.variable = new Variable(d.name, d.readOnly)
+    d.variable.type = d.initializer.type
+    // Record in context so we can look it up when used in expressions
+    context.add(d.name, d.variable)
   },
   NamedTypeExpression(t, context) {
     // In syntax, it's just a name, but in semantics we find the real type
@@ -122,7 +122,7 @@ const analyzers = {
     checkNotReadOnly(s.target.referent)
   },
   PrintStatement(s, context) {
-    analyze(s.expression, context)
+    analyze(s.argument, context)
   },
   WhileStatement(s, context) {
     analyze(s.test, context)
@@ -190,16 +190,16 @@ const analyzers = {
     e.type = Type.NUMBER
   },
   IdentifierExpression(e, context) {
-    // Tag this reference with the declaration it references
+    // This expression refers to an actual variable
     e.referent = context.lookup(e.name)
     // And for convenience, mark the reference itself with a type
     e.type = e.referent.type
   },
-  LiteralExpression(e) {
+  Literal(e) {
     // We only have numbers and booleans for now
     e.type = typeof e.value === "number" ? Type.NUMBER : Type.BOOLEAN
   },
   Array(a, context) {
-    a.forEach(s => analyze(s, context))
+    a.forEach(entity => analyze(entity, context))
   },
 }

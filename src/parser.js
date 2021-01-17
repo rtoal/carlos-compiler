@@ -70,7 +70,7 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   VarDecl(kind, id, _eq, expression) {
     const name = id.sourceString
     const readOnly = kind.sourceString === "const"
-    return new ast.VarDeclaration(name, readOnly, expression.ast())
+    return new ast.VariableDeclaration(name, readOnly, expression.ast())
   },
   FunDecl(_fun, id, parameters, _colon, type, block) {
     return new ast.FunDeclaration(
@@ -155,8 +155,8 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Args(expressions) {
     return expressions.asIteration().ast()
   },
-  num(_base, _radix, _fraction, _e, _sign, _exponent) {
-    return new ast.LiteralExpression(+this.sourceString)
+  num(_whole, _point, _fraction, _e, _sign, _exponent) {
+    return new ast.Literal(Number(this.sourceString))
   },
   id(_firstChar, _moreChars) {
     return new ast.IdentifierExpression(this.sourceString)
