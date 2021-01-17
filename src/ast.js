@@ -41,7 +41,13 @@ export class VariableDeclaration {
   }
 }
 
-export class FunDeclaration {
+export class Variable {
+  constructor(name, readOnly) {
+    Object.assign(this, { name, readOnly })
+  }
+}
+
+export class FunctionDeclaration {
   constructor(name, parameters, returnTypeExpression, body) {
     Object.assign(this, { name, parameters, returnTypeExpression, body })
   }
@@ -50,12 +56,6 @@ export class FunDeclaration {
 export class Binding {
   constructor(name, typeExpression) {
     Object.assign(this, { name, typeExpression })
-  }
-}
-
-export class Variable {
-  constructor(name, readOnly) {
-    Object.assign(this, { name, readOnly })
   }
 }
 

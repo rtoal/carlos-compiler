@@ -73,7 +73,7 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
     return new ast.VariableDeclaration(name, readOnly, expression.ast())
   },
   FunDecl(_fun, id, parameters, _colon, type, block) {
-    return new ast.FunDeclaration(
+    return new ast.FunctionDeclaration(
       id.ast(),
       parameters.ast(),
       type.ast(),

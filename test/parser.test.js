@@ -27,7 +27,7 @@ const expectedAst = `   1 | program: Program
    3 |     initializer: BinaryExpression op='-'
    4 |       left: Literal value=1024
    5 |       right: Literal value=0
-   6 |   statements[1]: FunDeclaration
+   6 |   statements[1]: FunctionDeclaration
    7 |     name: IdentifierExpression name='next'
    8 |     parameters[0]: Binding name='n'
    9 |       typeExpression: NamedTypeExpression name='number'
