@@ -27,6 +27,12 @@ export class VariableDeclaration {
   }
 }
 
+export class Variable {
+  constructor(name) {
+    Object.assign(this, { name })
+  }
+}
+
 export class Assignment {
   constructor(target, source) {
     Object.assign(this, { target, source })

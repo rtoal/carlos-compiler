@@ -4,6 +4,8 @@
 // Checks are made relative to a semantic context that is passed to the analyzer
 // function for each node.
 
+import { Variable } from "./ast.js"
+
 class Context {
   constructor(context) {
     // Currently, the only analysis context needed is the set of declared
@@ -16,16 +18,16 @@ class Context {
     // among other things.
     this.locals = new Map()
   }
-  addDeclaration(variable) {
-    if (this.locals.has(variable.name)) {
-      throw new Error(`Identifier ${variable.name} already declared`)
+  add(name, entity) {
+    if (this.locals.has(name)) {
+      throw new Error(`Identifier ${name} already declared`)
     }
-    this.locals.set(variable.name, variable)
+    this.locals.set(name, entity)
   }
   lookup(name) {
-    const variable = this.locals.get(name)
-    if (variable) {
-      return variable
+    const entity = this.locals.get(name)
+    if (entity) {
+      return entity
     }
     throw new Error(`Identifier ${name} not declared`)
   }
@@ -42,8 +44,10 @@ const analyzers = {
   },
   VariableDeclaration(d, context) {
     analyze(d.initializer, context)
-    // Record this variable in the context since we might have to look it up
-    context.addDeclaration(d)
+    // Declarations are syntactic, but the real variable is semantic
+    d.variable = new Variable(d.name)
+    // Record in context so we can look it up when used in expressions
+    context.add(d.name, d.variable)
   },
   Assignment(s, context) {
     analyze(s.source, context)
@@ -60,13 +64,13 @@ const analyzers = {
     analyze(e.operand, context)
   },
   IdentifierExpression(e, context) {
-    // Tag this variable reference with the declaration it references
+    // This expressions refers to an actual variable
     e.referent = context.lookup(e.name)
   },
   Literal(e, context) {
     // There is LITERALly nothing to analyze here (sorry)
   },
   Array(a, context) {
-    a.forEach(s => analyze(s, context))
+    a.forEach(entity => analyze(entity, context))
   },
 }

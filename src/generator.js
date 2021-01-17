@@ -26,7 +26,7 @@ export default function generate(program) {
       gen(p.statements)
     },
     VariableDeclaration(d) {
-      output.push(`let ${targetName(d)} = ${gen(d.initializer)};`)
+      output.push(`let ${targetName(d.variable)} = ${gen(d.initializer)};`)
     },
     Assignment(s) {
       const source = gen(s.source)
