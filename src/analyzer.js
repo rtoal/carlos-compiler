@@ -4,7 +4,7 @@
 // Checks are made relative to a semantic context that is passed to the analyzer
 // function for each node.
 
-import { Variable, Literal, Type, VariableDeclaration } from "./ast.js"
+import { Variable, Literal, Type } from "./ast.js"
 
 class Context {
   constructor(parent = null) {
@@ -60,7 +60,7 @@ class Context {
     context.add("number", Type.NUMBER)
     context.add("boolean", Type.BOOLEAN)
     for (let [name, value] of Object.entries({ false: false, true: true })) {
-      analyze(new VariableDeclaration(name, true, new Literal(value)), context)
+      analyze(new Variable(name, true, new Literal(value)), context)
     }
     return context
   }
@@ -101,13 +101,10 @@ const analyzers = {
   Program(p, context) {
     analyze(p.statements, context)
   },
-  VariableDeclaration(d, context) {
-    analyze(d.initializer, context)
-    // Declarations are syntactic, but the real variable is semantic
-    d.variable = new Variable(d.name, d.readOnly)
-    d.variable.type = d.initializer.type
-    // Record in context so we can look it up when used in expressions
-    context.add(d.name, d.variable)
+  Variable(v, context) {
+    analyze(v.initializer, context)
+    v.type = v.initializer.type
+    context.add(v.name, v)
   },
   NamedTypeExpression(t, context) {
     // In syntax, it's just a name, but in semantics we find the real type

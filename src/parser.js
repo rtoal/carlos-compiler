@@ -67,18 +67,12 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Program(body) {
     return new ast.Program(body.ast())
   },
-  VarDecl(kind, id, _eq, expression) {
-    const name = id.sourceString
+  VarDecl(kind, id, _eq, initializer) {
     const readOnly = kind.sourceString === "const"
-    return new ast.VariableDeclaration(name, readOnly, expression.ast())
+    return new ast.Variable(id.sourceString, readOnly, initializer.ast())
   },
-  FunDecl(_fun, id, parameters, _colon, type, block) {
-    return new ast.FunctionDeclaration(
-      id.ast(),
-      parameters.ast(),
-      type.ast(),
-      block.ast()
-    )
+  FunDecl(_fun, id, parameters, _colon, type, body) {
+    return new ast.Function(id.ast(), parameters.ast(), type.ast(), body.ast())
   },
   Params(_left, bindings, _right) {
     return bindings.asIteration().ast()

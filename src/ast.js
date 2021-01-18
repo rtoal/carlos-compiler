@@ -35,19 +35,13 @@ export class NamedTypeExpression {
   }
 }
 
-export class VariableDeclaration {
+export class Variable {
   constructor(name, readOnly, initializer) {
     Object.assign(this, { name, readOnly, initializer })
   }
 }
 
-export class Variable {
-  constructor(name, readOnly) {
-    Object.assign(this, { name, readOnly })
-  }
-}
-
-export class FunctionDeclaration {
+export class Function {
   constructor(name, parameters, returnTypeExpression, body) {
     Object.assign(this, { name, parameters, returnTypeExpression, body })
   }

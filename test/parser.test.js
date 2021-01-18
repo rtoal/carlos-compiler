@@ -2,20 +2,20 @@ import assert from "assert"
 import util from "util"
 import parse from "../src/parser.js"
 
-const source = `let x = 1024 - 0
+const source = `let x = 1024
   function next(n: number): number {
     return n + 1
   }
   while x > 3 {
     let y = false && (true || 2 >= x)
-    x = (0 + x) / 2 ** next(0)
+    x = (0 + x) / 2 ** next(0) // call in expression
     if false {
       const hello = sqrt 100 - abs 3.1-3
-      print 1
-    } else if true {
-      let hello = false // A different hello
-    } else {
       print y
+    } else if true {
+      next(1001)   // call statement
+      let hello = 0 // a different hello
+    } else {
       break
       continue
     }
@@ -23,64 +23,63 @@ const source = `let x = 1024 - 0
   }`
 
 const expectedAst = `   1 | program: Program
-   2 |   statements[0]: VariableDeclaration name='x' readOnly=false
-   3 |     initializer: BinaryExpression op='-'
-   4 |       left: Literal value=1024
-   5 |       right: Literal value=0
-   6 |   statements[1]: FunctionDeclaration
-   7 |     name: IdentifierExpression name='next'
-   8 |     parameters[0]: Binding name='n'
-   9 |       typeExpression: NamedTypeExpression name='number'
-  10 |     returnTypeExpression[0]: NamedTypeExpression name='number'
-  11 |     body[0]: ReturnStatement
-  12 |       expression: BinaryExpression op='+'
-  13 |         left: IdentifierExpression name='n'
-  14 |         right: Literal value=1
-  15 |   statements[2]: WhileStatement
-  16 |     test: BinaryExpression op='>'
-  17 |       left: IdentifierExpression name='x'
-  18 |       right: Literal value=3
-  19 |     body[0]: VariableDeclaration name='y' readOnly=false
-  20 |       initializer: AndExpression
-  21 |         conjuncts[0]: IdentifierExpression name='false'
-  22 |         conjuncts[1]: OrExpression
-  23 |           disjuncts[0]: IdentifierExpression name='true'
-  24 |           disjuncts[1]: BinaryExpression op='>='
-  25 |             left: Literal value=2
-  26 |             right: IdentifierExpression name='x'
-  27 |     body[1]: Assignment
-  28 |       target: IdentifierExpression name='x'
-  29 |       source: BinaryExpression op='/'
-  30 |         left: BinaryExpression op='+'
-  31 |           left: Literal value=0
-  32 |           right: IdentifierExpression name='x'
-  33 |         right: BinaryExpression op='**'
-  34 |           left: Literal value=2
-  35 |           right: Call
-  36 |             callee: IdentifierExpression name='next'
-  37 |             args[0]: Literal value=0
-  38 |     body[2]: IfStatement
-  39 |       test: IdentifierExpression name='false'
-  40 |       consequent[0]: VariableDeclaration name='hello' readOnly=true
-  41 |         initializer: BinaryExpression op='-'
-  42 |           left: BinaryExpression op='-'
-  43 |             left: UnaryExpression op='sqrt'
-  44 |               operand: Literal value=100
-  45 |             right: UnaryExpression op='abs'
-  46 |               operand: Literal value=3.1
-  47 |           right: Literal value=3
-  48 |       consequent[1]: PrintStatement
-  49 |         argument: Literal value=1
-  50 |       alternative: IfStatement
-  51 |         test: IdentifierExpression name='true'
-  52 |         consequent[0]: VariableDeclaration name='hello' readOnly=false
-  53 |           initializer: IdentifierExpression name='false'
-  54 |         alternative[0]: PrintStatement
-  55 |           argument: IdentifierExpression name='y'
-  56 |         alternative[1]: BreakStatement
-  57 |         alternative[2]: ContinueStatement
-  58 |     body[3]: PrintStatement
-  59 |       argument: IdentifierExpression name='x'`
+   2 |   statements[0]: Variable name='x' readOnly=false
+   3 |     initializer: Literal value=1024
+   4 |   statements[1]: Function
+   5 |     name: IdentifierExpression name='next'
+   6 |     parameters[0]: Binding name='n'
+   7 |       typeExpression: NamedTypeExpression name='number'
+   8 |     returnTypeExpression[0]: NamedTypeExpression name='number'
+   9 |     body[0]: ReturnStatement
+  10 |       expression: BinaryExpression op='+'
+  11 |         left: IdentifierExpression name='n'
+  12 |         right: Literal value=1
+  13 |   statements[2]: WhileStatement
+  14 |     test: BinaryExpression op='>'
+  15 |       left: IdentifierExpression name='x'
+  16 |       right: Literal value=3
+  17 |     body[0]: Variable name='y' readOnly=false
+  18 |       initializer: AndExpression
+  19 |         conjuncts[0]: IdentifierExpression name='false'
+  20 |         conjuncts[1]: OrExpression
+  21 |           disjuncts[0]: IdentifierExpression name='true'
+  22 |           disjuncts[1]: BinaryExpression op='>='
+  23 |             left: Literal value=2
+  24 |             right: IdentifierExpression name='x'
+  25 |     body[1]: Assignment
+  26 |       target: IdentifierExpression name='x'
+  27 |       source: BinaryExpression op='/'
+  28 |         left: BinaryExpression op='+'
+  29 |           left: Literal value=0
+  30 |           right: IdentifierExpression name='x'
+  31 |         right: BinaryExpression op='**'
+  32 |           left: Literal value=2
+  33 |           right: Call
+  34 |             callee: IdentifierExpression name='next'
+  35 |             args[0]: Literal value=0
+  36 |     body[2]: IfStatement
+  37 |       test: IdentifierExpression name='false'
+  38 |       consequent[0]: Variable name='hello' readOnly=true
+  39 |         initializer: BinaryExpression op='-'
+  40 |           left: BinaryExpression op='-'
+  41 |             left: UnaryExpression op='sqrt'
+  42 |               operand: Literal value=100
+  43 |             right: UnaryExpression op='abs'
+  44 |               operand: Literal value=3.1
+  45 |           right: Literal value=3
+  46 |       consequent[1]: PrintStatement
+  47 |         argument: IdentifierExpression name='y'
+  48 |       alternative: IfStatement
+  49 |         test: IdentifierExpression name='true'
+  50 |         consequent[0]: Call
+  51 |           callee: IdentifierExpression name='next'
+  52 |           args[0]: Literal value=1001
+  53 |         consequent[1]: Variable name='hello' readOnly=false
+  54 |           initializer: Literal value=0
+  55 |         alternative[0]: BreakStatement
+  56 |         alternative[1]: ContinueStatement
+  57 |     body[3]: PrintStatement
+  58 |       argument: IdentifierExpression name='x'`
 
 const syntaxChecks = [
   ["integers and floating point literals", "print 8 * 899.123"],
