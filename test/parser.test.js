@@ -18,7 +18,7 @@ const source = `let x = 1024 - 0
   }`
 
 const expectedAst = `   1 | program: Program
-   2 |   statements[0]: VariableDeclaration name='x' readOnly=false
+   2 |   statements[0]: Variable name='x' readOnly=false
    3 |     initializer: BinaryExpression op='-'
    4 |       left: Literal value=1024
    5 |       right: Literal value=0
@@ -26,7 +26,7 @@ const expectedAst = `   1 | program: Program
    7 |     test: BinaryExpression op='>'
    8 |       left: IdentifierExpression name='x'
    9 |       right: Literal value=3
-  10 |     body[0]: VariableDeclaration name='y' readOnly=false
+  10 |     body[0]: Variable name='y' readOnly=false
   11 |       initializer: AndExpression
   12 |         conjuncts[0]: IdentifierExpression name='false'
   13 |         conjuncts[1]: OrExpression
@@ -45,7 +45,7 @@ const expectedAst = `   1 | program: Program
   26 |           right: Literal value=1
   27 |     body[2]: IfStatement
   28 |       test: IdentifierExpression name='false'
-  29 |       consequent[0]: VariableDeclaration name='hello' readOnly=true
+  29 |       consequent[0]: Variable name='hello' readOnly=true
   30 |         initializer: BinaryExpression op='-'
   31 |           left: BinaryExpression op='-'
   32 |             left: UnaryExpression op='sqrt'
@@ -57,7 +57,7 @@ const expectedAst = `   1 | program: Program
   38 |         argument: Literal value=1
   39 |       alternative: IfStatement
   40 |         test: IdentifierExpression name='true'
-  41 |         consequent[0]: VariableDeclaration name='hello' readOnly=false
+  41 |         consequent[0]: Variable name='hello' readOnly=false
   42 |           initializer: IdentifierExpression name='false'
   43 |         alternative[0]: PrintStatement
   44 |           argument: IdentifierExpression name='y'
