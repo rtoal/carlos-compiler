@@ -42,12 +42,9 @@ const analyzers = {
   Program(p, context) {
     analyze(p.statements, context)
   },
-  VariableDeclaration(d, context) {
-    analyze(d.initializer, context)
-    // Declarations are syntactic, but the real variable is semantic
-    d.variable = new Variable(d.name, d.readOnly)
-    // Record in context so we can look it up when used in expressions
-    context.add(d.name, d.variable)
+  Variable(v, context) {
+    analyze(v.initializer, context)
+    context.add(v.name, v)
   },
   Assignment(s, context) {
     analyze(s.source, context)
