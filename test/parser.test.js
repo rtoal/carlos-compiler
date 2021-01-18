@@ -3,25 +3,33 @@ import util from "util"
 import parse from "../src/parser.js"
 
 const source = `let two = 2 - 0
-  print(1 ** two)   // TADA 🥑
-  two = sqrt 101.3E-5 //
-  const x = 8`
+  print (1 * two) / 1   // TADA 🥑 
+  two = sqrt 101.3E-5
+  const x = 1 < 5 || false == true`
 
 const expectedAst = `   1 | program: Program
-   2 |   statements[0]: VariableDeclaration name='two' readOnly=false
+   2 |   statements[0]: Variable name='two' readOnly=false
    3 |     initializer: BinaryExpression op='-'
    4 |       left: Literal value=2
    5 |       right: Literal value=0
    6 |   statements[1]: PrintStatement
-   7 |     argument: BinaryExpression op='**'
-   8 |       left: Literal value=1
-   9 |       right: IdentifierExpression name='two'
-  10 |   statements[2]: Assignment
-  11 |     target: IdentifierExpression name='two'
-  12 |     source: UnaryExpression op='sqrt'
-  13 |       operand: Literal value=0.001013
-  14 |   statements[3]: VariableDeclaration name='x' readOnly=true
-  15 |     initializer: Literal value=8`
+   7 |     argument: BinaryExpression op='/'
+   8 |       left: BinaryExpression op='*'
+   9 |         left: Literal value=1
+  10 |         right: IdentifierExpression name='two'
+  11 |       right: Literal value=1
+  12 |   statements[2]: Assignment
+  13 |     target: IdentifierExpression name='two'
+  14 |     source: UnaryExpression op='sqrt'
+  15 |       operand: Literal value=0.001013
+  16 |   statements[3]: Variable name='x' readOnly=true
+  17 |     initializer: OrExpression
+  18 |       disjuncts[0]: BinaryExpression op='<'
+  19 |         left: Literal value=1
+  20 |         right: Literal value=5
+  21 |       disjuncts[1]: BinaryExpression op='=='
+  22 |         left: IdentifierExpression name='false'
+  23 |         right: IdentifierExpression name='true'`
 
 const syntaxChecks = [
   ["integers and floating point literals", "print 8 * 899.123"],
