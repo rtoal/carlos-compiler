@@ -58,7 +58,7 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
     return expression.ast()
   },
   num(_whole, _point, _fraction) {
-    return new ast.Literal(+this.sourceString)
+    return new ast.Literal(Number(this.sourceString))
   },
   id(_firstChar, _restChars) {
     return new ast.IdentifierExpression(this.sourceString)
