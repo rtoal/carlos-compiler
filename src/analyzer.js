@@ -4,6 +4,7 @@
 // Checks are made relative to a semantic context that is passed to the analyzer
 // function for each node.
 
+import util from "util"
 import { Variable, Literal, Type } from "./ast.js"
 
 class Context {
@@ -36,6 +37,9 @@ class Context {
   }
 
   lookup(name) {
+    // console.log(
+    //   `Looking up ${name} where locals is ${util.inspect(this.locals)}`
+    // )
     const entity = this.locals.get(name)
     if (entity) {
       return entity
@@ -84,12 +88,30 @@ function checkSameTypes(e1, e2, op) {
   check(e1.type === e2.type, `'${op}' operands must have same types`)
 }
 
+function checkAssignable(targetType, sourceType) {
+  check(
+    targetType === sourceType,
+    `Expected type ${targetType.name}, got type ${sourceType.name}`
+  )
+}
 function checkNotReadOnly(e) {
   check(!e.readOnly, `Cannot assign to constant ${e.name}`)
 }
 
 function checkInLoop(context, disruptor) {
   check(context.inLoop, `'${disruptor}' can only appear in a loop`)
+}
+
+function checkInFunction(context) {
+  check(context.function, "Return can only appear in a function")
+}
+
+function checkInVoidFunction(context) {
+  check(!context.function.returnType, "Something should be returned here")
+}
+
+function checkInNonVoidFunction(context) {
+  check(context.function.returnType, "Cannot return a value here")
 }
 
 export default function analyze(node, context = Context.initial) {
@@ -108,14 +130,25 @@ const analyzers = {
   },
   NamedTypeExpression(t, context) {
     // In syntax, it's just a name, but in semantics we find the real type
-    t.referent = context.lookup(t.name)
+    t.type = context.lookup(t.name)
   },
-  Function() {},
-  Binding() {},
+  Function(f, context) {
+    analyze(f.returnTypeExpression, context)
+    f.returnType = f.returnTypeExpression.type
+    context.add(f.name, f)
+    const childContext = context.newChild({ inLoop: false, forFunction: f })
+    f.parameters.forEach(p => analyze(p, childContext))
+    analyze(f.body, childContext)
+  },
+  Parameter(p, context) {
+    analyze(p.typeExpression, context)
+    p.type = p.typeExpression.type
+    context.add(p.name, p)
+  },
   Assignment(s, context) {
     analyze(s.source, context)
     analyze(s.target, context)
-    checkSameTypes(s.target, s.source, "=")
+    checkAssignable(s.target.type, s.source.type)
     checkNotReadOnly(s.target.referent)
   },
   PrintStatement(s, context) {
@@ -149,6 +182,32 @@ const analyzers = {
   },
   ContinueStatement(s, context) {
     checkInLoop(context, "continue")
+  },
+  ReturnStatement(s, context) {
+    checkInFunction(context)
+    if (s.expression === null) {
+      // Plain return statement, current function must be void
+      checkInVoidFunction(context)
+    } else {
+      // Return statement with value, need a type check
+      analyze(s.expression, context)
+      checkInNonVoidFunction(context)
+      checkAssignable(context.function.returnType, s.expression.type)
+    }
+  },
+  Call(c, context) {
+    analyze(c.callee, context)
+    c.callee = c.callee.referent
+    const [argCount, paramCount] = [c.args.length, c.callee.parameters.length]
+    check(
+      argCount === paramCount,
+      `${paramCount} parameters required, but call has ${argCount} arguments`
+    )
+    for (let i = 0; i < argCount; i++) {
+      analyze(c.args[i], context)
+      checkAssignable(c.callee.parameters[i].type, c.args[i].type)
+    }
+    c.type = c.callee.returnType
   },
   OrExpression(e, context) {
     for (const disjunct of e.disjuncts) {

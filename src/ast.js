@@ -47,7 +47,7 @@ export class Function {
   }
 }
 
-export class Binding {
+export class Parameter {
   constructor(name, typeExpression) {
     Object.assign(this, { name, typeExpression })
   }

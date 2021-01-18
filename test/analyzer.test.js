@@ -12,9 +12,9 @@ const source = `let x = 1024
     x = (0 + x) / 2 ** next(0) // call in expression
     if false {
       const hello = sqrt 100 - abs 3.1-3
-      print y
+      function g() { return }
     } else if true {
-      next(1001)   // call statement
+      next(y)   // call statement
       let hello = 0 // a different hello
     } else {
       break
@@ -82,7 +82,11 @@ const semanticErrors = [
   ["assign to true", "true = 1<1", /Cannot assign to constant true/],
   ["redeclare false", "let false = 1<1", /Identifier false already declared/],
   ["assign to false", "false = 1<1", /Cannot assign to constant false/],
-  ["assign bad type", "let x=1\nx=true", /'=' operands must have same types/],
+  [
+    "assign bad type",
+    "let x=1\nx=true",
+    /Expected type number, got type boolean/,
+  ],
   ["bad types for ||", "print false||1", /'\|\|' operand must be a boolean/],
   ["bad types for &&", "print false&&1", /'&&' operand must be a boolean/],
   ["bad types for +", "print false+1", /'\+' operand must be a number/],

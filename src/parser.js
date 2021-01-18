@@ -20,8 +20,8 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
             | return Exp?                     --return
   VarDecl   = (let | const) id "=" Exp
   FunDecl   = function id Params (":" TypeExp)? Block
-  Params    = "(" ListOf<Binding, ","> ")"
-  Binding   = id ":" TypeExp
+  Params    = "(" ListOf<Param, ","> ")"
+  Param     = id ":" TypeExp
   TypeExp   = id
   WhileStmt = while Exp Block
   IfStmt    = if Exp Block (else (Block | IfStmt))?
@@ -72,13 +72,17 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
     return new ast.Variable(id.sourceString, readOnly, initializer.ast())
   },
   FunDecl(_fun, id, parameters, _colon, type, body) {
-    return new ast.Function(id.ast(), parameters.ast(), type.ast(), body.ast())
+    const name = id.sourceString
+    const parametersTree = parameters.ast()
+    const typeTree = type.ast().length === 0 ? null : type.ast()[0]
+    const bodyTree = body.ast()
+    return new ast.Function(name, parametersTree, typeTree, bodyTree)
   },
   Params(_left, bindings, _right) {
     return bindings.asIteration().ast()
   },
-  Binding(id, _colon, type) {
-    return new ast.Binding(id.sourceString, type.ast())
+  Param(id, _colon, type) {
+    return new ast.Parameter(id.sourceString, type.ast())
   },
   TypeExp(id) {
     return new ast.NamedTypeExpression(id.sourceString)
