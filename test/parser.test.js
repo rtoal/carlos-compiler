@@ -7,7 +7,7 @@ const source = `let two = 2 - 0
   two = sqrt 101.3 //`
 
 const expectedAst = `   1 | program: Program
-   2 |   statements[0]: VariableDeclaration name='two'
+   2 |   statements[0]: Variable name='two'
    3 |     initializer: BinaryExpression op='-'
    4 |       left: Literal value=2
    5 |       right: Literal value=0
