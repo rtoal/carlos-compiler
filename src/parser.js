@@ -34,12 +34,9 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Program(body) {
     return new ast.Program(body.ast())
   },
-  Statement_variable(kind, id, _eq, expression) {
-    return new ast.Variable(
-      id.sourceString,
-      kind.sourceString === "const",
-      expression.ast()
-    )
+  Statement_variable(kind, id, _eq, initializer) {
+    const readOnly = kind.sourceString === "const"
+    return new ast.Variable(id.sourceString, readOnly, initializer.ast())
   },
   Statement_assign(id, _eq, expression) {
     return new ast.Assignment(
