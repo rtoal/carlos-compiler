@@ -29,15 +29,9 @@ export class Type {
   static NUMBER = new Type("number")
 }
 
-export class VariableDeclaration {
+export class Variable {
   constructor(name, readOnly, initializer) {
     Object.assign(this, { name, readOnly, initializer })
-  }
-}
-
-export class Variable {
-  constructor(name, readOnly) {
-    Object.assign(this, { name, readOnly })
   }
 }
 
