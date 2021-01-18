@@ -8,7 +8,7 @@ const source = `let two = 2 - 0
   const x = 8`
 
 const expectedAst = `   1 | program: Program
-   2 |   statements[0]: VariableDeclaration name='two' readOnly=false
+   2 |   statements[0]: Variable name='two' readOnly=false
    3 |     initializer: BinaryExpression op='-'
    4 |       left: Literal value=2
    5 |       right: Literal value=0
@@ -20,7 +20,7 @@ const expectedAst = `   1 | program: Program
   11 |     target: IdentifierExpression name='two'
   12 |     source: UnaryExpression op='sqrt'
   13 |       operand: Literal value=0.001013
-  14 |   statements[3]: VariableDeclaration name='x' readOnly=true
+  14 |   statements[3]: Variable name='x' readOnly=true
   15 |     initializer: Literal value=8`
 
 const syntaxChecks = [
