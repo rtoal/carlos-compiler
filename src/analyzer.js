@@ -133,8 +133,12 @@ const analyzers = {
     t.type = context.lookup(t.name)
   },
   Function(f, context) {
-    analyze(f.returnTypeExpression, context)
-    f.returnType = f.returnTypeExpression.type
+    if (f.returnTypeExpression) {
+      analyze(f.returnTypeExpression, context)
+      f.returnType = f.returnTypeExpression.type
+    } else {
+      f.returnType = null
+    }
     context.add(f.name, f)
     const childContext = context.newChild({ inLoop: false, forFunction: f })
     f.parameters.forEach(p => analyze(p, childContext))

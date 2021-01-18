@@ -13,8 +13,8 @@ const source = `let x = 1024
       const hello = sqrt 100 - abs 3.1-3
       function g() { return }
     } else if true {
-      next(y)   // call statement
-      let hello = 0 // a different hello
+      next(99)   // call statement
+      let hello = y // a different hello
     } else {
       break
       continue
@@ -72,9 +72,9 @@ const expectedAst = `   1 | program: Program
   48 |         test: IdentifierExpression name='true'
   49 |         consequent[0]: Call
   50 |           callee: IdentifierExpression name='next'
-  51 |           args[0]: IdentifierExpression name='y'
+  51 |           args[0]: Literal value=99
   52 |         consequent[1]: Variable name='hello' readOnly=false
-  53 |           initializer: Literal value=0
+  53 |           initializer: IdentifierExpression name='y'
   54 |         alternative[0]: BreakStatement
   55 |         alternative[1]: ContinueStatement
   56 |     body[3]: PrintStatement

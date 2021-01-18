@@ -14,8 +14,8 @@ const source = `let x = 1024
       const hello = sqrt 100 - abs 3.1-3
       function g() { return }
     } else if true {
-      next(y)   // call statement
-      let hello = 0 // a different hello
+      next(99)   // call statement
+      let hello = y // a different hello
     } else {
       break
       continue
