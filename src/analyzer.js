@@ -39,7 +39,9 @@ class Context {
   static get initial() {
     // The initial context for a compilation holds all the predefined
     // identifiers. In our case, so far, the only predefined identifiers
-    // are the *constants* false and true.
+    // are the *constants* false and true. We'll defer to the analyze
+    // function to give these variables the proper type and to insert them
+    // into the context.
     const context = new Context()
     for (let [name, value] of Object.entries({ false: false, true: true })) {
       analyze(new Variable(name, true, new Literal(value)), context)
@@ -153,9 +155,9 @@ const analyzers = {
     e.type = Type.NUMBER
   },
   IdentifierExpression(e, context) {
-    // This expressions refers to an actual variable
+    // Find out which actual variable is being referred to
     e.referent = context.lookup(e.name)
-    // And for convenience, mark the reference itself with a type
+    // We want *all* expressions to have a type property
     e.type = e.referent.type
   },
   Literal(e) {
