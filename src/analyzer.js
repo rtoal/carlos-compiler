@@ -125,7 +125,7 @@ const analyzers = {
     e.type = Type.NUMBER
   },
   IdentifierExpression(e, context) {
-    // This expressions refers to an actual variable
+    // Find out which actual variable is being referred to
     e.referent = context.lookup(e.name)
     // And for convenience, mark the reference itself with a type
     e.type = e.referent.type
