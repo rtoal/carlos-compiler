@@ -8,38 +8,31 @@ import util from "util"
 import { Variable, Literal, Type } from "./ast.js"
 
 class Context {
-  constructor(parent = null) {
-    // Parent for static scoping
+  constructor(parent = null, { inLoop, forFunction } = {}) {
+    // Parent (enclosing scope) for static scope analysis
     this.parent = parent
-
     // All local declarations. Names map to variable declarations, types, and
-    // function declarations.
+    // function declarations
     this.locals = new Map()
-
     // Whether we are in a loop, so that we know whether breaks and continues
     // are legal here
-    this.inLoop = false
-
+    this.inLoop = inLoop ?? parent?.inLoop ?? false
     // Whether we are in a function, so that we know whether a return
     // statement can appear here, and if so, how we typecheck it
-    this.function = null
+    this.function = forFunction ?? parent?.function ?? null
   }
-
   sees(name) {
+    // Search "outward" through enclosing scopes
     return this.locals.has(name) || this.parent?.sees(name)
   }
-
   add(name, entity) {
+    // No shadowing! Prevent addition if id anywhere in scope chain!
     if (this.sees(name)) {
       throw new Error(`Identifier ${name} already declared`)
     }
     this.locals.set(name, entity)
   }
-
   lookup(name) {
-    // console.log(
-    //   `Looking up ${name} where locals is ${util.inspect(this.locals)}`
-    // )
     const entity = this.locals.get(name)
     if (entity) {
       return entity
@@ -48,18 +41,18 @@ class Context {
     }
     throw new Error(`Identifier ${name} not declared`)
   }
-
-  newChild({ inLoop = false, forFunction = null } = {}) {
-    const childContext = new Context(this)
-    childContext.inLoop = inLoop
-    childContext.function = forFunction
-    return childContext
+  newChild({ inLoop, forFunction } = {}) {
+    // Create new (nested) context, which is just like the current context
+    // except that certain fields can be overridden
+    return new Context(this, { inLoop, forFunction })
   }
 
   static get initial() {
     // The initial context for a compilation holds all the predefined
-    // identifiers, which so far are the constants true and false and the
-    // types number and boolean.
+    // identifiers. In our case, so far, the only predefined identifiers
+    // are the *types* number and boolean and the *constants* false and true.
+    // For the latter two, we'll defer to the analyze function to give these
+    // variables the proper type and to insert them into the context.
     const context = new Context()
     context.add("number", Type.NUMBER)
     context.add("boolean", Type.BOOLEAN)
@@ -140,6 +133,7 @@ const analyzers = {
       f.returnType = null
     }
     context.add(f.name, f)
+    // When entering a function body, we must reset the inLoop setting!
     const childContext = context.newChild({ inLoop: false, forFunction: f })
     f.parameters.forEach(p => analyze(p, childContext))
     analyze(f.body, childContext)
@@ -250,9 +244,9 @@ const analyzers = {
     e.type = Type.NUMBER
   },
   IdentifierExpression(e, context) {
-    // This expression refers to an actual variable
+    // Find out which actual variable is being referred to
     e.referent = context.lookup(e.name)
-    // And for convenience, mark the reference itself with a type
+    // We want *all* expressions to have a type property
     e.type = e.referent.type
   },
   Literal(e) {

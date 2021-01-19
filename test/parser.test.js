@@ -10,13 +10,13 @@ const source = `let x = 1024
     let y = false && (true || 2 >= x)
     x = (0 + x) / 2 ** next(0) // call in expression
     if false {
-      const hello = sqrt 100 - abs 3.1-3
+      const hello = sqrt 100 - abs 3.1E0-3
       function g() { return }
+      break
     } else if true {
       next(99)   // call statement
       let hello = y // a different hello
     } else {
-      break
       continue
     }
     print x   // TADA 🥑
@@ -68,15 +68,15 @@ const expectedAst = `   1 | program: Program
   44 |           right: Literal value=3
   45 |       consequent[1]: Function name='g' returnTypeExpression=null
   46 |         body[0]: ReturnStatement expression=null
-  47 |       alternative: IfStatement
-  48 |         test: IdentifierExpression name='true'
-  49 |         consequent[0]: Call
-  50 |           callee: IdentifierExpression name='next'
-  51 |           args[0]: Literal value=99
-  52 |         consequent[1]: Variable name='hello' readOnly=false
-  53 |           initializer: IdentifierExpression name='y'
-  54 |         alternative[0]: BreakStatement
-  55 |         alternative[1]: ContinueStatement
+  47 |       consequent[2]: BreakStatement
+  48 |       alternative: IfStatement
+  49 |         test: IdentifierExpression name='true'
+  50 |         consequent[0]: Call
+  51 |           callee: IdentifierExpression name='next'
+  52 |           args[0]: Literal value=99
+  53 |         consequent[1]: Variable name='hello' readOnly=false
+  54 |           initializer: IdentifierExpression name='y'
+  55 |         alternative[0]: ContinueStatement
   56 |     body[3]: PrintStatement
   57 |       argument: IdentifierExpression name='x'`
 
