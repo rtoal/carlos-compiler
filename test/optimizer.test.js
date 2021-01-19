@@ -45,6 +45,16 @@ const statementOptimizationFixture = [
   ["optimizes short-if-false", "print 8\nif (false) {print 1}", "print 8"],
   ["optimizes while-false", "print 1\nwhile false {print 2}", "print 1"],
   ["applies if-false after folding", "if (1 == 1) {print 1}", "print 1"],
+  [
+    "optimizes in functions",
+    "function f(): number {return 1+1}",
+    "function f(): number {return 2}",
+  ],
+  [
+    "optimizes in calls",
+    "function f(x: number) {}\nf(1+1)",
+    "function f(x: number) {}\nf(2)",
+  ],
 ]
 
 const logicalOperatorOptimizationFixture = [

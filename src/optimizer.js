@@ -29,6 +29,10 @@ const optimizers = {
     v.initializer = optimize(v.initializer)
     return v
   },
+  Function(f) {
+    f.body = optimize(f.body)
+    return f
+  },
   Assignment(s) {
     s.source = optimize(s.source)
     s.target = optimize(s.target)
@@ -76,6 +80,17 @@ const optimizers = {
   },
   ContinueStatement(s) {
     return s
+  },
+  ReturnStatement(s) {
+    if (s.expression) {
+      s.expression = optimize(s.expression)
+    }
+    return s
+  },
+  Call(c) {
+    c.callee = optimize(c.callee)
+    c.args = c.args.map(optimize)
+    return c
   },
   OrExpression(e) {
     // Get rid of all disjuncts after a literal true
