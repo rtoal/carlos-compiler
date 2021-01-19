@@ -64,7 +64,7 @@ const analyzers = {
     analyze(e.operand, context)
   },
   IdentifierExpression(e, context) {
-    // This expressions refers to an actual variable
+    // Find out which actual variable is being referred to
     e.referent = context.lookup(e.name)
   },
   Literal(e, context) {
