@@ -9,15 +9,20 @@ import { Variable, Literal, Type } from "./ast.js"
 class Context {
   constructor(parent = null) {
     // This is where we maintain the local variables of a block as well as
-    // a reference to the parent context for static scope analysis. Later
-    // we will have more to record.
+    // a reference to the parent context for static scope analysis (i.e., we
+    // will have nested scopes). Later we will have more to record, such as
+    // whether we are currently in a loop (to check future break and continue
+    // statements) or whether we are currently in a function body (to check
+    // future return statements).
     this.parent = parent
     this.locals = new Map()
   }
   sees(name) {
+    // Search "outward" through enclosing scopes
     return this.locals.has(name) || this.parent?.sees(name)
   }
   add(name, entity) {
+    // No shadowing! Prevent addition if id anywhere in scope chain!
     if (this.sees(name)) {
       throw new Error(`Identifier ${name} already declared`)
     }
@@ -33,8 +38,8 @@ class Context {
     throw new Error(`Identifier ${name} not declared`)
   }
   newChild() {
-    const childContext = new Context(this)
-    return childContext
+    // Create new (nested) context (used for if and while statement bodies)
+    return new Context(this)
   }
   static get initial() {
     // The initial context for a compilation holds all the predefined
