@@ -84,6 +84,12 @@ const expectedAst = String.raw`   1 | program: Program
   59 |     body[3]: PrintStatement
   60 |       argument: IdentifierExpression name='x' referent=$2`
 
+const semanticChecks = [
+  ["return in nested if", "function f() {if true {return}}"],
+  ["break in nested if", "while false {if true {break}}"],
+  ["continue in nested if", "while false {if true {continue}}"],
+]
+
 const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
   ["non declared ids", "let x = 1\nlet x = 1", /Identifier x already declared/],
@@ -120,9 +126,35 @@ const semanticErrors = [
   ],
   ["break outside loop", "break", /'break' can only appear in a loop/],
   ["continue outside loop", "continue", /'continue' can only appear in a loop/],
+  [
+    "break inside function",
+    "while true {function f() {break}}",
+    /'break' can only appear in a loop/,
+  ],
+  [
+    "continue inside function",
+    "while true {function f() {continue}}",
+    /'continue' can only appear in a loop/,
+  ],
+  [
+    "return expression from void function",
+    "function f() {return 1}",
+    /Cannot return a value here/,
+  ],
+  [
+    "return nothing when should have",
+    "function f(): number {return}",
+    /Something should be returned here/,
+  ],
 ]
 
 describe("The analyzer", () => {
+  for (const [scenario, source] of semanticChecks) {
+    it(`recognizes ${scenario}`, done => {
+      assert(parse(source))
+      done()
+    })
+  }
   it("can analyze all the nodes", done => {
     assert.deepStrictEqual(util.format(analyze(parse(source))), expectedAst)
     done()
