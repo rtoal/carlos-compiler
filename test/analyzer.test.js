@@ -59,30 +59,32 @@ const expectedAst = String.raw`   1 | program: Program
   34 |           right: IdentifierExpression name='x' referent=$2
   35 |         right: BinaryExpression op='**'
   36 |           left: Literal value=2
-  37 |           right: Call callee=$4
-  38 |             args[0]: Literal value=0
-  39 |     body[2]: IfStatement
-  40 |       test: IdentifierExpression name='false' referent=$20
-  41 |       consequent[0]: Variable name='hello' readOnly=true
-  42 |         initializer: BinaryExpression op='-'
-  43 |           left: BinaryExpression op='-'
-  44 |             left: UnaryExpression op='sqrt'
-  45 |               operand: Literal value=100
-  46 |             right: UnaryExpression op='abs'
-  47 |               operand: Literal value=3.1
-  48 |           right: Literal value=3
-  49 |       consequent[1]: Function name='g' returnTypeExpression=null returnType=null
-  50 |         body[0]: ReturnStatement expression=null
-  51 |       consequent[2]: BreakStatement
-  52 |       alternative: IfStatement
-  53 |         test: IdentifierExpression name='true' referent=$24
-  54 |         consequent[0]: Call callee=$4
-  55 |           args[0]: Literal value=99
-  56 |         consequent[1]: Variable name='hello' readOnly=false
-  57 |           initializer: IdentifierExpression name='y' referent=$17
-  58 |         alternative[0]: ContinueStatement
-  59 |     body[3]: PrintStatement
-  60 |       argument: IdentifierExpression name='x' referent=$2`
+  37 |           right: Call
+  38 |             callee: IdentifierExpression name='next' referent=$4
+  39 |             args[0]: Literal value=0
+  40 |     body[2]: IfStatement
+  41 |       test: IdentifierExpression name='false' referent=$20
+  42 |       consequent[0]: Variable name='hello' readOnly=true
+  43 |         initializer: BinaryExpression op='-'
+  44 |           left: BinaryExpression op='-'
+  45 |             left: UnaryExpression op='sqrt'
+  46 |               operand: Literal value=100
+  47 |             right: UnaryExpression op='abs'
+  48 |               operand: Literal value=3.1
+  49 |           right: Literal value=3
+  50 |       consequent[1]: Function name='g' returnTypeExpression=null returnType=null
+  51 |         body[0]: ReturnStatement expression=null
+  52 |       consequent[2]: BreakStatement
+  53 |       alternative: IfStatement
+  54 |         test: IdentifierExpression name='true' referent=$24
+  55 |         consequent[0]: Call
+  56 |           callee: IdentifierExpression name='next' referent=$4
+  57 |           args[0]: Literal value=99
+  58 |         consequent[1]: Variable name='hello' readOnly=false
+  59 |           initializer: IdentifierExpression name='y' referent=$17
+  60 |         alternative[0]: ContinueStatement
+  61 |     body[3]: PrintStatement
+  62 |       argument: IdentifierExpression name='x' referent=$2`
 
 const semanticChecks = [
   ["return in nested if", "function f() {if true {return}}"],
@@ -145,6 +147,11 @@ const semanticErrors = [
     "return nothing when should have",
     "function f(): number {return}",
     /Something should be returned here/,
+  ],
+  [
+    "Too many args",
+    "function f(x: number) {}\nf(1,2)",
+    /1 parameter\(s\) required, but 2 argument\(s\) passed/,
   ],
 ]
 

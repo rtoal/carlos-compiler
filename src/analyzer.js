@@ -5,7 +5,7 @@
 // function for each node.
 
 import util from "util"
-import { Variable, Literal, Type } from "./ast.js"
+import { Variable, Literal, Type, ReturnStatement } from "./ast.js"
 
 class Context {
   constructor(parent = null, { inLoop, forFunction } = {}) {
@@ -99,12 +99,23 @@ function checkInFunction(context) {
   check(context.function, "Return can only appear in a function")
 }
 
-function checkInVoidFunction(context) {
-  check(!context.function.returnType, "Something should be returned here")
+function checkReturnHasExpression(returnStatement) {
+  check(returnStatement.expression, "Something should be returned here")
 }
 
-function checkInNonVoidFunction(context) {
-  check(context.function.returnType, "Cannot return a value here")
+function checkReturnHasNoExpression(returnStatement) {
+  check(!returnStatement.expression, "Cannot return a value here")
+}
+
+function checkArgumentCount(paramCount, argCount) {
+  check(
+    paramCount === argCount,
+    `${paramCount} parameter(s) required, but ${argCount} argument(s) passed`
+  )
+}
+
+function checkArgumentMatching(parameters, args) {
+  parameters.forEach((p, i) => checkAssignable(p.type, args[i].type))
 }
 
 export default function analyze(node, context = Context.initial) {
@@ -183,29 +194,20 @@ const analyzers = {
   },
   ReturnStatement(s, context) {
     checkInFunction(context)
-    if (s.expression === null) {
-      // Plain return statement, current function must be void
-      checkInVoidFunction(context)
-    } else {
-      // Return statement with value, need a type check
+    if (context.function.returnType) {
+      checkReturnHasExpression(s)
       analyze(s.expression, context)
-      checkInNonVoidFunction(context)
       checkAssignable(context.function.returnType, s.expression.type)
+    } else {
+      checkReturnHasNoExpression(s)
     }
   },
   Call(c, context) {
     analyze(c.callee, context)
-    c.callee = c.callee.referent
-    const [argCount, paramCount] = [c.args.length, c.callee.parameters.length]
-    check(
-      argCount === paramCount,
-      `${paramCount} parameters required, but call has ${argCount} arguments`
-    )
-    for (let i = 0; i < argCount; i++) {
-      analyze(c.args[i], context)
-      checkAssignable(c.callee.parameters[i].type, c.args[i].type)
-    }
-    c.type = c.callee.returnType
+    checkArgumentCount(c.callee.referent.parameters.length, c.args.length)
+    c.args.forEach(arg => analyze(arg, context))
+    checkArgumentMatching(c.callee.referent.parameters, c.args)
+    c.type = c.callee.referent.returnType
   },
   OrExpression(e, context) {
     for (const disjunct of e.disjuncts) {
