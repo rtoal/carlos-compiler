@@ -7,13 +7,12 @@ const source = `let x = 1024 - 0
     let y = false && (true || 2 >= x)
     x = (0 + x) / 2 ** 1
     if false {
-      const hello = sqrt 100 - abs 3.1-3
-      print 1
+      const hello = sqrt 100 - abs 3.1E0-3
+      break
     } else if true {
       let hello = false // A different hello
     } else {
       print y
-      break
       continue
     }
     print x   // TADA 🥑
@@ -55,18 +54,16 @@ const expectedAst = `   1 | program: Program
   34 |             right: UnaryExpression op='abs'
   35 |               operand: Literal value=3.1
   36 |           right: Literal value=3
-  37 |       consequent[1]: PrintStatement
-  38 |         argument: Literal value=1
-  39 |       alternative: IfStatement
-  40 |         test: IdentifierExpression name='true'
-  41 |         consequent[0]: Variable name='hello' readOnly=false
-  42 |           initializer: IdentifierExpression name='false'
-  43 |         alternative[0]: PrintStatement
-  44 |           argument: IdentifierExpression name='y'
-  45 |         alternative[1]: BreakStatement
-  46 |         alternative[2]: ContinueStatement
-  47 |     body[3]: PrintStatement
-  48 |       argument: IdentifierExpression name='x'`
+  37 |       consequent[1]: BreakStatement
+  38 |       alternative: IfStatement
+  39 |         test: IdentifierExpression name='true'
+  40 |         consequent[0]: Variable name='hello' readOnly=false
+  41 |           initializer: IdentifierExpression name='false'
+  42 |         alternative[0]: PrintStatement
+  43 |           argument: IdentifierExpression name='y'
+  44 |         alternative[1]: ContinueStatement
+  45 |     body[3]: PrintStatement
+  46 |       argument: IdentifierExpression name='x'`
 
 const syntaxChecks = [
   ["integers and floating point literals", "print 8 * 899.123"],

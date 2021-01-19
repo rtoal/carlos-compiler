@@ -7,7 +7,7 @@
 import { Variable, Literal, Type } from "./ast.js"
 
 class Context {
-  constructor(parent = null) {
+  constructor(parent = null, { inLoop } = {}) {
     // This is where we maintain the local variables of a block as well as
     // a reference to the parent context for static scope analysis. Our
     // language does not have functions yet, but we do have to keep track
@@ -15,12 +15,14 @@ class Context {
     // legal
     this.parent = parent
     this.locals = new Map()
-    this.inLoop = false
+    this.inLoop = inLoop ?? parent?.inLoop ?? false
   }
   sees(name) {
+    // Search "outward" through enclosing scopes
     return this.locals.has(name) || this.parent?.sees(name)
   }
   add(name, entity) {
+    // No shadowing! Prevent addition if id anywhere in scope chain!
     if (this.sees(name)) {
       throw new Error(`Identifier ${name} already declared`)
     }
@@ -35,15 +37,17 @@ class Context {
     }
     throw new Error(`Identifier ${name} not declared`)
   }
-  newChild({ inLoop } = { inLoop: false }) {
-    const childContext = new Context(this)
-    childContext.inLoop = inLoop
-    return childContext
+  newChild({ inLoop } = {}) {
+    // Create new (nested) context, which is just like the current context
+    // except that certain fields can be overridden
+    return new Context(this, { inLoop })
   }
   static get initial() {
     // The initial context for a compilation holds all the predefined
     // identifiers. In our case, so far, the only predefined identifiers
-    // are the *constants* false and true.
+    // are the *constants* false and true. We'll defer to the analyze
+    // function to give these variables the proper type and to insert them
+    // into the context.
     const context = new Context()
     for (let [name, value] of Object.entries({ false: false, true: true })) {
       analyze(new Variable(name, true, new Literal(value)), context)
@@ -167,9 +171,9 @@ const analyzers = {
     e.type = Type.NUMBER
   },
   IdentifierExpression(e, context) {
-    // This expressions refers to an actual variable
+    // Find out which actual variable is being referred to
     e.referent = context.lookup(e.name)
-    // And for convenience, mark the reference itself with a type
+    // We want *all* expressions to have a type property
     e.type = e.referent.type
   },
   Literal(e) {

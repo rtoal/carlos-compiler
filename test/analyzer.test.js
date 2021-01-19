@@ -8,12 +8,13 @@ const source = `let x = 1024 - 0
     let y = false && (true || 2 >= x)
     x = (0 + x) / 2 ** 1
     if false {
-      const hello = sqrt 100 - abs 3.1-3
-      print 1
+      const hello = sqrt 100 - abs 3.1E0-3
+      break
     } else if true {
       let hello = false // A different hello
     } else {
       print y
+      continue
     }
     print x   // TADA 🥑
   }`
@@ -58,14 +59,14 @@ const expectedAst = String.raw`   1 | program: Program
   38 |             right: UnaryExpression op='abs'
   39 |               operand: Literal value=3.1
   40 |           right: Literal value=3
-  41 |       consequent[1]: PrintStatement
-  42 |         argument: Literal value=1
-  43 |       alternative: IfStatement
-  44 |         test: IdentifierExpression name='true' referent=$17
-  45 |         consequent[0]: Variable name='hello' readOnly=false
-  46 |           initializer: IdentifierExpression name='false' referent=$13
-  47 |         alternative[0]: PrintStatement
-  48 |           argument: IdentifierExpression name='y' referent=$10
+  41 |       consequent[1]: BreakStatement
+  42 |       alternative: IfStatement
+  43 |         test: IdentifierExpression name='true' referent=$17
+  44 |         consequent[0]: Variable name='hello' readOnly=false
+  45 |           initializer: IdentifierExpression name='false' referent=$13
+  46 |         alternative[0]: PrintStatement
+  47 |           argument: IdentifierExpression name='y' referent=$10
+  48 |         alternative[1]: ContinueStatement
   49 |     body[3]: PrintStatement
   50 |       argument: IdentifierExpression name='x' referent=$2`
 
