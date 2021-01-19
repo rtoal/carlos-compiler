@@ -153,6 +153,16 @@ const semanticErrors = [
     "function f(x: number) {}\nf(1,2)",
     /1 parameter\(s\) required, but 2 argument\(s\) passed/,
   ],
+  [
+    "Too few args",
+    "function f(x: number) {}\nf()",
+    /1 parameter\(s\) required, but 0 argument\(s\) passed/,
+  ],
+  [
+    "Parameter type mismatch",
+    "function f(x: number) {}\nf(false)",
+    /Expected type number, got type boolean/,
+  ],
 ]
 
 describe("The analyzer", () => {
