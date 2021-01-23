@@ -102,6 +102,8 @@ const syntaxChecks = [
   ["function with no params + return type", "function f(): number {}"],
   ["call in exp", "print 5 * f(x, y, 2 * y)"],
   ["call in statement", "let x = 1\nf(100)\nprint 1"],
+  ["array type for param", "function f(x: [[[boolean]]]) {}"],
+  ["array type returned", "function f(): [[number]] {}"],
 ]
 
 const syntaxErrors = [
@@ -123,6 +125,7 @@ const syntaxErrors = [
   ["if without braces", "if x < 3\nprint 1", /Line 2, col 1/],
   ["while as identifier", "let while = 3", /Line 1, col 5/],
   ["if as identifier", "let if = 8", /Line 1, col 5/],
+  ["unbalanced brackets", "function f(): [number", /Line 1, col 22/],
 ]
 
 describe("The parser", () => {
