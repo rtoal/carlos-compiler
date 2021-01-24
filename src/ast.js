@@ -35,6 +35,12 @@ export class NamedTypeExpression {
   }
 }
 
+export class ArrayTypeExpression {
+  constructor(baseType) {
+    this.baseType = baseType
+  }
+}
+
 export class Variable {
   constructor(name, readOnly, initializer) {
     Object.assign(this, { name, readOnly, initializer })
