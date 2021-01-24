@@ -95,8 +95,8 @@ const optimizers = {
   OrExpression(e) {
     // Get rid of all disjuncts after a literal true
     const optimizedDisjuncts = []
-    for (const d of e.disjuncts) {
-      const optimized = optimize(d)
+    for (const disjunct of e.disjuncts) {
+      const optimized = optimize(disjunct)
       optimizedDisjuncts.push(optimized)
       if (optimized.constructor === Literal && optimized.value) {
         break
@@ -108,8 +108,8 @@ const optimizers = {
   AndExpression(e) {
     // Get rid of all conjuncts after a literal false
     const optimizedConjuncts = []
-    for (const d of e.conjuncts) {
-      const optimized = optimize(d)
+    for (const conjunct of e.conjuncts) {
+      const optimized = optimize(conjunct)
       optimizedConjuncts.push(optimized)
       if (optimized.constructor === Literal && !optimized.value) {
         break
