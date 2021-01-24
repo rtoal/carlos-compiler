@@ -4,8 +4,7 @@
 // Checks are made relative to a semantic context that is passed to the analyzer
 // function for each node.
 
-import util from "util"
-import { Variable, Literal, Type, ReturnStatement } from "./ast.js"
+import { Variable, Literal, Type, Function } from "./ast.js"
 
 class Context {
   constructor(parent = null, { inLoop, forFunction } = {}) {
@@ -46,7 +45,6 @@ class Context {
     // except that certain fields can be overridden
     return new Context(this, { inLoop, forFunction })
   }
-
   static get initial() {
     // The initial context for a compilation holds all the predefined
     // identifiers. In our case, so far, the only predefined identifiers
@@ -75,6 +73,10 @@ function checkNumber(e, op) {
 
 function checkBoolean(e, op) {
   check(e.type === Type.BOOLEAN, `'${op}' operand must be a boolean`)
+}
+
+function checkIsFunction(e) {
+  check(e.constructor == Function, "Call of non-function")
 }
 
 function checkSameTypes(e1, e2, op) {
@@ -204,6 +206,7 @@ const analyzers = {
   },
   Call(c, context) {
     analyze(c.callee, context)
+    checkIsFunction(c.callee.referent)
     checkArgumentCount(c.callee.referent.parameters.length, c.args.length)
     c.args.forEach(arg => analyze(arg, context))
     checkArgumentMatching(c.callee.referent.parameters, c.args)
