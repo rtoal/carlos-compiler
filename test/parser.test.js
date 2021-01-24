@@ -104,6 +104,9 @@ const syntaxChecks = [
   ["call in statement", "let x = 1\nf(100)\nprint 1"],
   ["array type for param", "function f(x: [[[boolean]]]) {}"],
   ["array type returned", "function f(): [[number]] {}"],
+  ["empty array literal", "print [number]()"],
+  ["nonempty array literal", "print [number](1, 2, 3)"],
+  ["subscript", "print a[100 - (3 * x)]"],
 ]
 
 const syntaxErrors = [
@@ -126,6 +129,8 @@ const syntaxErrors = [
   ["while as identifier", "let while = 3", /Line 1, col 5/],
   ["if as identifier", "let if = 8", /Line 1, col 5/],
   ["unbalanced brackets", "function f(): [number", /Line 1, col 22/],
+  ["array lit w/o type", "print [1,2]", /Line 1, col 8/],
+  ["empty subscript", "print a[]", /Line 1, col 9/],
 ]
 
 describe("The parser", () => {

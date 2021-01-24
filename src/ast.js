@@ -133,9 +133,15 @@ export class UnaryExpression {
   }
 }
 
+export class SubscriptExpression {
+  constructor(array, element) {
+    Object.assign(this, { array, element })
+  }
+}
+
 export class ArrayLiteral {
-  constructor(elements) {
-    this.elements = elements
+  constructor(type, elements) {
+    Object.assign(this, { type, elements })
   }
 }
 

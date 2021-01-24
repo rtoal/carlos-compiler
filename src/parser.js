@@ -42,7 +42,7 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Exp5      = id "(" Args ")"                 --call
             | VarExp
             | num
-            | "[" Args "]"                    --array
+            | TypeExp_array "(" Args ")"      --array
             | "(" Exp ")"                     --parens
   VarExp    = VarExp "[" Exp "]"              --subscript
             | id
@@ -88,7 +88,7 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Param(id, _colon, type) {
     return new ast.Parameter(id.sourceString, type.ast())
   },
-  TypeExp(_left, type, _right) {
+  TypeExp_array(_left, type, _right) {
     return new ast.ArrayTypeExpression(type.ast())
   },
   TypeExp(id) {
@@ -157,11 +157,11 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Exp5_parens(_open, expression, _close) {
     return expression.ast()
   },
-  Exp5_array(_open, args, _close) {
-    return new ast.ArrayLiteral(args.ast())
+  Exp5_array(type, _open, args, _close) {
+    return new ast.ArrayLiteral(type.ast(), args.ast())
   },
   VarExp_subscript(array, _left, subscript, _right) {
-    return new SubscriptExpression(array.ast(), subscript.ast())
+    return new ast.SubscriptExpression(array.ast(), subscript.ast())
   },
   Args(expressions) {
     return expressions.asIteration().ast()
