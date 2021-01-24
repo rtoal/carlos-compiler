@@ -163,6 +163,7 @@ const semanticErrors = [
     "function f(x: number) {}\nf(false)",
     /Expected type number, got type boolean/,
   ],
+  ["call of non-function", "let x = 1\nprint x()", /Call of non-function/],
 ]
 
 describe("The analyzer", () => {
