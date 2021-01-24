@@ -40,9 +40,12 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
             | Exp5
             | ("-" | abs | sqrt) Exp5         --unary
   Exp5      = id "(" Args ")"                 --call
-            | id
+            | VarExp
             | num
+            | "[" Args "]"                    --array
             | "(" Exp ")"                     --parens
+  VarExp    = VarExp "[" Exp "]"              --subscript
+            | id
   Args      = ListOf<Exp, ",">
   relop     = "<=" | "<" | "==" | "!=" | ">=" | ">"
   num       = digit+ ("." digit+)? (("E" | "e") ("+" | "-")? digit+)?
@@ -153,6 +156,12 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   },
   Exp5_parens(_open, expression, _close) {
     return expression.ast()
+  },
+  Exp5_array(_open, args, _close) {
+    return new ast.ArrayLiteral(args.ast())
+  },
+  VarExp_subscript(array, _left, subscript, _right) {
+    return new SubscriptExpression(array.ast(), subscript.ast())
   },
   Args(expressions) {
     return expressions.asIteration().ast()

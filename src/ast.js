@@ -133,6 +133,12 @@ export class UnaryExpression {
   }
 }
 
+export class ArrayLiteral {
+  constructor(elements) {
+    this.elements = elements
+  }
+}
+
 export class IdentifierExpression {
   constructor(name) {
     this.name = name
