@@ -28,8 +28,8 @@ const expectedAst = `   1 | program: Program
   19 |         left: Literal value=1
   20 |         right: Literal value=5
   21 |       disjuncts[1]: BinaryExpression op='=='
-  22 |         left: IdentifierExpression name='false'
-  23 |         right: IdentifierExpression name='true'`
+  22 |         left: Literal value=false
+  23 |         right: Literal value=true`
 
 const syntaxChecks = [
   ["integers and floating point literals", "print 8 * 899.123"],
@@ -39,7 +39,11 @@ const syntaxChecks = [
   ["non-Latin letters in identifiers", "let コンパイラ = 100"],
   ["ors can be chained", "print 1 || 2 || 3 || 4 || 5"],
   ["ands can be chained", "print 1 && 2 && 3 && 4 && 5"],
-  ["relational operators", "print 1<2||1<=2||1==2||1!=2||1>=2||1>2"],
+  [
+    "relational operators",
+    "print 1 < 2 || 3 <= 4 || 5 == 6 || 7 != 8 || 9 >= 10 || 10 > 11",
+  ],
+  ["boolean literals", "let x = false || true"],
 ]
 
 const syntaxErrors = [
@@ -57,6 +61,8 @@ const syntaxErrors = [
   ["mixing ands and ors", "print 1 && 2 || 3", /Line 1, col 14:/],
   ["mixing ors and ands", "print 1 || 2 && 3", /Line 1, col 14:/],
   ["associating relational operators", "print 1 < 2 < 3", /Line 1, col 13:/],
+  ["true is reserved", "true = 1", /Line 1, col 1/],
+  ["false is reserved", "true = 1", /Line 1, col 1/],
 ]
 
 describe("The parser", () => {

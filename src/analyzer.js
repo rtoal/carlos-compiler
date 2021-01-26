@@ -31,18 +31,6 @@ class Context {
     }
     throw new Error(`Identifier ${name} not declared`)
   }
-  static get initial() {
-    // The initial context for a compilation holds all the predefined
-    // identifiers. In our case, so far, the only predefined identifiers
-    // are the *constants* false and true. We'll defer to the analyze
-    // function to give these variables the proper type and to insert them
-    // into the context.
-    const context = new Context()
-    for (let [name, value] of Object.entries({ false: false, true: true })) {
-      analyze(new Variable(name, true, new Literal(value)), context)
-    }
-    return context
-  }
 }
 
 function check(condition, errorMessage) {
@@ -67,7 +55,7 @@ function checkNotReadOnly(e) {
   check(!e.readOnly, `Cannot assign to constant ${e.name}`)
 }
 
-export default function analyze(node, context = Context.initial) {
+export default function analyze(node, context = new Context()) {
   analyzers[node.constructor.name](node, context)
   return node
 }
