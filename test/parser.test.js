@@ -28,9 +28,9 @@ const expectedAst = `   1 | program: Program
    9 |       right: Literal value=3
   10 |     body[0]: Variable name='y' readOnly=false
   11 |       initializer: AndExpression
-  12 |         conjuncts[0]: IdentifierExpression name='false'
+  12 |         conjuncts[0]: Literal value=false
   13 |         conjuncts[1]: OrExpression
-  14 |           disjuncts[0]: IdentifierExpression name='true'
+  14 |           disjuncts[0]: Literal value=true
   15 |           disjuncts[1]: BinaryExpression op='>='
   16 |             left: Literal value=2
   17 |             right: IdentifierExpression name='x'
@@ -44,7 +44,7 @@ const expectedAst = `   1 | program: Program
   25 |           left: Literal value=2
   26 |           right: Literal value=1
   27 |     body[2]: IfStatement
-  28 |       test: IdentifierExpression name='false'
+  28 |       test: Literal value=false
   29 |       consequent[0]: Variable name='hello' readOnly=true
   30 |         initializer: BinaryExpression op='-'
   31 |           left: BinaryExpression op='-'
@@ -56,9 +56,9 @@ const expectedAst = `   1 | program: Program
   37 |       consequent[1]: PrintStatement
   38 |         argument: Literal value=1
   39 |       alternative: IfStatement
-  40 |         test: IdentifierExpression name='true'
+  40 |         test: Literal value=true
   41 |         consequent[0]: Variable name='hello' readOnly=false
-  42 |           initializer: IdentifierExpression name='false'
+  42 |           initializer: Literal value=false
   43 |         alternative[0]: PrintStatement
   44 |           argument: IdentifierExpression name='y'
   45 |     body[3]: PrintStatement
@@ -80,6 +80,7 @@ const syntaxChecks = [
   ["while with one statement block", "while true { let x = 1 }"],
   ["while with long block", "while true { print 1\nprint 2\nprint 3 }"],
   ["if inside while", "while true { if true { print 1 } }"],
+  ["boolean literals", "let x = false || true"],
 ]
 
 const syntaxErrors = [
@@ -101,6 +102,8 @@ const syntaxErrors = [
   ["if without braces", "if x < 3\nprint 1", /Line 2, col 1/],
   ["while as identifier", "let while = 3", /Line 1, col 5/],
   ["if as identifier", "let if = 8", /Line 1, col 5/],
+  ["true is reserved", "true = 1", /Line 1, col 1/],
+  ["false is reserved", "true = 1", /Line 1, col 1/],
 ]
 
 describe("The parser", () => {
