@@ -5,7 +5,7 @@ import parse from "../src/parser.js"
 const source = `let two = 2 - 0
   print(1 ** two)   // TADA 🥑
   two = sqrt 101.3E-5 //
-  const x = 8`
+  const x = true`
 
 const expectedAst = `   1 | program: Program
    2 |   statements[0]: Variable name='two' readOnly=false
@@ -21,7 +21,7 @@ const expectedAst = `   1 | program: Program
   12 |     source: UnaryExpression op='sqrt'
   13 |       operand: Literal value=0.001013
   14 |   statements[3]: Variable name='x' readOnly=true
-  15 |     initializer: Literal value=8`
+  15 |     initializer: Literal value=true`
 
 const syntaxChecks = [
   ["integers and floating point literals", "print 8 * 899.123"],
@@ -35,6 +35,7 @@ const syntaxChecks = [
     "relational operators",
     "print 1 < 2 || 3 <= 4 || 5 == 6 || 7 != 8 || 9 >= 10 || 10 > 11",
   ],
+  ["boolean literals", "let x = false || true"],
 ]
 
 const syntaxErrors = [
@@ -52,6 +53,8 @@ const syntaxErrors = [
   ["mixing ands and ors", "print 1 && 2 || 3", /Line 1, col 14:/],
   ["mixing ors and ands", "print 1 || 2 && 3", /Line 1, col 14:/],
   ["associating relational operators", "print 1 < 2 < 3", /Line 1, col 13:/],
+  ["true is reserved", "true = 1", /Line 1, col 1/],
+  ["false is reserved", "true = 1", /Line 1, col 1/],
 ]
 
 describe("The parser", () => {

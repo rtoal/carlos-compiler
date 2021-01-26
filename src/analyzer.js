@@ -31,18 +31,9 @@ class Context {
     }
     throw new Error(`Identifier ${name} not declared`)
   }
-  static get initial() {
-    // The initial context for a compilation holds all the predefined
-    // identifiers. In our case, so far, the only predefined identifiers
-    // are the *constants* false and true.
-    const context = new Context()
-    context.add("false", new Variable("false", true, new Literal(false)))
-    context.add("true", new Variable("true", true, new Literal(true)))
-    return context
-  }
 }
 
-export default function analyze(node, context = Context.initial) {
+export default function analyze(node, context = new Context()) {
   analyzers[node.constructor.name](node, context)
   return node
 }
