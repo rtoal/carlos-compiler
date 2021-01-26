@@ -190,10 +190,6 @@ const optimizers = {
     return e
   },
   IdentifierExpression(e) {
-    if (e.name === "true" || e.name === "false") {
-      // Who needs references when we can have straight up literals
-      return new Literal(e.name === "true")
-    }
     return e
   },
   Literal(e) {
