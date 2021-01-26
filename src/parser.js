@@ -31,6 +31,8 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
             | Exp5
             | ("-" | abs | sqrt) Exp5         --unary
   Exp5      = id
+            | true
+            | false
             | num
             | "(" Exp ")"                     --parens
   relop     = "<=" | "<" | "==" | "!=" | ">=" | ">"
@@ -45,8 +47,10 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   continue  = "continue" ~alnum
   abs       = "abs" ~alnum
   sqrt      = "sqrt" ~alnum
-  keyword   = let | const | print | if | while | else | break 
-            | continue | abs | sqrt
+  true      = "true" ~alnum
+  false     = "false" ~alnum
+  keyword   = let | const | print | if | while | else 
+            | break | continue | abs | sqrt | true | false
   id        = ~keyword letter alnum*
   space    += "//" (~"\n" any)* ("\n" | end)  --comment
 }`)
@@ -116,6 +120,12 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   },
   num(_whole, _point, _fraction, _e, _sign, _exponent) {
     return new ast.Literal(Number(this.sourceString))
+  },
+  true(_) {
+    return new ast.Literal(true)
+  },
+  false(_) {
+    return new ast.Literal(false)
   },
   id(_firstChar, _restChars) {
     return new ast.IdentifierExpression(this.sourceString)
