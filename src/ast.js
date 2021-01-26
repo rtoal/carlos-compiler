@@ -140,8 +140,8 @@ export class SubscriptExpression {
 }
 
 export class ArrayLiteral {
-  constructor(type, elements) {
-    Object.assign(this, { type, elements })
+  constructor(typeExpression, elements) {
+    Object.assign(this, { typeExpression, elements })
   }
 }
 

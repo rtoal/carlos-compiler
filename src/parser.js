@@ -10,7 +10,7 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Program   = Statement+
   Statement = VarDecl
             | FunDecl
-            | id "=" Exp                      --assign
+            | VarExp "=" Exp                  --assign
             | id "(" Args ")"                 --call
             | print Exp                       --print
             | WhileStmt
@@ -94,8 +94,8 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   TypeExp(id) {
     return new ast.NamedTypeExpression(id.sourceString)
   },
-  Statement_assign(id, _eq, expression) {
-    return new ast.Assignment(id.ast(), expression.ast())
+  Statement_assign(target, _eq, source) {
+    return new ast.Assignment(target.ast(), source.ast())
   },
   Statement_call(id, _left, args, _right) {
     return new ast.Call(id.ast(), args.ast())

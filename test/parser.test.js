@@ -107,6 +107,7 @@ const syntaxChecks = [
   ["empty array literal", "print [number]()"],
   ["nonempty array literal", "print [number](1, 2, 3)"],
   ["subscript", "print a[100 - (3 * x)]"],
+  ["subscript exp is writable", "a[2] = 50"],
 ]
 
 const syntaxErrors = [
