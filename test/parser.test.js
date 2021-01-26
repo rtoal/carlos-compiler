@@ -39,10 +39,7 @@ const syntaxChecks = [
   ["non-Latin letters in identifiers", "let コンパイラ = 100"],
   ["ors can be chained", "print 1 || 2 || 3 || 4 || 5"],
   ["ands can be chained", "print 1 && 2 && 3 && 4 && 5"],
-  [
-    "relational operators",
-    "print 1 < 2 || 3 <= 4 || 5 == 6 || 7 != 8 || 9 >= 10 || 10 > 11",
-  ],
+  ["relational operators", "print 1<2||3<=4||5==6||7!=8||9>=10||10>11"],
   ["boolean literals", "let x = false || true"],
 ]
 
