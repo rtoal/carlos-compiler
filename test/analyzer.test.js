@@ -41,50 +41,46 @@ const expectedAst = String.raw`   1 | program: Program
   16 |       right: Literal value=3
   17 |     body[0]: Variable name='y' readOnly=false
   18 |       initializer: AndExpression
-  19 |         conjuncts[0]: IdentifierExpression name='false'
-  20 |           referent: Variable name='false' readOnly=true
-  21 |             initializer: Literal value=false
-  22 |         conjuncts[1]: OrExpression
-  23 |           disjuncts[0]: IdentifierExpression name='true'
-  24 |             referent: Variable name='true' readOnly=true
-  25 |               initializer: Literal value=true
-  26 |           disjuncts[1]: BinaryExpression op='>='
-  27 |             left: Literal value=2
-  28 |             right: IdentifierExpression name='x' referent=$2
-  29 |     body[1]: Assignment
-  30 |       target: IdentifierExpression name='x' referent=$2
-  31 |       source: BinaryExpression op='/'
-  32 |         left: BinaryExpression op='+'
-  33 |           left: Literal value=0
-  34 |           right: IdentifierExpression name='x' referent=$2
-  35 |         right: BinaryExpression op='**'
-  36 |           left: Literal value=2
-  37 |           right: Call
-  38 |             callee: IdentifierExpression name='next' referent=$4
-  39 |             args[0]: Literal value=0
-  40 |     body[2]: IfStatement
-  41 |       test: IdentifierExpression name='false' referent=$20
-  42 |       consequent[0]: Variable name='hello' readOnly=true
-  43 |         initializer: BinaryExpression op='-'
-  44 |           left: BinaryExpression op='-'
-  45 |             left: UnaryExpression op='sqrt'
-  46 |               operand: Literal value=100
-  47 |             right: UnaryExpression op='abs'
-  48 |               operand: Literal value=3.1
-  49 |           right: Literal value=3
-  50 |       consequent[1]: Function name='g' returnTypeExpression=null returnType=null
-  51 |         body[0]: ReturnStatement expression=null
-  52 |       consequent[2]: BreakStatement
-  53 |       alternative: IfStatement
-  54 |         test: IdentifierExpression name='true' referent=$24
-  55 |         consequent[0]: Call
-  56 |           callee: IdentifierExpression name='next' referent=$4
-  57 |           args[0]: Literal value=99
-  58 |         consequent[1]: Variable name='hello' readOnly=false
-  59 |           initializer: IdentifierExpression name='y' referent=$17
-  60 |         alternative[0]: ContinueStatement
-  61 |     body[3]: PrintStatement
-  62 |       argument: IdentifierExpression name='x' referent=$2`
+  19 |         conjuncts[0]: Literal value=false
+  20 |         conjuncts[1]: OrExpression
+  21 |           disjuncts[0]: Literal value=true
+  22 |           disjuncts[1]: BinaryExpression op='>='
+  23 |             left: Literal value=2
+  24 |             right: IdentifierExpression name='x' referent=$2
+  25 |     body[1]: Assignment
+  26 |       target: IdentifierExpression name='x' referent=$2
+  27 |       source: BinaryExpression op='/'
+  28 |         left: BinaryExpression op='+'
+  29 |           left: Literal value=0
+  30 |           right: IdentifierExpression name='x' referent=$2
+  31 |         right: BinaryExpression op='**'
+  32 |           left: Literal value=2
+  33 |           right: Call
+  34 |             callee: IdentifierExpression name='next' referent=$4
+  35 |             args[0]: Literal value=0
+  36 |     body[2]: IfStatement
+  37 |       test: Literal value=false
+  38 |       consequent[0]: Variable name='hello' readOnly=true
+  39 |         initializer: BinaryExpression op='-'
+  40 |           left: BinaryExpression op='-'
+  41 |             left: UnaryExpression op='sqrt'
+  42 |               operand: Literal value=100
+  43 |             right: UnaryExpression op='abs'
+  44 |               operand: Literal value=3.1
+  45 |           right: Literal value=3
+  46 |       consequent[1]: Function name='g' returnTypeExpression=null returnType=null
+  47 |         body[0]: ReturnStatement expression=null
+  48 |       consequent[2]: BreakStatement
+  49 |       alternative: IfStatement
+  50 |         test: Literal value=true
+  51 |         consequent[0]: Call
+  52 |           callee: IdentifierExpression name='next' referent=$4
+  53 |           args[0]: Literal value=99
+  54 |         consequent[1]: Variable name='hello' readOnly=false
+  55 |           initializer: IdentifierExpression name='y' referent=$17
+  56 |         alternative[0]: ContinueStatement
+  57 |     body[3]: PrintStatement
+  58 |       argument: IdentifierExpression name='x' referent=$2`
 
 const semanticChecks = [
   ["return in nested if", "function f() {if true {return}}"],
@@ -96,10 +92,6 @@ const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
   ["non declared ids", "let x = 1\nlet x = 1", /Identifier x already declared/],
   ["assign to const", "const x = 1\nx = 2", /Cannot assign to constant x/],
-  ["redeclare true", "let true = 1<1", /Identifier true already declared/],
-  ["assign to true", "true = 1<1", /Cannot assign to constant true/],
-  ["redeclare false", "let false = 1<1", /Identifier false already declared/],
-  ["assign to false", "false = 1<1", /Cannot assign to constant false/],
   [
     "assign bad type",
     "let x=1\nx=true",

@@ -4,7 +4,7 @@
 // Checks are made relative to a semantic context that is passed to the analyzer
 // function for each node.
 
-import { Variable, Literal, Type, Function } from "./ast.js"
+import { Type, Function } from "./ast.js"
 
 class Context {
   constructor(parent = null, { inLoop, forFunction } = {}) {
@@ -48,15 +48,10 @@ class Context {
   static get initial() {
     // The initial context for a compilation holds all the predefined
     // identifiers. In our case, so far, the only predefined identifiers
-    // are the *types* number and boolean and the *constants* false and true.
-    // For the latter two, we'll defer to the analyze function to give these
-    // variables the proper type and to insert them into the context.
+    // are the *types* number and boolean.
     const context = new Context()
     context.add("number", Type.NUMBER)
     context.add("boolean", Type.BOOLEAN)
-    for (let [name, value] of Object.entries({ false: false, true: true })) {
-      analyze(new Variable(name, true, new Literal(value)), context)
-    }
     return context
   }
 }

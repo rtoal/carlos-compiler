@@ -39,9 +39,9 @@ const expectedAst = `   1 | program: Program
   15 |       right: Literal value=3
   16 |     body[0]: Variable name='y' readOnly=false
   17 |       initializer: AndExpression
-  18 |         conjuncts[0]: IdentifierExpression name='false'
+  18 |         conjuncts[0]: Literal value=false
   19 |         conjuncts[1]: OrExpression
-  20 |           disjuncts[0]: IdentifierExpression name='true'
+  20 |           disjuncts[0]: Literal value=true
   21 |           disjuncts[1]: BinaryExpression op='>='
   22 |             left: Literal value=2
   23 |             right: IdentifierExpression name='x'
@@ -57,7 +57,7 @@ const expectedAst = `   1 | program: Program
   33 |             callee: IdentifierExpression name='next'
   34 |             args[0]: Literal value=0
   35 |     body[2]: IfStatement
-  36 |       test: IdentifierExpression name='false'
+  36 |       test: Literal value=false
   37 |       consequent[0]: Variable name='hello' readOnly=true
   38 |         initializer: BinaryExpression op='-'
   39 |           left: BinaryExpression op='-'
@@ -70,7 +70,7 @@ const expectedAst = `   1 | program: Program
   46 |         body[0]: ReturnStatement expression=null
   47 |       consequent[2]: BreakStatement
   48 |       alternative: IfStatement
-  49 |         test: IdentifierExpression name='true'
+  49 |         test: Literal value=true
   50 |         consequent[0]: Call
   51 |           callee: IdentifierExpression name='next'
   52 |           args[0]: Literal value=99
@@ -108,6 +108,7 @@ const syntaxChecks = [
   ["nonempty array literal", "print [number](1, 2, 3)"],
   ["subscript", "print a[100 - (3 * x)]"],
   ["subscript exp is writable", "a[2] = 50"],
+  ["boolean literals", "let x = false || true"],
 ]
 
 const syntaxErrors = [
@@ -132,6 +133,8 @@ const syntaxErrors = [
   ["unbalanced brackets", "function f(): [number", /Line 1, col 22/],
   ["array lit w/o type", "print [1,2]", /Line 1, col 8/],
   ["empty subscript", "print a[]", /Line 1, col 9/],
+  ["true is reserved", "true = 1", /Line 1, col 1/],
+  ["false is reserved", "true = 1", /Line 1, col 1/],
 ]
 
 describe("The parser", () => {
