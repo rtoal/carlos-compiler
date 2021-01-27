@@ -7,19 +7,19 @@ const source = `let two = 2 - 0
   print(1 * two)   // TADA 🥑 
   two = sqrt 101.3`
 
-const expectedAst = String.raw`   1 | program: Program
-   2 |   statements[0]: Variable name='two'
-   3 |     initializer: BinaryExpression op='-'
-   4 |       left: Literal value=2
-   5 |       right: Literal value=0
-   6 |   statements[1]: PrintStatement
-   7 |     argument: BinaryExpression op='*'
-   8 |       left: Literal value=1
-   9 |       right: IdentifierExpression name='two' referent=$2
-  10 |   statements[2]: Assignment
-  11 |     target: IdentifierExpression name='two' referent=$2
-  12 |     source: UnaryExpression op='sqrt'
-  13 |       operand: Literal value=101.3`
+const expectedAst = String.raw`   1 | Program statements=[$2,$6,$10]
+   2 | Variable name='two' initializer=$3
+   3 | BinaryExpression op='-' left=$4 right=$5
+   4 | Literal value=2
+   5 | Literal value=0
+   6 | PrintStatement argument=$7
+   7 | BinaryExpression op='*' left=$8 right=$9
+   8 | Literal value=1
+   9 | IdentifierExpression name='two' referent=$2
+  10 | Assignment target=$11 source=$12
+  11 | IdentifierExpression name='two' referent=$2
+  12 | UnaryExpression op='sqrt' operand=$13
+  13 | Literal value=101.3`
 
 const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
