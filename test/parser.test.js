@@ -3,25 +3,26 @@ import util from "util"
 import parse from "../src/parser.js"
 
 const source = `let two = 2 - 0
-  print(1 ** two)   // TADA 🥑
-  two = sqrt 101.3E-5 //
-  const x = true`
+  print(1 ** two)   // TADA 🥑 
+  two = sqrt 101.3E-5
+  const x = true && true`
 
-const expectedAst = `   1 | program: Program
-   2 |   statements[0]: Variable name='two' readOnly=false
-   3 |     initializer: BinaryExpression op='-'
-   4 |       left: Literal value=2
-   5 |       right: Literal value=0
-   6 |   statements[1]: PrintStatement
-   7 |     argument: BinaryExpression op='**'
-   8 |       left: Literal value=1
-   9 |       right: IdentifierExpression name='two'
-  10 |   statements[2]: Assignment
-  11 |     target: IdentifierExpression name='two'
-  12 |     source: UnaryExpression op='sqrt'
-  13 |       operand: Literal value=0.001013
-  14 |   statements[3]: Variable name='x' readOnly=true
-  15 |     initializer: Literal value=true`
+const expectedAst = `   1 | Program statements=[$2,$6,$10,$14]
+   2 | Variable name='two' readOnly=false initializer=$3
+   3 | BinaryExpression op='-' left=$4 right=$5
+   4 | Literal value=2
+   5 | Literal value=0
+   6 | PrintStatement argument=$7
+   7 | BinaryExpression op='**' left=$8 right=$9
+   8 | Literal value=1
+   9 | IdentifierExpression name='two'
+  10 | Assignment target=$11 source=$12
+  11 | IdentifierExpression name='two'
+  12 | UnaryExpression op='sqrt' operand=$13
+  13 | Literal value=0.001013
+  14 | Variable name='x' readOnly=true initializer=$15
+  15 | AndExpression conjuncts=[$17,$17]
+  17 | Literal value=true`
 
 const syntaxChecks = [
   ["integers and floating point literals", "print 8 * 899.123"],
