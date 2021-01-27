@@ -1,5 +1,6 @@
 import assert from "assert"
 import util from "util"
+import { BinaryExpression, Literal, Program, Variable } from "../src/ast.js"
 import parse from "../src/parser.js"
 
 const source = `let two = 2 - 0
@@ -7,29 +8,27 @@ const source = `let two = 2 - 0
   two = sqrt 101.3E-5
   const x = 1 < 5 || false == true`
 
-const expectedAst = `   1 | program: Program
-   2 |   statements[0]: Variable name='two' readOnly=false
-   3 |     initializer: BinaryExpression op='-'
-   4 |       left: Literal value=2
-   5 |       right: Literal value=0
-   6 |   statements[1]: PrintStatement
-   7 |     argument: BinaryExpression op='/'
-   8 |       left: BinaryExpression op='*'
-   9 |         left: Literal value=1
-  10 |         right: IdentifierExpression name='two'
-  11 |       right: Literal value=1
-  12 |   statements[2]: Assignment
-  13 |     target: IdentifierExpression name='two'
-  14 |     source: UnaryExpression op='sqrt'
-  15 |       operand: Literal value=0.001013
-  16 |   statements[3]: Variable name='x' readOnly=true
-  17 |     initializer: OrExpression
-  18 |       disjuncts[0]: BinaryExpression op='<'
-  19 |         left: Literal value=1
-  20 |         right: Literal value=5
-  21 |       disjuncts[1]: BinaryExpression op='=='
-  22 |         left: Literal value=false
-  23 |         right: Literal value=true`
+const expectedAst = `   1 | Program statements=[$2,$6,$11,$15]
+   2 | Variable name='two' readOnly=false initializer=$3
+   3 | BinaryExpression op='-' left=$4 right=$5
+   4 | Literal value=2
+   5 | Literal value=0
+   6 | PrintStatement argument=$7
+   7 | BinaryExpression op='/' left=$8 right=$9
+   8 | BinaryExpression op='*' left=$9 right=$10
+   9 | Literal value=1
+  10 | IdentifierExpression name='two'
+  11 | Assignment target=$12 source=$13
+  12 | IdentifierExpression name='two'
+  13 | UnaryExpression op='sqrt' operand=$14
+  14 | Literal value=0.001013
+  15 | Variable name='x' readOnly=true initializer=$16
+  16 | OrExpression disjuncts=[$17,$19]
+  17 | BinaryExpression op='<' left=$9 right=$18
+  18 | Literal value=5
+  19 | BinaryExpression op='==' left=$20 right=$21
+  20 | Literal value=false
+  21 | Literal value=true`
 
 const syntaxChecks = [
   ["integers and floating point literals", "print 8 * 899.123"],

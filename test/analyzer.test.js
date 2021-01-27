@@ -8,29 +8,29 @@ const source = `let two = 2 - 0
   two = sqrt 101.3E-5
   const x = 1 < 5 || false == true`
 
-const expectedAst = String.raw`   1 | program: Program
-   2 |   statements[0]: Variable name='two' readOnly=false
-   3 |     initializer: BinaryExpression op='-'
-   4 |       left: Literal value=2
-   5 |       right: Literal value=0
-   6 |   statements[1]: PrintStatement
-   7 |     argument: BinaryExpression op='/'
-   8 |       left: BinaryExpression op='*'
-   9 |         left: Literal value=1
-  10 |         right: IdentifierExpression name='two' referent=$2
-  11 |       right: Literal value=1
-  12 |   statements[2]: Assignment
-  13 |     target: IdentifierExpression name='two' referent=$2
-  14 |     source: UnaryExpression op='sqrt'
-  15 |       operand: Literal value=0.001013
-  16 |   statements[3]: Variable name='x' readOnly=true
-  17 |     initializer: OrExpression
-  18 |       disjuncts[0]: BinaryExpression op='<'
-  19 |         left: Literal value=1
-  20 |         right: Literal value=5
-  21 |       disjuncts[1]: BinaryExpression op='=='
-  22 |         left: Literal value=false
-  23 |         right: Literal value=true`
+const expectedAst = String.raw`   1 | Program statements=[$2,$7,$12,$16]
+   2 | Variable name='two' readOnly=false initializer=$3 type=$5
+   3 | BinaryExpression op='-' left=$4 right=$6 type=$5
+   4 | Literal value=2 type=$5
+   5 | Type name='number'
+   6 | Literal value=0 type=$5
+   7 | PrintStatement argument=$8
+   8 | BinaryExpression op='/' left=$9 right=$10 type=$5
+   9 | BinaryExpression op='*' left=$10 right=$11 type=$5
+  10 | Literal value=1 type=$5
+  11 | IdentifierExpression name='two' referent=$2 type=$5
+  12 | Assignment target=$13 source=$14
+  13 | IdentifierExpression name='two' referent=$2 type=$5
+  14 | UnaryExpression op='sqrt' operand=$15 type=$5
+  15 | Literal value=0.001013 type=$5
+  16 | Variable name='x' readOnly=true initializer=$17 type=$20
+  17 | OrExpression disjuncts=[$18,$21] type=$20
+  18 | BinaryExpression op='<' left=$10 right=$19 type=$20
+  19 | Literal value=5 type=$5
+  20 | Type name='boolean'
+  21 | BinaryExpression op='==' left=$22 right=$23 type=$20
+  22 | Literal value=false type=$20
+  23 | Literal value=true type=$20`
 
 const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
