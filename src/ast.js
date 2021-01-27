@@ -93,10 +93,10 @@ function prettied(node) {
   // Return a compact and pretty string representation of the node graph,
   // taking care of cycles. Written here from scratch because the built-in
   // inspect function, while nice, isn't nice enough.
-  let [seen, nodeId] = [new Map(), 0]
+  const seen = new Map()
 
   function setIds(node) {
-    seen.set(node, ++nodeId)
+    seen.set(node, seen.size + 1)
     for (const child of Object.values(node)) {
       if (seen.has(child)) continue
       else if (Array.isArray(child)) child.forEach(setIds)
@@ -104,21 +104,21 @@ function prettied(node) {
     }
   }
 
-  function* display() {
-    for (let [node, index] of [...seen.entries()].sort((a, b) => a[1] - b[1])) {
+  function* lines() {
+    for (let [node, id] of [...seen.entries()].sort((a, b) => a[1] - b[1])) {
       let [type, props] = [node.constructor.name, ""]
       for (const [prop, child] of Object.entries(node)) {
         const value = seen.has(child)
           ? `$${seen.get(child)}`
           : Array.isArray(child)
           ? `[${child.map(c => `$${seen.get(c)}`)}]`
-          : `${util.inspect(child)}`
+          : util.inspect(child)
         props += ` ${prop}=${value}`
       }
-      yield `${String(index).padStart(4, " ")} | ${type}${props}`
+      yield `${String(id).padStart(4, " ")} | ${type}${props}`
     }
   }
 
   setIds(node)
-  return [...display()].join("\n")
+  return [...lines()].join("\n")
 }
