@@ -78,7 +78,7 @@ function prettied(node) {
     }
   }
 
-  function* display() {
+  function* lines() {
     for (let [node, id] of [...seen.entries()].sort((a, b) => a[1] - b[1])) {
       let [type, props] = [node.constructor.name, ""]
       for (const [prop, child] of Object.entries(node)) {
@@ -86,7 +86,7 @@ function prettied(node) {
           ? `$${seen.get(child)}`
           : Array.isArray(child)
           ? `[${child.map(c => `$${seen.get(c)}`)}]`
-          : `${util.inspect(child)}`
+          : util.inspect(child)
         props += ` ${prop}=${value}`
       }
       yield `${String(id).padStart(4, " ")} | ${type}${props}`
@@ -94,5 +94,5 @@ function prettied(node) {
   }
 
   setIds(node)
-  return [...display()].join("\n")
+  return [...lines()].join("\n")
 }
