@@ -30,6 +30,16 @@ export default function generate(program) {
     Variable(v) {
       output.push(`let ${targetName(v)} = ${gen(v.initializer)};`)
     },
+    Function(f) {
+      output.push(
+        `function ${targetName(f)}(${f.parameters.map(gen).join(", ")}) {`
+      )
+      gen(f.body)
+      output.push("}")
+    },
+    Parameter(p) {
+      return targetName(p)
+    },
     Assignment(s) {
       const source = gen(s.source)
       const target = gen(s.target)
@@ -65,6 +75,14 @@ export default function generate(program) {
     },
     PrintStatement(s) {
       output.push(`console.log(${gen(s.argument)});`)
+    },
+    ReturnStatement(s) {
+      output.push(
+        `return${s.expression === null ? "" : ` ${gen(s.expression)}`};`
+      )
+    },
+    Call(c) {
+      return `${gen(c.callee)}(${c.args.map(gen).join(", ")})`
     },
     OrExpression(e) {
       return `(${gen(e.disjuncts).join(" || ")})`
