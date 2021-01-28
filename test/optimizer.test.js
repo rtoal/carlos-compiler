@@ -1,5 +1,4 @@
 import assert from "assert"
-import util from "util"
 import parse from "../src/parser.js"
 import analyze from "../src/analyzer.js"
 import optimize from "../src/optimizer.js"
@@ -73,7 +72,7 @@ describe("The optimizer", () => {
     for (const [scenario, before, after] of fixture) {
       it(`${scenario}`, done => {
         const actual = analyze(optimize(analyze(parse(before))))
-        const expected = analyze(optimize(analyze(parse(after))))
+        const expected = analyze(parse(after))
         assert.deepStrictEqual(actual, expected)
         done()
       })
