@@ -1,5 +1,6 @@
 import assert from "assert"
 import util from "util"
+import { BinaryExpression, Literal, Program, Variable } from "../src/ast.js"
 import parse from "../src/parser.js"
 
 const source = `let x = 1024
@@ -22,63 +23,63 @@ const source = `let x = 1024
     print x   // TADA 🥑
   }`
 
-const expectedAst = `   1 | program: Program
-   2 |   statements[0]: Variable name='x' readOnly=false
-   3 |     initializer: Literal value=1024
-   4 |   statements[1]: Function name='next'
-   5 |     parameters[0]: Parameter name='n'
-   6 |       typeExpression: NamedTypeExpression name='number'
-   7 |     returnTypeExpression: NamedTypeExpression name='number'
-   8 |     body[0]: ReturnStatement
-   9 |       expression: BinaryExpression op='+'
-  10 |         left: IdentifierExpression name='n'
-  11 |         right: Literal value=1
-  12 |   statements[2]: WhileStatement
-  13 |     test: BinaryExpression op='>'
-  14 |       left: IdentifierExpression name='x'
-  15 |       right: Literal value=3
-  16 |     body[0]: Variable name='y' readOnly=false
-  17 |       initializer: AndExpression
-  18 |         conjuncts[0]: Literal value=false
-  19 |         conjuncts[1]: OrExpression
-  20 |           disjuncts[0]: Literal value=true
-  21 |           disjuncts[1]: BinaryExpression op='>='
-  22 |             left: Literal value=2
-  23 |             right: IdentifierExpression name='x'
-  24 |     body[1]: Assignment
-  25 |       target: IdentifierExpression name='x'
-  26 |       source: BinaryExpression op='/'
-  27 |         left: BinaryExpression op='+'
-  28 |           left: Literal value=0
-  29 |           right: IdentifierExpression name='x'
-  30 |         right: BinaryExpression op='**'
-  31 |           left: Literal value=2
-  32 |           right: Call
-  33 |             callee: IdentifierExpression name='next'
-  34 |             args[0]: Literal value=0
-  35 |     body[2]: IfStatement
-  36 |       test: Literal value=false
-  37 |       consequent[0]: Variable name='hello' readOnly=true
-  38 |         initializer: BinaryExpression op='-'
-  39 |           left: BinaryExpression op='-'
-  40 |             left: UnaryExpression op='sqrt'
-  41 |               operand: Literal value=100
-  42 |             right: UnaryExpression op='abs'
-  43 |               operand: Literal value=3.1
-  44 |           right: Literal value=3
-  45 |       consequent[1]: Function name='g' returnTypeExpression=null
-  46 |         body[0]: ReturnStatement expression=null
-  47 |       consequent[2]: BreakStatement
-  48 |       alternative: IfStatement
-  49 |         test: Literal value=true
-  50 |         consequent[0]: Call
-  51 |           callee: IdentifierExpression name='next'
-  52 |           args[0]: Literal value=99
-  53 |         consequent[1]: Variable name='hello' readOnly=false
-  54 |           initializer: IdentifierExpression name='y'
-  55 |         alternative[0]: ContinueStatement
-  56 |     body[3]: PrintStatement
-  57 |       argument: IdentifierExpression name='x'`
+const expectedAst = `   1 | Program statements=[$2,$4,$12]
+   2 | Variable name='x' readOnly=false initializer=$3
+   3 | Literal value=1024
+   4 | Function name='next' parameters=[$5] returnTypeExpression=$7 body=[$8]
+   5 | Parameter name='n' typeExpression=$6
+   6 | NamedTypeExpression name='number'
+   7 | NamedTypeExpression name='number'
+   8 | ReturnStatement expression=$9
+   9 | BinaryExpression op='+' left=$10 right=$11
+  10 | IdentifierExpression name='n'
+  11 | Literal value=1
+  12 | WhileStatement test=$13 body=[$16,$24,$35,$56]
+  13 | BinaryExpression op='>' left=$14 right=$15
+  14 | IdentifierExpression name='x'
+  15 | Literal value=3
+  16 | Variable name='y' readOnly=false initializer=$17
+  17 | AndExpression conjuncts=[$18,$19]
+  18 | Literal value=false
+  19 | OrExpression disjuncts=[$20,$21]
+  20 | Literal value=true
+  21 | BinaryExpression op='>=' left=$22 right=$23
+  22 | Literal value=2
+  23 | IdentifierExpression name='x'
+  24 | Assignment target=$25 source=$26
+  25 | IdentifierExpression name='x'
+  26 | BinaryExpression op='/' left=$27 right=$30
+  27 | BinaryExpression op='+' left=$28 right=$29
+  28 | Literal value=0
+  29 | IdentifierExpression name='x'
+  30 | BinaryExpression op='**' left=$31 right=$32
+  31 | Literal value=2
+  32 | Call callee=$33 args=[$34]
+  33 | IdentifierExpression name='next'
+  34 | Literal value=0
+  35 | IfStatement test=$36 consequent=[$37,$45,$47] alternative=$48
+  36 | Literal value=false
+  37 | Variable name='hello' readOnly=true initializer=$38
+  38 | BinaryExpression op='-' left=$39 right=$44
+  39 | BinaryExpression op='-' left=$40 right=$42
+  40 | UnaryExpression op='sqrt' operand=$41
+  41 | Literal value=100
+  42 | UnaryExpression op='abs' operand=$43
+  43 | Literal value=3.1
+  44 | Literal value=3
+  45 | Function name='g' parameters=[] returnTypeExpression=null body=[$46]
+  46 | ReturnStatement expression=null
+  47 | BreakStatement
+  48 | IfStatement test=$49 consequent=[$50,$53] alternative=[$55]
+  49 | Literal value=true
+  50 | Call callee=$51 args=[$52]
+  51 | IdentifierExpression name='next'
+  52 | Literal value=99
+  53 | Variable name='hello' readOnly=false initializer=$54
+  54 | IdentifierExpression name='y'
+  55 | ContinueStatement
+  56 | PrintStatement argument=$57
+  57 | IdentifierExpression name='x'`
 
 const syntaxChecks = [
   ["integers and floating point literals", "print 8 * 899.123 / 89.11E-1"],
