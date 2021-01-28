@@ -49,8 +49,8 @@ describe("The optimizer", () => {
   ]) {
     for (const [scenario, before, after] of fixture) {
       it(`${scenario}`, done => {
-        const actual = util.format(optimize(analyze(parse(before))))
-        const expected = util.format(analyze(parse(after)))
+        const actual = optimize(analyze(parse(before)))
+        const expected = analyze(parse(after))
         assert.deepStrictEqual(actual, expected)
         done()
       })
