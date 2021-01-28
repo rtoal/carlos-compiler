@@ -8,27 +8,29 @@ const source = `let two = 2 - 0
   two = sqrt 101.3E-5
   const x = 1 < 5 || false == true`
 
-const expectedAst = `   1 | Program statements=[$2,$6,$11,$15]
+const expectedAst = `   1 | Program statements=[$2,$6,$12,$16]
    2 | Variable name='two' readOnly=false initializer=$3
    3 | BinaryExpression op='-' left=$4 right=$5
    4 | Literal value=2
    5 | Literal value=0
    6 | PrintStatement argument=$7
-   7 | BinaryExpression op='/' left=$8 right=$9
+   7 | BinaryExpression op='/' left=$8 right=$11
    8 | BinaryExpression op='*' left=$9 right=$10
    9 | Literal value=1
   10 | IdentifierExpression name='two'
-  11 | Assignment target=$12 source=$13
-  12 | IdentifierExpression name='two'
-  13 | UnaryExpression op='sqrt' operand=$14
-  14 | Literal value=0.001013
-  15 | Variable name='x' readOnly=true initializer=$16
-  16 | OrExpression disjuncts=[$17,$19]
-  17 | BinaryExpression op='<' left=$9 right=$18
-  18 | Literal value=5
-  19 | BinaryExpression op='==' left=$20 right=$21
-  20 | Literal value=false
-  21 | Literal value=true`
+  11 | Literal value=1
+  12 | Assignment target=$13 source=$14
+  13 | IdentifierExpression name='two'
+  14 | UnaryExpression op='sqrt' operand=$15
+  15 | Literal value=0.001013
+  16 | Variable name='x' readOnly=true initializer=$17
+  17 | OrExpression disjuncts=[$18,$21]
+  18 | BinaryExpression op='<' left=$19 right=$20
+  19 | Literal value=1
+  20 | Literal value=5
+  21 | BinaryExpression op='==' left=$22 right=$23
+  22 | Literal value=false
+  23 | Literal value=true`
 
 const syntaxChecks = [
   ["integers and floating point literals", "print 8 * 899.123"],

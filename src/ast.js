@@ -78,14 +78,8 @@ export class IdentifierExpression {
 }
 
 export class Literal {
-  // Cache each literal, which may save memory
-  static cache = new Map()
   constructor(value) {
-    if (Literal.cache.has(value)) {
-      return Literal.cache.get(value)
-    }
     this.value = value
-    Literal.cache.set(value, this)
   }
 }
 

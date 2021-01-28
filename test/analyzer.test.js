@@ -8,29 +8,31 @@ const source = `let two = 2 - 0
   two = sqrt 101.3E-5
   const x = 1 < 5 || false == true`
 
-const expectedAst = String.raw`   1 | Program statements=[$2,$7,$12,$16]
+const expectedAst = String.raw`   1 | Program statements=[$2,$7,$13,$17]
    2 | Variable name='two' readOnly=false initializer=$3 type=$5
    3 | BinaryExpression op='-' left=$4 right=$6 type=$5
    4 | Literal value=2 type=$5
    5 | Type name='number'
    6 | Literal value=0 type=$5
    7 | PrintStatement argument=$8
-   8 | BinaryExpression op='/' left=$9 right=$10 type=$5
+   8 | BinaryExpression op='/' left=$9 right=$12 type=$5
    9 | BinaryExpression op='*' left=$10 right=$11 type=$5
   10 | Literal value=1 type=$5
   11 | IdentifierExpression name='two' referent=$2 type=$5
-  12 | Assignment target=$13 source=$14
-  13 | IdentifierExpression name='two' referent=$2 type=$5
-  14 | UnaryExpression op='sqrt' operand=$15 type=$5
-  15 | Literal value=0.001013 type=$5
-  16 | Variable name='x' readOnly=true initializer=$17 type=$20
-  17 | OrExpression disjuncts=[$18,$21] type=$20
-  18 | BinaryExpression op='<' left=$10 right=$19 type=$20
-  19 | Literal value=5 type=$5
-  20 | Type name='boolean'
-  21 | BinaryExpression op='==' left=$22 right=$23 type=$20
-  22 | Literal value=false type=$20
-  23 | Literal value=true type=$20`
+  12 | Literal value=1 type=$5
+  13 | Assignment target=$14 source=$15
+  14 | IdentifierExpression name='two' referent=$2 type=$5
+  15 | UnaryExpression op='sqrt' operand=$16 type=$5
+  16 | Literal value=0.001013 type=$5
+  17 | Variable name='x' readOnly=true initializer=$18 type=$22
+  18 | OrExpression disjuncts=[$19,$23] type=$22
+  19 | BinaryExpression op='<' left=$20 right=$21 type=$22
+  20 | Literal value=1 type=$5
+  21 | Literal value=5 type=$5
+  22 | Type name='boolean'
+  23 | BinaryExpression op='==' left=$24 right=$25 type=$22
+  24 | Literal value=false type=$22
+  25 | Literal value=true type=$22`
 
 const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
