@@ -19,52 +19,54 @@ const source = `let x = 1024 - 0
     print x   // TADA 🥑
   }`
 
-const expectedAst = String.raw`   1 | program: Program
-   2 |   statements[0]: Variable name='x' readOnly=false
-   3 |     initializer: BinaryExpression op='-'
-   4 |       left: Literal value=1024
-   5 |       right: Literal value=0
-   6 |   statements[1]: WhileStatement
-   7 |     test: BinaryExpression op='>'
-   8 |       left: IdentifierExpression name='x' referent=$2
-   9 |       right: Literal value=3
-  10 |     body[0]: Variable name='y' readOnly=false
-  11 |       initializer: AndExpression
-  12 |         conjuncts[0]: Literal value=false
-  13 |         conjuncts[1]: OrExpression
-  14 |           disjuncts[0]: Literal value=true
-  15 |           disjuncts[1]: BinaryExpression op='>='
-  16 |             left: Literal value=2
-  17 |             right: IdentifierExpression name='x' referent=$2
-  18 |     body[1]: Assignment
-  19 |       target: IdentifierExpression name='x' referent=$2
-  20 |       source: BinaryExpression op='/'
-  21 |         left: BinaryExpression op='+'
-  22 |           left: Literal value=0
-  23 |           right: IdentifierExpression name='x' referent=$2
-  24 |         right: BinaryExpression op='**'
-  25 |           left: Literal value=2
-  26 |           right: Literal value=1
-  27 |     body[2]: IfStatement
-  28 |       test: Literal value=false
-  29 |       consequent[0]: Variable name='hello' readOnly=true
-  30 |         initializer: BinaryExpression op='-'
-  31 |           left: BinaryExpression op='-'
-  32 |             left: UnaryExpression op='sqrt'
-  33 |               operand: Literal value=100
-  34 |             right: UnaryExpression op='abs'
-  35 |               operand: Literal value=3.1
-  36 |           right: Literal value=3
-  37 |       consequent[1]: BreakStatement
-  38 |       alternative: IfStatement
-  39 |         test: Literal value=true
-  40 |         consequent[0]: Variable name='hello' readOnly=false
-  41 |           initializer: Literal value=false
-  42 |         alternative[0]: PrintStatement
-  43 |           argument: IdentifierExpression name='y' referent=$10
-  44 |         alternative[1]: ContinueStatement
-  45 |     body[3]: PrintStatement
-  46 |       argument: IdentifierExpression name='x' referent=$2`
+const expectedAst = String.raw`   1 | Program statements=[$2,$7]
+   2 | Variable name='x' readOnly=false initializer=$3 type=$5
+   3 | BinaryExpression op='-' left=$4 right=$6 type=$5
+   4 | Literal value=1024 type=$5
+   5 | Type name='number'
+   6 | Literal value=0 type=$5
+   7 | WhileStatement test=$8 body=[$12,$20,$29,$47]
+   8 | BinaryExpression op='>' left=$9 right=$10 type=$11
+   9 | IdentifierExpression name='x' referent=$2 type=$5
+  10 | Literal value=3 type=$5
+  11 | Type name='boolean'
+  12 | Variable name='y' readOnly=false initializer=$13 type=$11
+  13 | AndExpression conjuncts=[$14,$15] type=$11
+  14 | Literal value=false type=$11
+  15 | OrExpression disjuncts=[$16,$17] type=$11
+  16 | Literal value=true type=$11
+  17 | BinaryExpression op='>=' left=$18 right=$19 type=$11
+  18 | Literal value=2 type=$5
+  19 | IdentifierExpression name='x' referent=$2 type=$5
+  20 | Assignment target=$21 source=$22
+  21 | IdentifierExpression name='x' referent=$2 type=$5
+  22 | BinaryExpression op='/' left=$23 right=$26 type=$5
+  23 | BinaryExpression op='+' left=$24 right=$25 type=$5
+  24 | Literal value=0 type=$5
+  25 | IdentifierExpression name='x' referent=$2 type=$5
+  26 | BinaryExpression op='**' left=$27 right=$28 type=$5
+  27 | Literal value=2 type=$5
+  28 | Literal value=1 type=$5
+  29 | IfStatement test=$30 consequent=[$31,$39] alternative=$40
+  30 | Literal value=false type=$11
+  31 | Variable name='hello' readOnly=true initializer=$32 type=$5
+  32 | BinaryExpression op='-' left=$33 right=$38 type=$5
+  33 | BinaryExpression op='-' left=$34 right=$36 type=$5
+  34 | UnaryExpression op='sqrt' operand=$35 type=$5
+  35 | Literal value=100 type=$5
+  36 | UnaryExpression op='abs' operand=$37 type=$5
+  37 | Literal value=3.1 type=$5
+  38 | Literal value=3 type=$5
+  39 | BreakStatement
+  40 | IfStatement test=$41 consequent=[$42] alternative=[$44,$46]
+  41 | Literal value=true type=$11
+  42 | Variable name='hello' readOnly=false initializer=$43 type=$11
+  43 | Literal value=false type=$11
+  44 | PrintStatement argument=$45
+  45 | IdentifierExpression name='y' referent=$12 type=$11
+  46 | ContinueStatement
+  47 | PrintStatement argument=$48
+  48 | IdentifierExpression name='x' referent=$2 type=$5`
 
 const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
