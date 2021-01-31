@@ -10,7 +10,7 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Program   = Statement+
   Statement = VarDecl
             | FunDecl
-            | VarExp "=" Exp                  --assign
+            | (Exp6_subscript | id) "=" Exp   --assign
             | id "(" Args ")"                 --call
             | print Exp                       --print
             | WhileStmt
@@ -22,8 +22,8 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   FunDecl   = function id Params (":" TypeExp)? Block
   Params    = "(" ListOf<Param, ","> ")"
   Param     = id ":" TypeExp
-  TypeExp   = "[" TypeExp "]"                 --array
-            | id
+  TypeExp   = TypeExp "[]"                    --arr
+            | id                              --named
   WhileStmt = while Exp Block
   IfStmt    = if Exp Block (else (Block | IfStmt))?
   Block     = "{" Statement* "}"
@@ -39,14 +39,13 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Exp4      = Exp5 "**" Exp4                  --binary
             | Exp5
             | ("-" | abs | sqrt) Exp5         --unary
-  Exp5      = id "(" Args ")"                 --call
-            | VarExp
-            | true
+  Exp5      = true
             | false
             | num
-            | TypeExp_array "(" Args ")"      --array
+            | Exp6
             | "(" Exp ")"                     --parens
-  VarExp    = VarExp "[" Exp "]"              --subscript
+  Exp6      = Exp6 "[" Exp "]"                --subscript
+            | (Exp6 | TypeExp) "(" Args ")"   --call
             | id
   Args      = ListOf<Exp, ",">
   relop     = "<=" | "<" | "==" | "!=" | ">=" | ">"
@@ -92,10 +91,10 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Param(id, _colon, type) {
     return new ast.Parameter(id.sourceString, type.ast())
   },
-  TypeExp_array(_left, type, _right) {
+  TypeExp_arr(type, _brackets) {
     return new ast.ArrayTypeExpression(type.ast())
   },
-  TypeExp(id) {
+  TypeExp_named(id) {
     return new ast.NamedTypeExpression(id.sourceString)
   },
   Statement_assign(target, _eq, source) {
@@ -155,16 +154,13 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Exp4_unary(op, operand) {
     return new ast.UnaryExpression(op.sourceString, operand.ast())
   },
-  Exp5_call(id, _left, args, _right) {
-    return new ast.Call(id.ast(), args.ast())
-  },
   Exp5_parens(_open, expression, _close) {
     return expression.ast()
   },
-  Exp5_array(type, _open, args, _close) {
-    return new ast.ArrayLiteral(type.ast(), args.ast())
+  Exp6_call(callee, _left, args, _right) {
+    return new ast.Call(callee.ast(), args.ast())
   },
-  VarExp_subscript(array, _left, subscript, _right) {
+  Exp6_subscript(array, _left, subscript, _right) {
     return new ast.SubscriptExpression(array.ast(), subscript.ast())
   },
   Args(expressions) {

@@ -4,8 +4,10 @@ import { BinaryExpression, Literal, Program, Variable } from "../src/ast.js"
 import parse from "../src/parser.js"
 
 const source = `let x = 1024
-  function next(n: number): number {
-    return n + 1
+  function next(n: number): number[] {
+    let a = number[](1, 2, 3)
+    a[1] = 100
+    return a
   }
   while x > 3 {
     let y = false && (true || 2 >= x)
@@ -23,63 +25,74 @@ const source = `let x = 1024
     print x   // TADA 🥑
   }`
 
-const expectedAst = `   1 | Program statements=[$2,$4,$12]
+const expectedAst = `   1 | Program statements=[$2,$4,$23]
    2 | Variable name='x' readOnly=false initializer=$3
    3 | Literal value=1024
-   4 | Function name='next' parameters=[$5] returnTypeExpression=$7 body=[$8]
+   4 | Function name='next' parameters=[$5] returnTypeExpression=$7 body=[$9,$16,$21]
    5 | Parameter name='n' typeExpression=$6
    6 | NamedTypeExpression name='number'
-   7 | NamedTypeExpression name='number'
-   8 | ReturnStatement expression=$9
-   9 | BinaryExpression op='+' left=$10 right=$11
-  10 | IdentifierExpression name='n'
-  11 | Literal value=1
-  12 | WhileStatement test=$13 body=[$16,$24,$35,$56]
-  13 | BinaryExpression op='>' left=$14 right=$15
-  14 | IdentifierExpression name='x'
+   7 | ArrayTypeExpression baseType=$8
+   8 | NamedTypeExpression name='number'
+   9 | Variable name='a' readOnly=false initializer=$10
+  10 | Call callee=$11 args=[$13,$14,$15]
+  11 | ArrayTypeExpression baseType=$12
+  12 | NamedTypeExpression name='number'
+  13 | Literal value=1
+  14 | Literal value=2
   15 | Literal value=3
-  16 | Variable name='y' readOnly=false initializer=$17
-  17 | AndExpression conjuncts=[$18,$19]
-  18 | Literal value=false
-  19 | OrExpression disjuncts=[$20,$21]
-  20 | Literal value=true
-  21 | BinaryExpression op='>=' left=$22 right=$23
-  22 | Literal value=2
-  23 | IdentifierExpression name='x'
-  24 | Assignment target=$25 source=$26
+  16 | Assignment target=$17 source=$20
+  17 | SubscriptExpression array=$18 element=$19
+  18 | IdentifierExpression name='a'
+  19 | Literal value=1
+  20 | Literal value=100
+  21 | ReturnStatement expression=$22
+  22 | IdentifierExpression name='a'
+  23 | WhileStatement test=$24 body=[$27,$35,$46,$67]
+  24 | BinaryExpression op='>' left=$25 right=$26
   25 | IdentifierExpression name='x'
-  26 | BinaryExpression op='/' left=$27 right=$30
-  27 | BinaryExpression op='+' left=$28 right=$29
-  28 | Literal value=0
-  29 | IdentifierExpression name='x'
-  30 | BinaryExpression op='**' left=$31 right=$32
-  31 | Literal value=2
-  32 | Call callee=$33 args=[$34]
-  33 | IdentifierExpression name='next'
-  34 | Literal value=0
-  35 | IfStatement test=$36 consequent=[$37,$45,$47] alternative=$48
-  36 | Literal value=false
-  37 | Variable name='hello' readOnly=true initializer=$38
-  38 | BinaryExpression op='-' left=$39 right=$44
-  39 | BinaryExpression op='-' left=$40 right=$42
-  40 | UnaryExpression op='sqrt' operand=$41
-  41 | Literal value=100
-  42 | UnaryExpression op='abs' operand=$43
-  43 | Literal value=3.1
-  44 | Literal value=3
-  45 | Function name='g' parameters=[] returnTypeExpression=null body=[$46]
-  46 | ReturnStatement expression=null
-  47 | BreakStatement
-  48 | IfStatement test=$49 consequent=[$50,$53] alternative=[$55]
-  49 | Literal value=true
-  50 | Call callee=$51 args=[$52]
-  51 | IdentifierExpression name='next'
-  52 | Literal value=99
-  53 | Variable name='hello' readOnly=false initializer=$54
-  54 | IdentifierExpression name='y'
-  55 | ContinueStatement
-  56 | PrintStatement argument=$57
-  57 | IdentifierExpression name='x'`
+  26 | Literal value=3
+  27 | Variable name='y' readOnly=false initializer=$28
+  28 | AndExpression conjuncts=[$29,$30]
+  29 | Literal value=false
+  30 | OrExpression disjuncts=[$31,$32]
+  31 | Literal value=true
+  32 | BinaryExpression op='>=' left=$33 right=$34
+  33 | Literal value=2
+  34 | IdentifierExpression name='x'
+  35 | Assignment target=$36 source=$37
+  36 | IdentifierExpression name='x'
+  37 | BinaryExpression op='/' left=$38 right=$41
+  38 | BinaryExpression op='+' left=$39 right=$40
+  39 | Literal value=0
+  40 | IdentifierExpression name='x'
+  41 | BinaryExpression op='**' left=$42 right=$43
+  42 | Literal value=2
+  43 | Call callee=$44 args=[$45]
+  44 | NamedTypeExpression name='next'
+  45 | Literal value=0
+  46 | IfStatement test=$47 consequent=[$48,$56,$58] alternative=$59
+  47 | Literal value=false
+  48 | Variable name='hello' readOnly=true initializer=$49
+  49 | BinaryExpression op='-' left=$50 right=$55
+  50 | BinaryExpression op='-' left=$51 right=$53
+  51 | UnaryExpression op='sqrt' operand=$52
+  52 | Literal value=100
+  53 | UnaryExpression op='abs' operand=$54
+  54 | Literal value=3.1
+  55 | Literal value=3
+  56 | Function name='g' parameters=[] returnTypeExpression=null body=[$57]
+  57 | ReturnStatement expression=null
+  58 | BreakStatement
+  59 | IfStatement test=$60 consequent=[$61,$64] alternative=[$66]
+  60 | Literal value=true
+  61 | Call callee=$62 args=[$63]
+  62 | IdentifierExpression name='next'
+  63 | Literal value=99
+  64 | Variable name='hello' readOnly=false initializer=$65
+  65 | IdentifierExpression name='y'
+  66 | ContinueStatement
+  67 | PrintStatement argument=$68
+  68 | IdentifierExpression name='x'`
 
 const syntaxChecks = [
   ["integers and floating point literals", "print 8 * 899.123 / 89.11E-1"],
@@ -103,10 +116,10 @@ const syntaxChecks = [
   ["function with no params + return type", "function f(): number {}"],
   ["call in exp", "print 5 * f(x, y, 2 * y)"],
   ["call in statement", "let x = 1\nf(100)\nprint 1"],
-  ["array type for param", "function f(x: [[[boolean]]]) {}"],
-  ["array type returned", "function f(): [[number]] {}"],
-  ["empty array literal", "print [number]()"],
-  ["nonempty array literal", "print [number](1, 2, 3)"],
+  ["array type for param", "function f(x: boolean[][][]) {}"],
+  ["array type returned", "function f(): number[][] {}"],
+  ["empty array literal", "print number[]()"],
+  ["nonempty array literal", "print number[](1, 2, 3)"],
   ["subscript", "print a[100 - (3 * x)]"],
   ["subscript exp is writable", "a[2] = 50"],
   ["boolean literals", "let x = false || true"],
@@ -131,9 +144,9 @@ const syntaxErrors = [
   ["if without braces", "if x < 3\nprint 1", /Line 2, col 1/],
   ["while as identifier", "let while = 3", /Line 1, col 5/],
   ["if as identifier", "let if = 8", /Line 1, col 5/],
-  ["unbalanced brackets", "function f(): [number", /Line 1, col 22/],
-  ["array lit w/o type", "print [1,2]", /Line 1, col 8/],
-  ["empty subscript", "print a[]", /Line 1, col 9/],
+  ["unbalanced brackets", "function f(): number[", /Line 1, col 21/],
+  ["array lit w/o type", "print [1,2]", /Line 1, col 7/],
+  ["empty subscript", "print a[]", /Line 1, col 10/],
   ["true is reserved", "true = 1", /Line 1, col 1/],
   ["false is reserved", "true = 1", /Line 1, col 1/],
 ]

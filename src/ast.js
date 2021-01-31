@@ -139,12 +139,6 @@ export class SubscriptExpression {
   }
 }
 
-export class ArrayLiteral {
-  constructor(typeExpression, elements) {
-    Object.assign(this, { typeExpression, elements })
-  }
-}
-
 export class IdentifierExpression {
   constructor(name) {
     this.name = name
