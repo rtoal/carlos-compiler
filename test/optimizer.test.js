@@ -1,58 +1,60 @@
 import assert from "assert"
-import parse from "../src/parser.js"
-import analyze from "../src/analyzer.js"
 import optimize from "../src/optimizer.js"
+import * as ast from "../src/ast.js"
 
-const binaryOptimizationFixture = [
-  ["folds +", "print 8 + 5", "print 13"],
-  ["folds -", "print 8 - 5", "print 3"],
-  ["folds *", "print 8 * 5", "print 40"],
-  ["folds /", "print 8 / 5", "print 1.6"],
-  ["optimizes -0", "let x = 8\nprint x - 0", "let x = 8\nprint x"],
-  ["optimizes +0", "let x = 8\nprint x + 0", "let x = 8\nprint x"],
-  ["optimizes *1", "let x = 8\nprint x * 1", "let x = 8\nprint x"],
-  ["optimizes /1", "let x = 8\nprint x / 1", "let x = 8\nprint x"],
-  ["optimizes *0", "let x = 8\nprint x * 0", "let x = 8\nprint 0"],
-  ["optimizes 0*", "let x = 8\nprint 0 * x", "let x = 8\nprint 0"],
-  ["optimizes 0/", "let x = 8\nprint 0 / x", "let x = 8\nprint 0"],
-  ["optimizes 0-", "let x = 8\nprint 0 - x", "let x = 8\nprint -x"],
-  ["optimizes 0+", "let x = 8\nprint 0 + x", "let x = 8\nprint x"],
-  ["optimizes 1*", "let x = 8\nprint 1 * x", "let x = 8\nprint x"],
-]
+const x = new ast.IdentifierExpression("x", 0)
 
-const unaryOptimizationFixture = [
-  ["folds abs for negatives", "print abs(-5)", "print 5"],
-  ["folds abs for positive", "print abs(8)", "print 8"],
-  ["folds sqrt", "print sqrt 2.25", "print 1.5"],
-]
-
-const statementOptimizationFixture = [
-  ["removes x=x at end", "let x = 0\nx = x", "let x = 0"],
-  ["removes x=x in middle", "let x = 0\nx = x\nprint x", "let x = 0\nprint x"],
-]
-
-// We have to test that non-optimizable constructs are left unchanged!
-const nothingToOptimizeFixture = [
+const tests = [
+  ["folds +", new ast.BinaryExpression("+", 5, 8), 13],
+  ["folds -", new ast.BinaryExpression("-", 5, 8), -3],
+  ["folds *", new ast.BinaryExpression("*", 5, 8), 40],
+  ["folds /", new ast.BinaryExpression("/", 5, 8), 0.625],
+  ["optimizes +0", new ast.BinaryExpression("+", x, 0), x],
+  ["optimizes -0", new ast.BinaryExpression("-", x, 0), x],
+  ["optimizes *1", new ast.BinaryExpression("*", x, 1), x],
+  ["optimizes /1", new ast.BinaryExpression("/", x, 1), x],
+  ["optimizes *0", new ast.BinaryExpression("*", x, 0), 0],
+  ["optimizes 0*", new ast.BinaryExpression("*", 0, x), 0],
+  ["optimizes 0/", new ast.BinaryExpression("/", 0, x), 0],
+  ["optimizes 0+", new ast.BinaryExpression("+", 0, x), x],
+  [
+    "optimizes 0-",
+    new ast.BinaryExpression("-", 0, x),
+    new ast.UnaryExpression("-", x),
+  ],
+  ["optimizes 1*", new ast.BinaryExpression("*", 1, x), x],
+  ["folds negation", new ast.UnaryExpression("-", 8), -8],
+  [
+    "removes x=x at end",
+    [new ast.PrintStatement(1), new ast.Assignment(x, x)],
+    [new ast.PrintStatement(1)],
+  ],
+  [
+    "removes x=x in middle",
+    [
+      new ast.PrintStatement(1),
+      new ast.Assignment(x, x),
+      new ast.Variable("x", 1),
+    ],
+    [new ast.PrintStatement(1), new ast.Variable("x", 1)],
+  ],
   [
     "passes through nonoptimizable constructs",
-    ...Array(2).fill("let x=0\nlet y=9\nx=y*abs x"),
+    [
+      new ast.Variable("x", 0),
+      new ast.PrintStatement(x, new ast.BinaryExpression("*", x, 100)),
+    ],
+    [
+      new ast.Variable("x", 0),
+      new ast.PrintStatement(x, new ast.BinaryExpression("*", x, 100)),
+    ],
   ],
 ]
 
 describe("The optimizer", () => {
-  for (const fixture of [
-    binaryOptimizationFixture,
-    unaryOptimizationFixture,
-    statementOptimizationFixture,
-    nothingToOptimizeFixture,
-  ]) {
-    for (const [scenario, before, after] of fixture) {
-      it(`${scenario}`, done => {
-        const actual = optimize(analyze(parse(before)))
-        const expected = analyze(parse(after))
-        assert.deepStrictEqual(actual, expected)
-        done()
-      })
-    }
+  for (const [scenario, before, after] of tests) {
+    it(`${scenario}`, () => {
+      assert.deepStrictEqual(optimize(before), after)
+    })
   }
 })
