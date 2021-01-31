@@ -1,7 +1,7 @@
 // Semantic Analyzer
 //
 // Analyzes the AST by looking for semantic errors and resolving references.
-// Checks are made relative to a semantic context that is passed to the analyzer
+// Checks are made relative to a semantic context passed to the analyzer
 // function for each node.
 
 import { Variable } from "./ast.js"
@@ -10,12 +10,10 @@ class Context {
   constructor(context) {
     // Currently, the only analysis context needed is the set of declared
     // variables. We store this as a map, indexed by the variable name,
-    // for efficient lookup.
-    //
-    // Later, contexts will need to record the current function or module,
-    // whether you were in a loop (for validating breaks and continues),
-    // and have a reference to the parent context for static scope analysis,
-    // among other things.
+    // for efficient lookup. More complex languages will a lot more here,
+    // such as the current function (to validate return statements), whether
+    // you were in a loop (for validating breaks and continues), and a link
+    // to a parent context for static scope analysis.
     this.locals = new Map()
   }
   add(name, entity) {
@@ -64,8 +62,8 @@ const analyzers = {
     // Find out which actual variable is being referred to
     e.referent = context.lookup(e.name)
   },
-  Literal(e, context) {
-    // There is LITERALly nothing to analyze here (sorry)
+  Number(e, context) {
+    // Nothing to analyze
   },
   Array(a, context) {
     a.forEach(entity => analyze(entity, context))
