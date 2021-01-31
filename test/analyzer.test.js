@@ -3,36 +3,22 @@ import util from "util"
 import parse from "../src/parser.js"
 import analyze from "../src/analyzer.js"
 
-const source = `let two = 2 - 0
-  print (1 * two) / 1   // TADA 🥑 
-  two = sqrt 101.3E-5
+const source = `let count = 101.3E-5 - 0
+  print(1 ** count)   // TADA 🥑
   const x = 1 < 5 || false == true`
 
-const expectedAst = String.raw`   1 | Program statements=[$2,$7,$13,$17]
-   2 | Variable name='two' readOnly=false initializer=$3 type=$5
-   3 | BinaryExpression op='-' left=$4 right=$6 type=$5
-   4 | Literal value=2 type=$5
-   5 | Type name='number'
-   6 | Literal value=0 type=$5
-   7 | PrintStatement argument=$8
-   8 | BinaryExpression op='/' left=$9 right=$12 type=$5
-   9 | BinaryExpression op='*' left=$10 right=$11 type=$5
-  10 | Literal value=1 type=$5
-  11 | IdentifierExpression name='two' referent=$2 type=$5
-  12 | Literal value=1 type=$5
-  13 | Assignment target=$14 source=$15
-  14 | IdentifierExpression name='two' referent=$2 type=$5
-  15 | UnaryExpression op='sqrt' operand=$16 type=$5
-  16 | Literal value=0.001013 type=$5
-  17 | Variable name='x' readOnly=true initializer=$18 type=$22
-  18 | OrExpression disjuncts=[$19,$23] type=$22
-  19 | BinaryExpression op='<' left=$20 right=$21 type=$22
-  20 | Literal value=1 type=$5
-  21 | Literal value=5 type=$5
-  22 | Type name='boolean'
-  23 | BinaryExpression op='==' left=$24 right=$25 type=$22
-  24 | Literal value=false type=$22
-  25 | Literal value=true type=$22`
+const expectedAst = String.raw`   1 | Program statements=[#2,#5,#8]
+   2 | Variable name='count' readOnly=false initializer=#3 type=#4
+   3 | BinaryExpression op='-' left=0.001013 right=0 type=#4
+   4 | Type name='number'
+   5 | PrintStatement argument=#6
+   6 | BinaryExpression op='**' left=1 right=#7 type=#4
+   7 | IdentifierExpression name='count' referent=#2 type=#4
+   8 | Variable name='x' readOnly=true initializer=#9 type=#11
+   9 | OrExpression disjuncts=[#10,#12] type=#11
+  10 | BinaryExpression op='<' left=1 right=5 type=#11
+  11 | Type name='boolean'
+  12 | BinaryExpression op='==' left=false right=true type=#11`
 
 const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
@@ -50,20 +36,16 @@ const semanticErrors = [
   ["bad types for <=", "print false<=1", /'<=' operand must be a number/],
   ["bad types for >", "print false>1", /'>' operand must be a number/],
   ["bad types for >=", "print false>=1", /'>=' operand must be a number/],
-  ["bad types for sqrt", "print sqrt true", /sqrt' operand must be a number/],
-  ["bad types for abs", "print abs true", /'abs' operand must be a number/],
   ["bad types for negation", "print -true", /'-' operand must be a number/],
 ]
 
 describe("The analyzer", () => {
-  it("can analyze all the nodes", done => {
-    assert.deepStrictEqual(util.format(analyze(parse(source))), expectedAst)
-    done()
-  })
   for (const [scenario, source, errorMessagePattern] of semanticErrors) {
-    it(`throws on ${scenario}`, done => {
+    it(`throws on ${scenario}`, () => {
       assert.throws(() => analyze(parse(source)), errorMessagePattern)
-      done()
     })
   }
+  it("can analyze all the nodes", () => {
+    assert.deepStrictEqual(util.format(analyze(parse(source))), expectedAst)
+  })
 })

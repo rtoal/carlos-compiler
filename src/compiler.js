@@ -10,8 +10,6 @@
 //   analyzed   the semantically analyzed representation
 //   optimized  the optimized semantically analyzed representation
 //   js         the translation to JavaScript
-//   c          the translation to C
-//   llvm       the translation to LLVM
 
 import parse from "./parser.js"
 import analyze from "./analyzer.js"

@@ -1,37 +1,8 @@
 // Semantic Analyzer
 //
 // Analyzes the AST by looking for semantic errors and resolving references.
-// Checks are made relative to a semantic context that is passed to the analyzer
-// function for each node.
 
-import { Variable, Literal, Type } from "./ast.js"
-
-class Context {
-  constructor(context) {
-    // Currently, the only analysis context needed is the set of declared
-    // variables. We store this as a map, indexed by the variable name,
-    // for efficient lookup.
-    //
-    // Later, contexts will need to record the current function or module,
-    // whether you were in a loop (for validating breaks and continues),
-    // and have a reference to the parent context for static scope analysis,
-    // among other things.
-    this.locals = new Map()
-  }
-  add(name, entity) {
-    if (this.locals.has(name)) {
-      throw new Error(`Identifier ${name} already declared`)
-    }
-    this.locals.set(name, entity)
-  }
-  lookup(name) {
-    const entity = this.locals.get(name)
-    if (entity) {
-      return entity
-    }
-    throw new Error(`Identifier ${name} not declared`)
-  }
-}
+import { Type } from "./ast.js"
 
 function check(condition, errorMessage) {
   if (!condition) {
@@ -55,46 +26,66 @@ function checkNotReadOnly(e) {
   check(!e.readOnly, `Cannot assign to constant ${e.name}`)
 }
 
-export default function analyze(node, context = new Context()) {
-  analyzers[node.constructor.name](node, context)
-  return node
-}
-
-const analyzers = {
-  Program(p, context) {
-    analyze(p.statements, context)
-  },
-  Variable(v, context) {
-    analyze(v.initializer, context)
+class Context {
+  constructor(context) {
+    // Currently, the only analysis context needed is the set of declared
+    // variables. We store this as a map, indexed by the variable name,
+    // for efficient lookup. More complex languages will a lot more here,
+    // such as the current function (to validate return statements), whether
+    // you were in a loop (for validating breaks and continues), and a link
+    // to a parent context for static scope analysis.
+    this.locals = new Map()
+  }
+  analyze(node) {
+    this[node.constructor.name](node)
+  }
+  add(name, entity) {
+    if (this.locals.has(name)) {
+      throw new Error(`Identifier ${name} already declared`)
+    }
+    this.locals.set(name, entity)
+  }
+  lookup(name) {
+    const entity = this.locals.get(name)
+    if (entity) {
+      return entity
+    }
+    throw new Error(`Identifier ${name} not declared`)
+  }
+  Program(p) {
+    this.analyze(p.statements)
+  }
+  Variable(v) {
+    this.analyze(v.initializer)
     v.type = v.initializer.type
-    context.add(v.name, v)
-  },
-  Assignment(s, context) {
-    analyze(s.source, context)
-    analyze(s.target, context)
+    this.add(v.name, v)
+  }
+  Assignment(s) {
+    this.analyze(s.source)
+    this.analyze(s.target)
     checkSameTypes(s.target, s.source, "=")
     checkNotReadOnly(s.target.referent)
-  },
-  PrintStatement(s, context) {
-    analyze(s.argument, context)
-  },
-  OrExpression(e, context) {
+  }
+  PrintStatement(s) {
+    this.analyze(s.argument)
+  }
+  OrExpression(e) {
     for (const disjunct of e.disjuncts) {
-      analyze(disjunct, context)
+      this.analyze(disjunct)
       checkBoolean(disjunct, "||")
     }
     e.type = Type.BOOLEAN
-  },
-  AndExpression(e, context) {
+  }
+  AndExpression(e) {
     for (const conjunct of e.conjuncts) {
-      analyze(conjunct, context)
+      this.analyze(conjunct)
       checkBoolean(conjunct, "&&")
     }
     e.type = Type.BOOLEAN
-  },
-  BinaryExpression(e, context) {
-    analyze(e.left, context)
-    analyze(e.right, context)
+  }
+  BinaryExpression(e) {
+    this.analyze(e.left)
+    this.analyze(e.right)
     if (["+", "-", "*", "/", "**"].includes(e.op)) {
       checkNumber(e.left, e.op)
       checkNumber(e.right, e.op)
@@ -107,24 +98,31 @@ const analyzers = {
       checkSameTypes(e.left, e.right, e.op)
       e.type = Type.BOOLEAN
     }
-  },
-  UnaryExpression(e, context) {
-    analyze(e.operand, context)
-    // All unary operands (for now) are number -> number
+  }
+  UnaryExpression(e) {
+    this.analyze(e.operand)
     checkNumber(e.operand, e.op)
     e.type = Type.NUMBER
-  },
-  IdentifierExpression(e, context) {
+  }
+  IdentifierExpression(e) {
     // Find out which actual variable is being referred to
-    e.referent = context.lookup(e.name)
-    // We want *all* expressions to have a type property
+    e.referent = this.lookup(e.name)
     e.type = e.referent.type
-  },
-  Literal(e) {
-    // We only have numbers and booleans for now
-    e.type = typeof e.value === "number" ? Type.NUMBER : Type.BOOLEAN
-  },
-  Array(a, context) {
-    a.forEach(entity => analyze(entity, context))
-  },
+  }
+  Number(e) {
+    // Nothing to analyze
+  }
+  Boolean(e) {
+    // Nothing to analyze
+  }
+  Array(a) {
+    a.forEach(entity => this.analyze(entity))
+  }
+}
+
+export default function analyze(node) {
+  Number.prototype.type = Type.NUMBER
+  Boolean.prototype.type = Type.BOOLEAN
+  new Context().analyze(node)
+  return node
 }
