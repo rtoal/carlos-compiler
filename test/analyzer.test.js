@@ -19,12 +19,12 @@ const semanticErrors = [
 ]
 
 describe("The analyzer", () => {
-  it("can analyze all the nodes", () => {
-    assert.deepStrictEqual(util.format(analyze(parse(source))), expectedAst)
-  })
   for (const [scenario, source, errorMessagePattern] of semanticErrors) {
     it(`throws on ${scenario}`, () => {
       assert.throws(() => analyze(parse(source)), errorMessagePattern)
     })
   }
+  it("can analyze all the nodes", () => {
+    assert.deepStrictEqual(util.format(analyze(parse(source))), expectedAst)
+  })
 })
