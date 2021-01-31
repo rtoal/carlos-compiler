@@ -1,11 +1,8 @@
 import assert from "assert"
-import parse from "../src/parser.js"
-import analyze from "../src/analyzer.js"
 import optimize from "../src/optimizer.js"
 import * as ast from "../src/ast.js"
 
 const x = new ast.IdentifierExpression("x", 0)
-const y = new ast.IdentifierExpression("x", 0)
 
 const tests = [
   ["folds +", new ast.BinaryExpression("+", 5, 8), 13],
@@ -41,13 +38,17 @@ const tests = [
     ],
     [new ast.PrintStatement(1), new ast.Variable("x", 1)],
   ],
-  // [
-  //   "passes through nonoptimizable constructs",
-  //   Array(2).fill([
-  //     new ast.Variable("x", 0),
-  //     new ast.Assignment(x, new ast.BinaryExpression("*", x, 100)),
-  //   ]),
-  // ],
+  [
+    "passes through nonoptimizable constructs",
+    [
+      new ast.Variable("x", 0),
+      new ast.PrintStatement(x, new ast.BinaryExpression("*", x, 100)),
+    ],
+    [
+      new ast.Variable("x", 0),
+      new ast.PrintStatement(x, new ast.BinaryExpression("*", x, 100)),
+    ],
+  ],
 ]
 
 describe("The optimizer", () => {
