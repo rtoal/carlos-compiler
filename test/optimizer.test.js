@@ -45,7 +45,7 @@ const tests = [
   //   "passes through nonoptimizable constructs",
   //   Array(2).fill([
   //     new ast.Variable("x", 0),
-  //     new ast.Assignment(x, new ast.BinaryExpression("*", x, y)),
+  //     new ast.Assignment(x, new ast.BinaryExpression("*", x, 100)),
   //   ]),
   // ],
 ]

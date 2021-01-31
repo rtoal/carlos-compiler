@@ -1,10 +1,6 @@
 // Semantic Analyzer
 //
 // Analyzes the AST by looking for semantic errors and resolving references.
-// Checks are made relative to a semantic context passed to the analyzer
-// function for each node.
-
-import { Variable } from "./ast.js"
 
 class Context {
   constructor(context) {
@@ -29,43 +25,43 @@ class Context {
     }
     throw new Error(`Identifier ${name} not declared`)
   }
-}
-
-export default function analyze(node, context = new Context()) {
-  analyzers[node.constructor.name](node, context)
-  return node
-}
-
-const analyzers = {
-  Program(p, context) {
-    analyze(p.statements, context)
-  },
-  Variable(v, context) {
-    analyze(v.initializer, context)
-    context.add(v.name, v)
-  },
-  Assignment(s, context) {
-    analyze(s.source, context)
-    analyze(s.target, context)
-  },
-  PrintStatement(s, context) {
-    analyze(s.argument, context)
-  },
-  BinaryExpression(e, context) {
-    analyze(e.left, context)
-    analyze(e.right, context)
-  },
-  UnaryExpression(e, context) {
-    analyze(e.operand, context)
-  },
-  IdentifierExpression(e, context) {
+  analyze(node) {
+    this[node.constructor.name](node)
+  }
+  Program(p) {
+    this.analyze(p.statements)
+  }
+  Variable(v) {
+    this.analyze(v.initializer)
+    this.add(v.name, v)
+  }
+  Assignment(s) {
+    this.analyze(s.source)
+    this.analyze(s.target)
+  }
+  PrintStatement(s) {
+    this.analyze(s.argument)
+  }
+  BinaryExpression(e) {
+    this.analyze(e.left)
+    this.analyze(e.right)
+  }
+  UnaryExpression(e) {
+    this.analyze(e.operand)
+  }
+  IdentifierExpression(e) {
     // Find out which actual variable is being referred to
-    e.referent = context.lookup(e.name)
-  },
-  Number(e, context) {
+    e.referent = this.lookup(e.name)
+  }
+  Number(e) {
     // Nothing to analyze
-  },
-  Array(a, context) {
-    a.forEach(entity => analyze(entity, context))
-  },
+  }
+  Array(a) {
+    a.forEach(entity => this.analyze(entity))
+  }
+}
+
+export default function analyze(node) {
+  new Context().analyze(node)
+  return node
 }
