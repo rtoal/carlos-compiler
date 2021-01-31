@@ -57,12 +57,6 @@ export class IdentifierExpression {
   }
 }
 
-export class Literal {
-  constructor(value) {
-    this.value = value
-  }
-}
-
 function prettied(node) {
   // Return a compact and pretty string representation of the node graph,
   // taking care of cycles. Written here from scratch because the built-in
@@ -83,9 +77,9 @@ function prettied(node) {
       let [type, props] = [node.constructor.name, ""]
       for (const [prop, child] of Object.entries(node)) {
         const value = seen.has(child)
-          ? `$${seen.get(child)}`
+          ? `#${seen.get(child)}`
           : Array.isArray(child)
-          ? `[${child.map(c => `$${seen.get(c)}`)}]`
+          ? `[${child.map(c => `#${seen.get(c)}`)}]`
           : util.inspect(child)
         props += ` ${prop}=${value}`
       }
