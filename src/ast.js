@@ -41,13 +41,13 @@ export class PrintStatement {
 
 export class OrExpression {
   constructor(disjuncts) {
-    Object.assign(this, { disjuncts })
+    this.disjuncts = disjuncts
   }
 }
 
 export class AndExpression {
   constructor(conjuncts) {
-    Object.assign(this, { conjuncts })
+    this.conjuncts = conjuncts
   }
 }
 
@@ -69,18 +69,6 @@ export class IdentifierExpression {
   }
 }
 
-export class Literal {
-  // Cache each literal, which may save memory
-  static cache = new Map()
-  constructor(value) {
-    if (Literal.cache.has(value)) {
-      return Literal.cache.get(value)
-    }
-    this.value = value
-    Literal.cache.set(value, this)
-  }
-}
-
 function prettied(node) {
   // Return a compact and pretty string representation of the node graph,
   // taking care of cycles. Written here from scratch because the built-in
@@ -88,24 +76,25 @@ function prettied(node) {
   const seen = new Map()
 
   function setIds(node) {
+    if (seen.has(node) || typeof node !== "object" || node === null) return
     seen.set(node, seen.size + 1)
     for (const child of Object.values(node)) {
-      if (seen.has(child)) continue
-      else if (Array.isArray(child)) child.forEach(setIds)
-      else if (child && typeof child == "object") setIds(child)
+      if (Array.isArray(child)) child.forEach(setIds)
+      else setIds(child)
     }
+  }
+
+  function rep(e) {
+    if (seen.has(e)) return `#${seen.get(e)}`
+    if (Array.isArray(e)) return `[${e.map(rep)}]`
+    return util.inspect(e)
   }
 
   function* lines() {
     for (let [node, id] of [...seen.entries()].sort((a, b) => a[1] - b[1])) {
       let [type, props] = [node.constructor.name, ""]
       for (const [prop, child] of Object.entries(node)) {
-        const value = seen.has(child)
-          ? `$${seen.get(child)}`
-          : Array.isArray(child)
-          ? `[${child.map(c => `$${seen.get(c)}`)}]`
-          : util.inspect(child)
-        props += ` ${prop}=${value}`
+        props += ` ${prop}=${rep(child)}`
       }
       yield `${String(id).padStart(4, " ")} | ${type}${props}`
     }

@@ -12,7 +12,7 @@
 //   - remove all disjuncts in || list after literal true
 //   - remove all conjuncts in && list after literal false
 
-import { IdentifierExpression, Literal, UnaryExpression } from "./ast.js"
+import { IdentifierExpression, UnaryExpression } from "./ast.js"
 
 export default function optimize(node) {
   return optimizers[node.constructor.name](node)
@@ -47,7 +47,7 @@ const optimizers = {
     for (const disjunct of e.disjuncts) {
       const optimized = optimize(disjunct)
       optimizedDisjuncts.push(optimized)
-      if (optimized.constructor === Literal && optimized.value) {
+      if (optimized === true) {
         break
       }
     }
@@ -60,7 +60,7 @@ const optimizers = {
     for (const conjunct of e.conjuncts) {
       const optimized = optimize(conjunct)
       optimizedConjuncts.push(optimized)
-      if (optimized.constructor === Literal && !optimized.value) {
+      if (optimized === false) {
         break
       }
     }
@@ -70,70 +70,60 @@ const optimizers = {
   BinaryExpression(e) {
     e.left = optimize(e.left)
     e.right = optimize(e.right)
-    if (e.left.constructor === Literal) {
-      const x = e.left.value
-      if (e.right.constructor === Literal) {
-        const y = e.right.value
+    if (e.left.constructor === Number) {
+      if (e.right.constructor === Number) {
         if (e.op == "+") {
-          return new Literal(x + y)
+          return e.left + e.right
         } else if (e.op == "-") {
-          return new Literal(x - y)
+          return e.left - e.right
         } else if (e.op == "*") {
-          return new Literal(x * y)
+          return e.left * e.right
         } else if (e.op == "/") {
-          return new Literal(x / y)
+          return e.left / e.right
         } else if (e.op == "**") {
-          return new Literal(x ** y)
+          return e.left ** e.right
         } else if (e.op == "<") {
-          return new Literal(x < y)
+          return e.left < e.right
         } else if (e.op == "<=") {
-          return new Literal(x <= y)
+          return e.left <= e.right
         } else if (e.op == "==") {
-          return new Literal(x === y)
+          return e.left === e.right
         } else if (e.op == "!=") {
-          return new Literal(x !== y)
+          return e.left !== e.right
         } else if (e.op == ">=") {
-          return new Literal(x >= y)
+          return e.left >= e.right
         } else if (e.op == ">") {
-          return new Literal(x > y)
+          return e.left > e.right
         }
-      } else if (x === 0 && e.op === "+") {
+      } else if (e.left === 0 && e.op === "+") {
         return e.right
-      } else if (x === 1 && e.op === "*") {
+      } else if (e.left === 1 && e.op === "*") {
         return e.right
-      } else if (x === 0 && e.op === "-") {
+      } else if (e.left === 0 && e.op === "-") {
         return new UnaryExpression("-", e.right)
-      } else if (x === 0 && e.op === "*") {
-        return new Literal(0)
-      } else if (x === 0 && e.op === "/") {
-        return new Literal(0)
-      } else if (x === 1 && e.op === "**") {
-        return new Literal(1)
+      } else if (e.left === 1 && e.op === "**") {
+        return 1
+      } else if (e.left === 0 && ["*", "/"].includes(e.op)) {
+        return 0
       }
-    } else if (e.right.constructor === Literal) {
-      const y = e.right.value
-      if (["+", "-"].includes(e.op) && y === 0) {
+    } else if (e.right.constructor === Number) {
+      if (["+", "-"].includes(e.op) && e.right === 0) {
         return e.left
-      } else if (["*", "/"].includes(e.op) && y === 1) {
+      } else if (["*", "/"].includes(e.op) && e.right === 1) {
         return e.left
-      } else if (e.op === "*" && y === 0) {
-        return new Literal(0)
-      } else if (e.op === "**" && y === 0) {
-        return new Literal(1)
+      } else if (e.op === "*" && e.right === 0) {
+        return 0
+      } else if (e.op === "**" && e.right === 0) {
+        return 1
       }
     }
     return e
   },
   UnaryExpression(e) {
     e.operand = optimize(e.operand)
-    if (e.operand.constructor === Literal) {
-      const x = e.operand.value
+    if (e.operand.constructor === Number) {
       if (e.op === "-") {
-        return new Literal(-x)
-      } else if (e.op === "abs") {
-        return new Literal(Math.abs(x))
-      } else if (e.op === "sqrt") {
-        return new Literal(Math.sqrt(x))
+        return -e.operand
       }
     }
     return e
@@ -141,10 +131,14 @@ const optimizers = {
   IdentifierExpression(e) {
     return e
   },
-  Literal(e) {
+  Number(e) {
+    return e
+  },
+  Boolean(e) {
     return e
   },
   Array(a) {
+    // Optimizing arrays involves flattening an removing nulls
     return a.flatMap(optimize).filter(s => s !== null)
   },
 }
