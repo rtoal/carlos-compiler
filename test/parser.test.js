@@ -13,7 +13,7 @@ const expectedAst = `   1 | Program statements=[#2,#4]
    6 | IdentifierExpression name='count'`
 
 const syntaxChecks = [
-  ["integers and floating point literals", "print 8 * 899.123"],
+  ["all numeric literal forms", "print 8 * 89.123 * 1.3E5 * 1.3E+5 * 1.3E-5"],
   ["complex expressions", "print 83 * ((((((((-13 / 21)))))))) + 1 - -0"],
   ["end of program inside comment", "print 0 // yay"],
   ["comments with no text", "print 1//\nprint 0//"],
