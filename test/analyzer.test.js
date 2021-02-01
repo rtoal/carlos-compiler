@@ -6,9 +6,8 @@ import analyze from "../src/analyzer.js"
 const source = `let x = 1024 - 0
   while x > 3 {
     let y = false && (true || 2 >= x)
-    x = (0 + x) / 2 ** 1
     if false {
-      const hello = sqrt 100 - abs 3.1-3
+      const hello = (0 + x) / 2 ** 1
       print 1
     } else if true {
       let hello = false // A different hello
@@ -18,54 +17,32 @@ const source = `let x = 1024 - 0
     print x   // TADA 🥑
   }`
 
-const expectedAst = String.raw`   1 | Program statements=[$2,$7]
-   2 | Variable name='x' readOnly=false initializer=$3 type=$5
-   3 | BinaryExpression op='-' left=$4 right=$6 type=$5
-   4 | Literal value=1024 type=$5
-   5 | Type name='number'
-   6 | Literal value=0 type=$5
-   7 | WhileStatement test=$8 body=[$12,$20,$29,$47]
-   8 | BinaryExpression op='>' left=$9 right=$10 type=$11
-   9 | IdentifierExpression name='x' referent=$2 type=$5
-  10 | Literal value=3 type=$5
-  11 | Type name='boolean'
-  12 | Variable name='y' readOnly=false initializer=$13 type=$11
-  13 | AndExpression conjuncts=[$14,$15] type=$11
-  14 | Literal value=false type=$11
-  15 | OrExpression disjuncts=[$16,$17] type=$11
-  16 | Literal value=true type=$11
-  17 | BinaryExpression op='>=' left=$18 right=$19 type=$11
-  18 | Literal value=2 type=$5
-  19 | IdentifierExpression name='x' referent=$2 type=$5
-  20 | Assignment target=$21 source=$22
-  21 | IdentifierExpression name='x' referent=$2 type=$5
-  22 | BinaryExpression op='/' left=$23 right=$26 type=$5
-  23 | BinaryExpression op='+' left=$24 right=$25 type=$5
-  24 | Literal value=0 type=$5
-  25 | IdentifierExpression name='x' referent=$2 type=$5
-  26 | BinaryExpression op='**' left=$27 right=$28 type=$5
-  27 | Literal value=2 type=$5
-  28 | Literal value=1 type=$5
-  29 | IfStatement test=$30 consequent=[$31,$39] alternative=$41
-  30 | Literal value=false type=$11
-  31 | Variable name='hello' readOnly=true initializer=$32 type=$5
-  32 | BinaryExpression op='-' left=$33 right=$38 type=$5
-  33 | BinaryExpression op='-' left=$34 right=$36 type=$5
-  34 | UnaryExpression op='sqrt' operand=$35 type=$5
-  35 | Literal value=100 type=$5
-  36 | UnaryExpression op='abs' operand=$37 type=$5
-  37 | Literal value=3.1 type=$5
-  38 | Literal value=3 type=$5
-  39 | PrintStatement argument=$40
-  40 | Literal value=1 type=$5
-  41 | IfStatement test=$42 consequent=[$43] alternative=[$45]
-  42 | Literal value=true type=$11
-  43 | Variable name='hello' readOnly=false initializer=$44 type=$11
-  44 | Literal value=false type=$11
-  45 | PrintStatement argument=$46
-  46 | IdentifierExpression name='y' referent=$12 type=$11
-  47 | PrintStatement argument=$48
-  48 | IdentifierExpression name='x' referent=$2 type=$5`
+const expectedAst = String.raw`   1 | Program statements=[#2,#5]
+   2 | Variable name='x' readOnly=false initializer=#3 type=#4
+   3 | BinaryExpression op='-' left=1024 right=0 type=#4
+   4 | Type name='number'
+   5 | WhileStatement test=#6 body=[#9,#14,#25]
+   6 | BinaryExpression op='>' left=#7 right=3 type=#8
+   7 | IdentifierExpression name='x' referent=#2 type=#4
+   8 | Type name='boolean'
+   9 | Variable name='y' readOnly=false initializer=#10 type=#8
+  10 | AndExpression conjuncts=[false,#11] type=#8
+  11 | OrExpression disjuncts=[true,#12] type=#8
+  12 | BinaryExpression op='>=' left=2 right=#13 type=#8
+  13 | IdentifierExpression name='x' referent=#2 type=#4
+  14 | IfStatement test=false consequent=[#15,#20] alternative=#21
+  15 | Variable name='hello' readOnly=true initializer=#16 type=#4
+  16 | BinaryExpression op='/' left=#17 right=#19 type=#4
+  17 | BinaryExpression op='+' left=0 right=#18 type=#4
+  18 | IdentifierExpression name='x' referent=#2 type=#4
+  19 | BinaryExpression op='**' left=2 right=1 type=#4
+  20 | PrintStatement argument=1
+  21 | IfStatement test=true consequent=[#22] alternative=[#23]
+  22 | Variable name='hello' readOnly=false initializer=false type=#8
+  23 | PrintStatement argument=#24
+  24 | IdentifierExpression name='y' referent=#9 type=#8
+  25 | PrintStatement argument=#26
+  26 | IdentifierExpression name='x' referent=#2 type=#4`
 
 const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
@@ -83,8 +60,6 @@ const semanticErrors = [
   ["bad types for <=", "print false<=1", /'<=' operand must be a number/],
   ["bad types for >", "print false>1", /'>' operand must be a number/],
   ["bad types for >=", "print false>=1", /'>=' operand must be a number/],
-  ["bad types for sqrt", "print sqrt true", /sqrt' operand must be a number/],
-  ["bad types for abs", "print abs true", /'abs' operand must be a number/],
   ["bad types for negation", "print -true", /'-' operand must be a number/],
   ["non-boolean if test", "if 1 {}", /if' operand must be a boolean/],
   ["non-boolean while test", "while 1 {}", /while' operand must be a boolean/],
@@ -96,14 +71,12 @@ const semanticErrors = [
 ]
 
 describe("The analyzer", () => {
-  it("can analyze all the nodes", done => {
-    assert.deepStrictEqual(util.format(analyze(parse(source))), expectedAst)
-    done()
-  })
   for (const [scenario, source, errorMessagePattern] of semanticErrors) {
-    it(`throws on ${scenario}`, done => {
+    it(`throws on ${scenario}`, () => {
       assert.throws(() => analyze(parse(source)), errorMessagePattern)
-      done()
     })
   }
+  it("can analyze all the nodes", () => {
+    assert.deepStrictEqual(util.format(analyze(parse(source))), expectedAst)
+  })
 })

@@ -8,8 +8,8 @@ import * as ast from "./ast.js"
 
 const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Program   = Statement+
-  Statement = (let | const) id "=" Exp        --variable
-            | id "=" Exp                      --assign
+  Statement = (let | const) id "=" Exp        --vardec
+            | Var "=" Exp                     --assign
             | print Exp                       --print
             | WhileStmt
             | IfStmt
@@ -27,13 +27,14 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
             | Exp4
   Exp4      = Exp5 "**" Exp4                  --binary
             | Exp5
-            | ("-" | abs | sqrt) Exp5         --unary
-  Exp5      = id
+            | "-" Exp5                        --unary
+  Exp5      = Var
             | true
             | false
             | num
             | "(" Exp ")"                     --parens
   relop     = "<=" | "<" | "==" | "!=" | ">=" | ">"
+  Var       = id
   num       = digit+ ("." digit+)? (("E" | "e") ("+" | "-")? digit+)?
   let       = "let" ~alnum
   const     = "const" ~alnum
@@ -41,11 +42,9 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   if        = "if" ~alnum
   while     = "while" ~alnum
   else      = "else" ~alnum
-  abs       = "abs" ~alnum
-  sqrt      = "sqrt" ~alnum
   true      = "true" ~alnum
   false     = "false" ~alnum
-  keyword   = let | const | print | if | while | else | abs | sqrt | true | false
+  keyword   = let | const | print | if | while | else | true | false
   id        = ~keyword letter alnum*
   space    += "//" (~"\n" any)* ("\n" | end)  --comment
 }`)
@@ -54,15 +53,12 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Program(body) {
     return new ast.Program(body.ast())
   },
-  Statement_variable(kind, id, _eq, initializer) {
+  Statement_vardec(kind, id, _eq, initializer) {
     const readOnly = kind.sourceString === "const"
     return new ast.Variable(id.sourceString, readOnly, initializer.ast())
   },
-  Statement_assign(id, _eq, expression) {
-    return new ast.Assignment(
-      new ast.IdentifierExpression(id.sourceString),
-      expression.ast()
-    )
+  Statement_assign(variable, _eq, expression) {
+    return new ast.Assignment(variable.ast(), expression.ast())
   },
   Statement_print(_print, expression) {
     return new ast.PrintStatement(expression.ast())
@@ -107,17 +103,17 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Exp5_parens(_open, expression, _close) {
     return expression.ast()
   },
-  num(_whole, _point, _fraction, _e, _sign, _exponent) {
-    return new ast.Literal(Number(this.sourceString))
+  Var(id) {
+    return new ast.IdentifierExpression(id.sourceString)
   },
   true(_) {
-    return new ast.Literal(true)
+    return true
   },
   false(_) {
-    return new ast.Literal(false)
+    return false
   },
-  id(_firstChar, _restChars) {
-    return new ast.IdentifierExpression(this.sourceString)
+  num(_whole, _point, _fraction, _e, _sign, _exponent) {
+    return Number(this.sourceString)
   },
 })
 

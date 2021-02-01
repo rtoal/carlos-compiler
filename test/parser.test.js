@@ -1,14 +1,12 @@
 import assert from "assert"
 import util from "util"
-import { BinaryExpression, Literal, Program, Variable } from "../src/ast.js"
 import parse from "../src/parser.js"
 
 const source = `let x = 1024 - 0
   while x > 3 {
     let y = false && (true || 2 >= x)
-    x = (0 + x) / 2 ** 1
     if false {
-      const hello = sqrt 100 - abs 3.1-3
+      const hello = (0 + x) / 2 ** 1
       print 1
     } else if true {
       let hello = false // A different hello
@@ -18,56 +16,34 @@ const source = `let x = 1024 - 0
     print x   // TADA 🥑
   }`
 
-const expectedAst = `   1 | Program statements=[$2,$6]
-   2 | Variable name='x' readOnly=false initializer=$3
-   3 | BinaryExpression op='-' left=$4 right=$5
-   4 | Literal value=1024
-   5 | Literal value=0
-   6 | WhileStatement test=$7 body=[$10,$18,$27,$45]
-   7 | BinaryExpression op='>' left=$8 right=$9
-   8 | IdentifierExpression name='x'
-   9 | Literal value=3
-  10 | Variable name='y' readOnly=false initializer=$11
-  11 | AndExpression conjuncts=[$12,$13]
-  12 | Literal value=false
-  13 | OrExpression disjuncts=[$14,$15]
-  14 | Literal value=true
-  15 | BinaryExpression op='>=' left=$16 right=$17
-  16 | Literal value=2
-  17 | IdentifierExpression name='x'
-  18 | Assignment target=$19 source=$20
-  19 | IdentifierExpression name='x'
-  20 | BinaryExpression op='/' left=$21 right=$24
-  21 | BinaryExpression op='+' left=$22 right=$23
-  22 | Literal value=0
-  23 | IdentifierExpression name='x'
-  24 | BinaryExpression op='**' left=$25 right=$26
-  25 | Literal value=2
-  26 | Literal value=1
-  27 | IfStatement test=$28 consequent=[$29,$37] alternative=$39
-  28 | Literal value=false
-  29 | Variable name='hello' readOnly=true initializer=$30
-  30 | BinaryExpression op='-' left=$31 right=$36
-  31 | BinaryExpression op='-' left=$32 right=$34
-  32 | UnaryExpression op='sqrt' operand=$33
-  33 | Literal value=100
-  34 | UnaryExpression op='abs' operand=$35
-  35 | Literal value=3.1
-  36 | Literal value=3
-  37 | PrintStatement argument=$38
-  38 | Literal value=1
-  39 | IfStatement test=$40 consequent=[$41] alternative=[$43]
-  40 | Literal value=true
-  41 | Variable name='hello' readOnly=false initializer=$42
-  42 | Literal value=false
-  43 | PrintStatement argument=$44
-  44 | IdentifierExpression name='y'
-  45 | PrintStatement argument=$46
-  46 | IdentifierExpression name='x'`
+const expectedAst = `   1 | Program statements=[#2,#4]
+   2 | Variable name='x' readOnly=false initializer=#3
+   3 | BinaryExpression op='-' left=1024 right=0
+   4 | WhileStatement test=#5 body=[#7,#12,#23]
+   5 | BinaryExpression op='>' left=#6 right=3
+   6 | IdentifierExpression name='x'
+   7 | Variable name='y' readOnly=false initializer=#8
+   8 | AndExpression conjuncts=[false,#9]
+   9 | OrExpression disjuncts=[true,#10]
+  10 | BinaryExpression op='>=' left=2 right=#11
+  11 | IdentifierExpression name='x'
+  12 | IfStatement test=false consequent=[#13,#18] alternative=#19
+  13 | Variable name='hello' readOnly=true initializer=#14
+  14 | BinaryExpression op='/' left=#15 right=#17
+  15 | BinaryExpression op='+' left=0 right=#16
+  16 | IdentifierExpression name='x'
+  17 | BinaryExpression op='**' left=2 right=1
+  18 | PrintStatement argument=1
+  19 | IfStatement test=true consequent=[#20] alternative=[#21]
+  20 | Variable name='hello' readOnly=false initializer=false
+  21 | PrintStatement argument=#22
+  22 | IdentifierExpression name='y'
+  23 | PrintStatement argument=#24
+  24 | IdentifierExpression name='x'`
 
 const syntaxChecks = [
-  ["integers and floating point literals", "print 8 * 899.123"],
-  ["complex expressions", "print 83 * ((((((((13 / 21)))))))) + 1 - sqrt 0"],
+  ["all numeric literal forms", "print 8 * 89.123 * 1.3E5 * 1.3E+5 * 1.3E-5"],
+  ["complex expressions", "print 83 * ((((((((-13 / 21)))))))) + 1 - -0"],
   ["end of program inside comment", "print 0 // yay"],
   ["comments with no text", "print 1//\nprint 0//"],
   ["non-Latin letters in identifiers", "let コンパイラ = 100"],
@@ -109,19 +85,16 @@ const syntaxErrors = [
 
 describe("The parser", () => {
   for (const [scenario, source] of syntaxChecks) {
-    it(`recognizes ${scenario}`, done => {
+    it(`recognizes that ${scenario}`, () => {
       assert(parse(source))
-      done()
     })
   }
   for (const [scenario, source, errorMessagePattern] of syntaxErrors) {
-    it(`throws on ${scenario}`, done => {
+    it(`throws on ${scenario}`, () => {
       assert.throws(() => parse(source), errorMessagePattern)
-      done()
     })
   }
-  it("produces the expected AST for all node types", done => {
+  it("produces the expected AST for all node types", () => {
     assert.deepStrictEqual(util.format(parse(source)), expectedAst)
-    done()
   })
 })

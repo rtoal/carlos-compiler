@@ -31,9 +31,7 @@ export default function generate(program) {
       output.push(`let ${targetName(v)} = ${gen(v.initializer)};`)
     },
     Assignment(s) {
-      const source = gen(s.source)
-      const target = gen(s.target)
-      output.push(`${target} = ${source};`)
+      output.push(`${gen(s.target)} = ${gen(s.source)};`)
     },
     IfStatement(s) {
       output.push(`if (${gen(s.test)}) {`)
@@ -71,14 +69,16 @@ export default function generate(program) {
       return `(${gen(e.left)} ${op} ${gen(e.right)})`
     },
     UnaryExpression(e) {
-      const op = { abs: "Math.abs", sqrt: "Math.sqrt" }[e.op] ?? e.op
-      return `${op}(${gen(e.operand)})`
+      return `${e.op}(${gen(e.operand)})`
     },
     IdentifierExpression(e) {
       return targetName(e.referent)
     },
-    Literal(e) {
-      return e.value
+    Number(e) {
+      return e
+    },
+    Boolean(e) {
+      return e
     },
     Array(a) {
       return a.map(gen)
