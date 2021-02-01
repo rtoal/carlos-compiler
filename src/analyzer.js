@@ -46,7 +46,10 @@ function checkInFunction(context) {
 }
 
 function checkReturnHasExpression(returnStatement) {
-  check(returnStatement.expression, "Something should be returned here")
+  check(
+    returnStatement.expression !== null,
+    "Something should be returned here"
+  )
 }
 
 function checkReturnHasNoExpression(returnStatement) {
@@ -169,10 +172,10 @@ class Context {
   }
   ReturnStatement(s) {
     checkInFunction(this)
-    if (this.function.returnType) {
+    if (this.function.type) {
       checkReturnHasExpression(s)
       this.analyze(s.expression)
-      checkAssignable(this.function.returnType, s.expression.type)
+      checkAssignable(this.function.type, s.expression.type)
     } else {
       checkReturnHasNoExpression(s)
     }
@@ -183,7 +186,7 @@ class Context {
     checkArgumentCount(c.callee.referent.parameters.length, c.args.length)
     c.args.forEach(arg => this.analyze(arg))
     checkArgumentMatching(c.callee.referent.parameters, c.args)
-    c.type = c.callee.referent.returnType
+    c.type = c.callee.referent.type
   }
   BreakStatement(s) {
     checkInLoop(this, "break")
