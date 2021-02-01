@@ -80,7 +80,11 @@ export default function generate(program) {
       )
     },
     Call(c) {
-      return `${gen(c.callee)}(${c.args.map(gen).join(", ")})`
+      const targetCode = `${gen(c.callee)}(${c.args.map(gen).join(", ")})`
+      if (c.type) {
+        return targetCode
+      }
+      output.push(`${targetCode};`)
     },
     OrExpression(e) {
       return `(${gen(e.disjuncts).join(" || ")})`
