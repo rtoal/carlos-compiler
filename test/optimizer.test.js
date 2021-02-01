@@ -4,7 +4,7 @@ import * as ast from "../src/ast.js"
 
 const x = new ast.IdentifierExpression("x", 0)
 const print1 = new ast.PrintStatement(1)
-const print2 = new ast.PrintStatement(2)
+const return1p1 = new ast.ReturnStatement(new ast.BinaryExpression("+", 1, 1))
 
 const tests = [
   ["folds +", new ast.BinaryExpression("+", 5, 8), 13],
@@ -72,16 +72,11 @@ const tests = [
       new ast.PrintStatement(x, new ast.BinaryExpression("*", x, 100)),
     ],
   ],
-  // [
-  //   "optimizes in functions",
-  //   "function f(): number {return 1+1}",
-  //   "function f(): number {return 2}",
-  // ],
-  // [
-  //   "optimizes in calls",
-  //   "function f(x: number) {}\nf(1+1)",
-  //   "function f(x: number) {}\nf(2)",
-  // ],
+  [
+    "optimizes in functions",
+    new ast.Function("f", [], "number", return1p1),
+    new ast.Function("f", [], "number", new ast.ReturnStatement(2)),
+  ],
 ]
 
 describe("The optimizer", () => {

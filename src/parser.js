@@ -169,9 +169,6 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   num(_whole, _point, _fraction, _e, _sign, _exponent) {
     return Number(this.sourceString)
   },
-  _terminal() {
-    return this.sourceString
-  },
 })
 
 export default function parse(sourceCode) {

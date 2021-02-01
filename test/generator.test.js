@@ -97,7 +97,7 @@ const fixtures = [
     function g(): boolean {
       return false
     }
-    f(z, false)
+    f(z, g())
   `,
     expected: dedent`
       let z_1 = 0;
@@ -108,7 +108,7 @@ const fixtures = [
       function g_5() {
       return false;
       }
-      f_2(z_1, false);
+      f_2(z_1, g_5());
     `,
   },
 ]
