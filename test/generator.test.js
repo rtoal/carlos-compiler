@@ -8,22 +8,19 @@ function dedent(s) {
   return `${s}`.replace(/(\n)\s+/g, "$1").trim()
 }
 
-// Ideally there should be a ton of test cases here, right now we don't
-// have many. Should have 100% coverage though.
-
 const fixtures = [
   {
     name: "small",
     source: `
     let x = 3.1
     let y = true
-    y = 5 ** -x / -100 > - (abs x) || false
+    y = 5 ** -x / -100 > - x || false
     print (y && y) || false || (x*2) != 5
   `,
     expected: dedent`
       let x_1 = 3.1;
       let y_2 = true;
-      y_2 = ((((5 ** -(x_1)) / -100) > -(Math.abs(x_1))) || false);
+      y_2 = ((((5 ** -(x_1)) / -100) > -(x_1)) || false);
       console.log(((y_2 && y_2) || false || ((x_1 * 2) !== 5)));
     `,
   },
@@ -60,8 +57,7 @@ const fixtures = [
       console.log(3);
       } else {
       console.log(4);
-      }
-    `,
+      }`,
   },
   {
     name: "whiley",
@@ -72,12 +68,11 @@ const fixtures = [
       while y < 5 {
         print x * y
         y = y + 1
+        break
       }
       x = x + 1
       continue
-      break
-    }
-  `,
+    }`,
     expected: dedent`
       let x_1 = 0;
       while ((x_1 < 5)) {
@@ -85,12 +80,11 @@ const fixtures = [
       while ((y_2 < 5)) {
       console.log((x_1 * y_2));
       y_2 = (y_2 + 1);
+      break;
       }
       x_1 = (x_1 + 1);
       continue;
-      break;
-      }
-    `,
+      }`,
   },
   {
     name: "functions",
@@ -121,10 +115,9 @@ const fixtures = [
 
 describe("The code generator", () => {
   for (const fixture of fixtures) {
-    it(`produces expected js output for the ${fixture.name} program`, done => {
+    it(`produces expected js output for the ${fixture.name} program`, () => {
       const actual = generate(optimize(analyze(parse(fixture.source))))
       assert.deepStrictEqual(actual, fixture.expected)
-      done()
     })
   }
 })

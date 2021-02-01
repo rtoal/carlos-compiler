@@ -11,8 +11,8 @@ const source = `let x = 1024
     let y = false && (true || 2 >= x)
     x = (0 + x) / 2 ** next(0) // call in expression
     if false {
-      const hello = sqrt 100 - abs 3.1E0-3
-      function g() { return }
+      const hello = 5
+      function g() { print hello return }
       break
     } else if true {
       next(99)   // call statement
@@ -109,8 +109,6 @@ const semanticErrors = [
   ["bad types for <=", "print false<=1", /'<=' operand must be a number/],
   ["bad types for >", "print false>1", /'>' operand must be a number/],
   ["bad types for >=", "print false>=1", /'>=' operand must be a number/],
-  ["bad types for sqrt", "print sqrt true", /sqrt' operand must be a number/],
-  ["bad types for abs", "print abs true", /'abs' operand must be a number/],
   ["bad types for negation", "print -true", /'-' operand must be a number/],
   ["non-boolean if test", "if 1 {}", /'if' operand must be a boolean/],
   ["non-boolean while test", "while 1 {}", /'while' operand must be a boolean/],
@@ -161,19 +159,16 @@ const semanticErrors = [
 
 describe("The analyzer", () => {
   for (const [scenario, source] of semanticChecks) {
-    it(`recognizes ${scenario}`, done => {
+    it(`recognizes ${scenario}`, () => {
       assert(parse(source))
-      done()
     })
   }
-  it("can analyze all the nodes", done => {
-    assert.deepStrictEqual(util.format(analyze(parse(source))), expectedAst)
-    done()
-  })
   for (const [scenario, source, errorMessagePattern] of semanticErrors) {
-    it(`throws on ${scenario}`, done => {
+    it(`throws on ${scenario}`, () => {
       assert.throws(() => analyze(parse(source)), errorMessagePattern)
-      done()
     })
   }
+  it("can analyze all the nodes", () => {
+    assert.deepStrictEqual(util.format(analyze(parse(source))), expectedAst)
+  })
 })

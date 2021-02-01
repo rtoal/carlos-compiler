@@ -1,10 +1,68 @@
 // Semantic Analyzer
 //
 // Analyzes the AST by looking for semantic errors and resolving references.
-// Checks are made relative to a semantic context that is passed to the analyzer
-// function for each node.
 
 import { Type, Function } from "./ast.js"
+
+function check(condition, errorMessage) {
+  if (!condition) {
+    throw new Error(errorMessage)
+  }
+}
+
+function checkNumber(e, op) {
+  check(e.type === Type.NUMBER, `'${op}' operand must be a number`)
+}
+
+function checkBoolean(e, op) {
+  check(e.type === Type.BOOLEAN, `'${op}' operand must be a boolean`)
+}
+
+function checkIsFunction(e) {
+  check(e.constructor == Function, "Call of non-function")
+}
+
+function checkSameTypes(e1, e2, op) {
+  check(e1.type === e2.type, `'${op}' operands must have same types`)
+}
+
+function checkAssignable(targetType, sourceType) {
+  check(
+    targetType === sourceType,
+    `Expected type ${targetType.name}, got type ${sourceType.name}`
+  )
+}
+
+function checkNotReadOnly(e) {
+  check(!e.readOnly, `Cannot assign to constant ${e.name}`)
+}
+
+function checkInLoop(context, disruptor) {
+  check(context.inLoop, `'${disruptor}' can only appear in a loop`)
+}
+
+function checkInFunction(context) {
+  check(context.function, "Return can only appear in a function")
+}
+
+function checkReturnHasExpression(returnStatement) {
+  check(returnStatement.expression, "Something should be returned here")
+}
+
+function checkReturnHasNoExpression(returnStatement) {
+  check(!returnStatement.expression, "Cannot return a value here")
+}
+
+function checkArgumentCount(paramCount, argCount) {
+  check(
+    paramCount === argCount,
+    `${paramCount} parameter(s) required, but ${argCount} argument(s) passed`
+  )
+}
+
+function checkArgumentMatching(parameters, args) {
+  parameters.forEach((p, i) => checkAssignable(p.type, args[i].type))
+}
 
 class Context {
   constructor(parent = null, { inLoop, forFunction } = {}) {
@@ -54,176 +112,102 @@ class Context {
     context.add("boolean", Type.BOOLEAN)
     return context
   }
-}
-
-function check(condition, errorMessage) {
-  if (!condition) {
-    throw new Error(errorMessage)
+  analyze(node) {
+    this[node.constructor.name](node)
   }
-}
-
-function checkNumber(e, op) {
-  check(e.type === Type.NUMBER, `'${op}' operand must be a number`)
-}
-
-function checkBoolean(e, op) {
-  check(e.type === Type.BOOLEAN, `'${op}' operand must be a boolean`)
-}
-
-function checkIsFunction(e) {
-  check(e.constructor == Function, "Call of non-function")
-}
-
-function checkSameTypes(e1, e2, op) {
-  check(e1.type === e2.type, `'${op}' operands must have same types`)
-}
-
-function checkAssignable(targetType, sourceType) {
-  check(
-    targetType === sourceType,
-    `Expected type ${targetType.name}, got type ${sourceType.name}`
-  )
-}
-function checkNotReadOnly(e) {
-  check(!e.readOnly, `Cannot assign to constant ${e.name}`)
-}
-
-function checkInLoop(context, disruptor) {
-  check(context.inLoop, `'${disruptor}' can only appear in a loop`)
-}
-
-function checkInFunction(context) {
-  check(context.function, "Return can only appear in a function")
-}
-
-function checkReturnHasExpression(returnStatement) {
-  check(returnStatement.expression, "Something should be returned here")
-}
-
-function checkReturnHasNoExpression(returnStatement) {
-  check(!returnStatement.expression, "Cannot return a value here")
-}
-
-function checkArgumentCount(paramCount, argCount) {
-  check(
-    paramCount === argCount,
-    `${paramCount} parameter(s) required, but ${argCount} argument(s) passed`
-  )
-}
-
-function checkArgumentMatching(parameters, args) {
-  parameters.forEach((p, i) => checkAssignable(p.type, args[i].type))
-}
-
-export default function analyze(node, context = Context.initial) {
-  analyzers[node.constructor.name](node, context)
-  return node
-}
-
-const analyzers = {
-  Program(p, context) {
-    analyze(p.statements, context)
-  },
-  Variable(v, context) {
-    analyze(v.initializer, context)
+  Program(p) {
+    this.analyze(p.statements)
+  }
+  Variable(v) {
+    this.analyze(v.initializer)
     v.type = v.initializer.type
-    context.add(v.name, v)
-  },
-  NamedTypeExpression(t, context) {
-    // In syntax, it's just a name, but in semantics we find the real type
-    t.type = context.lookup(t.name)
-  },
-  Function(f, context) {
-    if (f.returnTypeExpression) {
-      analyze(f.returnTypeExpression, context)
-      f.returnType = f.returnTypeExpression.type
-    } else {
-      f.returnType = null
-    }
-    context.add(f.name, f)
+    this.add(v.name, v)
+  }
+  Function(f) {
+    f.type = f.typeName ? this.lookup(f.typeName) : null
+    this.add(f.name, f)
     // When entering a function body, we must reset the inLoop setting!
-    const childContext = context.newChild({ inLoop: false, forFunction: f })
-    f.parameters.forEach(p => analyze(p, childContext))
-    analyze(f.body, childContext)
-  },
-  Parameter(p, context) {
-    analyze(p.typeExpression, context)
-    p.type = p.typeExpression.type
-    context.add(p.name, p)
-  },
-  Assignment(s, context) {
-    analyze(s.source, context)
-    analyze(s.target, context)
+    const childContext = this.newChild({ inLoop: false, forFunction: f })
+    f.parameters.forEach(p => childContext.analyze(p))
+    childContext.analyze(f.body)
+  }
+  Parameter(p) {
+    p.type = this.lookup(p.typeName)
+    this.add(p.name, p)
+  }
+  Assignment(s) {
+    this.analyze(s.source)
+    this.analyze(s.target)
     checkAssignable(s.target.type, s.source.type)
     checkNotReadOnly(s.target.referent)
-  },
-  PrintStatement(s, context) {
-    analyze(s.argument, context)
-  },
-  WhileStatement(s, context) {
-    analyze(s.test, context)
+  }
+  PrintStatement(s) {
+    this.analyze(s.argument)
+  }
+  WhileStatement(s) {
+    this.analyze(s.test)
     checkBoolean(s.test, "while")
-    const bodyContext = context.newChild({ inLoop: true })
-    s.body.forEach(s => analyze(s, bodyContext))
-  },
-  IfStatement(s, context) {
-    analyze(s.test, context)
+    const bodyContext = this.newChild({ inLoop: true })
+    s.body.forEach(s => bodyContext.analyze(s))
+  }
+  IfStatement(s) {
+    this.analyze(s.test)
     checkBoolean(s.test, "if")
-    analyze(s.consequent, context.newChild())
+    this.newChild().analyze(s.consequent)
     if (s.alternative.constructor === Array) {
       // It's a block of statements, make a new context
-      analyze(s.alternative, context.newChild())
+      this.newChild().analyze(s.alternative)
     } else if (s.alternative) {
       // It's a trailing if-statement, so same context
-      analyze(s.alternative, context)
+      this.analyze(s.alternative)
     }
-  },
-  ShortIfStatement(s, context) {
-    analyze(s.test, context)
+  }
+  ShortIfStatement(s) {
+    this.analyze(s.test)
     checkBoolean(s.test, "if")
-    analyze(s.consequent, context.newChild())
-  },
-  BreakStatement(s, context) {
-    checkInLoop(context, "break")
-  },
-  ContinueStatement(s, context) {
-    checkInLoop(context, "continue")
-  },
-  ReturnStatement(s, context) {
-    checkInFunction(context)
-    if (context.function.returnType) {
+    analyze(s.consequent, this.newChild())
+  }
+  ReturnStatement(s) {
+    checkInFunction(this)
+    if (this.function.returnType) {
       checkReturnHasExpression(s)
-      analyze(s.expression, context)
-      checkAssignable(context.function.returnType, s.expression.type)
+      this.analyze(s.expression)
+      checkAssignable(this.function.returnType, s.expression.type)
     } else {
       checkReturnHasNoExpression(s)
     }
-  },
-  Call(c, context) {
-    analyze(c.callee, context)
+  }
+  Call(c) {
+    this.analyze(c.callee)
     checkIsFunction(c.callee.referent)
     checkArgumentCount(c.callee.referent.parameters.length, c.args.length)
-    c.args.forEach(arg => analyze(arg, context))
+    c.args.forEach(arg => this.analyze(arg))
     checkArgumentMatching(c.callee.referent.parameters, c.args)
     c.type = c.callee.referent.returnType
-  },
-  OrExpression(e, context) {
+  }
+  BreakStatement(s) {
+    checkInLoop(this, "break")
+  }
+  ContinueStatement(s) {
+    checkInLoop(this, "continue")
+  }
+  OrExpression(e) {
     for (const disjunct of e.disjuncts) {
-      analyze(disjunct, context)
+      this.analyze(disjunct)
       checkBoolean(disjunct, "||")
     }
     e.type = Type.BOOLEAN
-  },
-  AndExpression(e, context) {
+  }
+  AndExpression(e) {
     for (const conjunct of e.conjuncts) {
-      analyze(conjunct, context)
+      this.analyze(conjunct)
       checkBoolean(conjunct, "&&")
     }
     e.type = Type.BOOLEAN
-  },
-  BinaryExpression(e, context) {
-    analyze(e.left, context)
-    analyze(e.right, context)
+  }
+  BinaryExpression(e) {
+    this.analyze(e.left)
+    this.analyze(e.right)
     if (["+", "-", "*", "/", "**"].includes(e.op)) {
       checkNumber(e.left, e.op)
       checkNumber(e.right, e.op)
@@ -236,24 +220,31 @@ const analyzers = {
       checkSameTypes(e.left, e.right, e.op)
       e.type = Type.BOOLEAN
     }
-  },
-  UnaryExpression(e, context) {
-    analyze(e.operand, context)
-    // All unary operands (for now) are number -> number
+  }
+  UnaryExpression(e) {
+    this.analyze(e.operand)
     checkNumber(e.operand, e.op)
     e.type = Type.NUMBER
-  },
-  IdentifierExpression(e, context) {
+  }
+  IdentifierExpression(e) {
     // Find out which actual variable is being referred to
-    e.referent = context.lookup(e.name)
-    // We want *all* expressions to have a type property
+    e.referent = this.lookup(e.name)
     e.type = e.referent.type
-  },
-  Literal(e) {
-    // We only have numbers and booleans for now
-    e.type = typeof e.value === "number" ? Type.NUMBER : Type.BOOLEAN
-  },
-  Array(a, context) {
-    a.forEach(entity => analyze(entity, context))
-  },
+  }
+  Number(e) {
+    // Nothing to analyze
+  }
+  Boolean(e) {
+    // Nothing to analyze
+  }
+  Array(a) {
+    a.forEach(entity => this.analyze(entity))
+  }
+}
+
+export default function analyze(node) {
+  Number.prototype.type = Type.NUMBER
+  Boolean.prototype.type = Type.BOOLEAN
+  Context.initial.analyze(node)
+  return node
 }

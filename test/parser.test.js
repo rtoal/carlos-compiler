@@ -1,6 +1,5 @@
 import assert from "assert"
 import util from "util"
-import { BinaryExpression, Literal, Program, Variable } from "../src/ast.js"
 import parse from "../src/parser.js"
 
 const source = `let x = 1024
@@ -11,8 +10,8 @@ const source = `let x = 1024
     let y = false && (true || 2 >= x)
     x = (0 + x) / 2 ** next(0) // call in expression
     if false {
-      const hello = sqrt 100 - abs 3.1E0-3
-      function g() { return }
+      const hello = 5
+      function g() { print hello return }
       break
     } else if true {
       next(99)   // call statement
@@ -23,67 +22,48 @@ const source = `let x = 1024
     print x   // TADA 🥑
   }`
 
-const expectedAst = `   1 | Program statements=[$2,$4,$12]
-   2 | Variable name='x' readOnly=false initializer=$3
-   3 | Literal value=1024
-   4 | Function name='next' parameters=[$5] returnTypeExpression=$7 body=[$8]
-   5 | Parameter name='n' typeExpression=$6
-   6 | NamedTypeExpression name='number'
-   7 | NamedTypeExpression name='number'
-   8 | ReturnStatement expression=$9
-   9 | BinaryExpression op='+' left=$10 right=$11
-  10 | IdentifierExpression name='n'
-  11 | Literal value=1
-  12 | WhileStatement test=$13 body=[$16,$24,$35,$56]
-  13 | BinaryExpression op='>' left=$14 right=$15
-  14 | IdentifierExpression name='x'
-  15 | Literal value=3
-  16 | Variable name='y' readOnly=false initializer=$17
-  17 | AndExpression conjuncts=[$18,$19]
-  18 | Literal value=false
-  19 | OrExpression disjuncts=[$20,$21]
-  20 | Literal value=true
-  21 | BinaryExpression op='>=' left=$22 right=$23
-  22 | Literal value=2
-  23 | IdentifierExpression name='x'
-  24 | Assignment target=$25 source=$26
-  25 | IdentifierExpression name='x'
-  26 | BinaryExpression op='/' left=$27 right=$30
-  27 | BinaryExpression op='+' left=$28 right=$29
-  28 | Literal value=0
-  29 | IdentifierExpression name='x'
-  30 | BinaryExpression op='**' left=$31 right=$32
-  31 | Literal value=2
-  32 | Call callee=$33 args=[$34]
+const expectedAst = `   1 | Program statements=[#2,#3,#8]
+   2 | Variable name='x' readOnly=false initializer=1024
+   3 | Function name='next' parameters=[#4] typeName='number' body=[#5]
+   4 | Parameter name='n' typeName='number'
+   5 | ReturnStatement expression=#6
+   6 | BinaryExpression op='+' left=#7 right=1
+   7 | IdentifierExpression name='n'
+   8 | WhileStatement test=#9 body=[#11,#16,#24,#37]
+   9 | BinaryExpression op='>' left=#10 right=3
+  10 | IdentifierExpression name='x'
+  11 | Variable name='y' readOnly=false initializer=#12
+  12 | AndExpression conjuncts=[false,#13]
+  13 | OrExpression disjuncts=[true,#14]
+  14 | BinaryExpression op='>=' left=2 right=#15
+  15 | IdentifierExpression name='x'
+  16 | Assignment target=#17 source=#18
+  17 | IdentifierExpression name='x'
+  18 | BinaryExpression op='/' left=#19 right=#21
+  19 | BinaryExpression op='+' left=0 right=#20
+  20 | IdentifierExpression name='x'
+  21 | BinaryExpression op='**' left=2 right=#22
+  22 | Call callee=#23 args=[0]
+  23 | IdentifierExpression name='next'
+  24 | IfStatement test=false consequent=[#25,#26,#30] alternative=#31
+  25 | Variable name='hello' readOnly=true initializer=5
+  26 | Function name='g' parameters=[] typeName=null body=[#27,#29]
+  27 | PrintStatement argument=#28
+  28 | IdentifierExpression name='hello'
+  29 | ReturnStatement expression=null
+  30 | BreakStatement
+  31 | IfStatement test=true consequent=[#32,#34] alternative=[#36]
+  32 | Call callee=#33 args=[99]
   33 | IdentifierExpression name='next'
-  34 | Literal value=0
-  35 | IfStatement test=$36 consequent=[$37,$45,$47] alternative=$48
-  36 | Literal value=false
-  37 | Variable name='hello' readOnly=true initializer=$38
-  38 | BinaryExpression op='-' left=$39 right=$44
-  39 | BinaryExpression op='-' left=$40 right=$42
-  40 | UnaryExpression op='sqrt' operand=$41
-  41 | Literal value=100
-  42 | UnaryExpression op='abs' operand=$43
-  43 | Literal value=3.1
-  44 | Literal value=3
-  45 | Function name='g' parameters=[] returnTypeExpression=null body=[$46]
-  46 | ReturnStatement expression=null
-  47 | BreakStatement
-  48 | IfStatement test=$49 consequent=[$50,$53] alternative=[$55]
-  49 | Literal value=true
-  50 | Call callee=$51 args=[$52]
-  51 | IdentifierExpression name='next'
-  52 | Literal value=99
-  53 | Variable name='hello' readOnly=false initializer=$54
-  54 | IdentifierExpression name='y'
-  55 | ContinueStatement
-  56 | PrintStatement argument=$57
-  57 | IdentifierExpression name='x'`
+  34 | Variable name='hello' readOnly=false initializer=#35
+  35 | IdentifierExpression name='y'
+  36 | ContinueStatement
+  37 | PrintStatement argument=#38
+  38 | IdentifierExpression name='x'`
 
 const syntaxChecks = [
-  ["integers and floating point literals", "print 8 * 899.123 / 89.11E-1"],
-  ["complex expressions", "print 83 * ((((((((13 / 21)))))))) + 1 - sqrt 0"],
+  ["all numeric literal forms", "print 8 * 89.123 * 1.3E5 * 1.3E+5 * 1.3E-5"],
+  ["complex expressions", "print 83 * ((((((((-13 / 21)))))))) + 1 - -0"],
   ["end of program inside comment", "print 0 // yay"],
   ["comments with no text", "print 1//\nprint 0//"],
   ["non-Latin letters in identifiers", "let コンパイラ = 100"],
@@ -131,19 +111,16 @@ const syntaxErrors = [
 
 describe("The parser", () => {
   for (const [scenario, source] of syntaxChecks) {
-    it(`recognizes ${scenario}`, done => {
+    it(`recognizes that ${scenario}`, () => {
       assert(parse(source))
-      done()
     })
   }
   for (const [scenario, source, errorMessagePattern] of syntaxErrors) {
-    it(`throws on ${scenario}`, done => {
+    it(`throws on ${scenario}`, () => {
       assert.throws(() => parse(source), errorMessagePattern)
-      done()
     })
   }
-  it("produces the expected AST for all node types", done => {
+  it("produces the expected AST for all node types", () => {
     assert.deepStrictEqual(util.format(parse(source)), expectedAst)
-    done()
   })
 })
