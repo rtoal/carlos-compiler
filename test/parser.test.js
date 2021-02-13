@@ -1,6 +1,5 @@
 import assert from "assert"
 import util from "util"
-import { BinaryExpression, Literal, Program, Variable } from "../src/ast.js"
 import parse from "../src/parser.js"
 
 const source = `let x = 1024
@@ -13,8 +12,8 @@ const source = `let x = 1024
     let y = false && (true || 2 >= x)
     x = (0 + x) / 2 ** next(0) // call in expression
     if false {
-      const hello = sqrt 100 - abs 3.1E0-3
-      function g() { return }
+      const hello = 5
+      function g() { print hello return }
       break
     } else if true {
       next(99)   // call statement
@@ -25,78 +24,48 @@ const source = `let x = 1024
     print x   // TADA 🥑
   }`
 
-const expectedAst = `   1 | Program statements=[$2,$4,$23]
-   2 | Variable name='x' readOnly=false initializer=$3
-   3 | Literal value=1024
-   4 | Function name='next' parameters=[$5] returnTypeExpression=$7 body=[$9,$16,$21]
-   5 | Parameter name='n' typeExpression=$6
-   6 | NamedTypeExpression name='number'
-   7 | ArrayTypeExpression baseType=$8
-   8 | NamedTypeExpression name='number'
-   9 | Variable name='a' readOnly=false initializer=$10
-  10 | Call callee=$11 args=[$13,$14,$15]
-  11 | ArrayTypeExpression baseType=$12
-  12 | NamedTypeExpression name='number'
-  13 | Literal value=1
-  14 | Literal value=2
-  15 | Literal value=3
-  16 | Assignment target=$17 source=$20
-  17 | SubscriptExpression array=$18 element=$19
-  18 | IdentifierExpression name='a'
-  19 | Literal value=1
-  20 | Literal value=100
-  21 | ReturnStatement expression=$22
-  22 | IdentifierExpression name='a'
-  23 | WhileStatement test=$24 body=[$27,$35,$46,$67]
-  24 | BinaryExpression op='>' left=$25 right=$26
-  25 | IdentifierExpression name='x'
-  26 | Literal value=3
-  27 | Variable name='y' readOnly=false initializer=$28
-  28 | AndExpression conjuncts=[$29,$30]
-  29 | Literal value=false
-  30 | OrExpression disjuncts=[$31,$32]
-  31 | Literal value=true
-  32 | BinaryExpression op='>=' left=$33 right=$34
-  33 | Literal value=2
-  34 | IdentifierExpression name='x'
-  35 | Assignment target=$36 source=$37
-  36 | IdentifierExpression name='x'
-  37 | BinaryExpression op='/' left=$38 right=$41
-  38 | BinaryExpression op='+' left=$39 right=$40
-  39 | Literal value=0
-  40 | IdentifierExpression name='x'
-  41 | BinaryExpression op='**' left=$42 right=$43
-  42 | Literal value=2
-  43 | Call callee=$44 args=[$45]
-  44 | NamedTypeExpression name='next'
-  45 | Literal value=0
-  46 | IfStatement test=$47 consequent=[$48,$56,$58] alternative=$59
-  47 | Literal value=false
-  48 | Variable name='hello' readOnly=true initializer=$49
-  49 | BinaryExpression op='-' left=$50 right=$55
-  50 | BinaryExpression op='-' left=$51 right=$53
-  51 | UnaryExpression op='sqrt' operand=$52
-  52 | Literal value=100
-  53 | UnaryExpression op='abs' operand=$54
-  54 | Literal value=3.1
-  55 | Literal value=3
-  56 | Function name='g' parameters=[] returnTypeExpression=null body=[$57]
-  57 | ReturnStatement expression=null
-  58 | BreakStatement
-  59 | IfStatement test=$60 consequent=[$61,$64] alternative=[$66]
-  60 | Literal value=true
-  61 | Call callee=$62 args=[$63]
-  62 | IdentifierExpression name='next'
-  63 | Literal value=99
-  64 | Variable name='hello' readOnly=false initializer=$65
-  65 | IdentifierExpression name='y'
-  66 | ContinueStatement
-  67 | PrintStatement argument=$68
-  68 | IdentifierExpression name='x'`
+const expectedAst = `   1 | Program statements=[#2,#3,#8]
+   2 | Variable name='x' readOnly=false initializer=1024
+   3 | Function name='next' parameters=[#4] typeName='number' body=[#5]
+   4 | Parameter name='n' typeName='number'
+   5 | ReturnStatement expression=#6
+   6 | BinaryExpression op='+' left=#7 right=1
+   7 | IdentifierExpression name='n'
+   8 | WhileStatement test=#9 body=[#11,#16,#24,#37]
+   9 | BinaryExpression op='>' left=#10 right=3
+  10 | IdentifierExpression name='x'
+  11 | Variable name='y' readOnly=false initializer=#12
+  12 | AndExpression conjuncts=[false,#13]
+  13 | OrExpression disjuncts=[true,#14]
+  14 | BinaryExpression op='>=' left=2 right=#15
+  15 | IdentifierExpression name='x'
+  16 | Assignment target=#17 source=#18
+  17 | IdentifierExpression name='x'
+  18 | BinaryExpression op='/' left=#19 right=#21
+  19 | BinaryExpression op='+' left=0 right=#20
+  20 | IdentifierExpression name='x'
+  21 | BinaryExpression op='**' left=2 right=#22
+  22 | Call callee=#23 args=[0]
+  23 | IdentifierExpression name='next'
+  24 | IfStatement test=false consequent=[#25,#26,#30] alternative=#31
+  25 | Variable name='hello' readOnly=true initializer=5
+  26 | Function name='g' parameters=[] typeName=null body=[#27,#29]
+  27 | PrintStatement argument=#28
+  28 | IdentifierExpression name='hello'
+  29 | ReturnStatement expression=null
+  30 | BreakStatement
+  31 | IfStatement test=true consequent=[#32,#34] alternative=[#36]
+  32 | Call callee=#33 args=[99]
+  33 | IdentifierExpression name='next'
+  34 | Variable name='hello' readOnly=false initializer=#35
+  35 | IdentifierExpression name='y'
+  36 | ContinueStatement
+  37 | PrintStatement argument=#38
+  38 | IdentifierExpression name='x'`
 
 const syntaxChecks = [
-  ["integers and floating point literals", "print 8 * 899.123 / 89.11E-1"],
-  ["complex expressions", "print 83 * ((((((((13 / 21)))))))) + 1 - sqrt 0"],
+  ["all numeric literal forms", "print 8 * 89.123 * 1.3E5 * 1.3E+5 * 1.3E-5"],
+  ["complex expressions", "print 83 * ((((((((-13 / 21)))))))) + 1 - -0"],
   ["end of program inside comment", "print 0 // yay"],
   ["comments with no text", "print 1//\nprint 0//"],
   ["non-Latin letters in identifiers", "let コンパイラ = 100"],
@@ -153,19 +122,16 @@ const syntaxErrors = [
 
 describe("The parser", () => {
   for (const [scenario, source] of syntaxChecks) {
-    it(`recognizes ${scenario}`, done => {
+    it(`recognizes that ${scenario}`, () => {
       assert(parse(source))
-      done()
     })
   }
   for (const [scenario, source, errorMessagePattern] of syntaxErrors) {
-    it(`throws on ${scenario}`, done => {
+    it(`throws on ${scenario}`, () => {
       assert.throws(() => parse(source), errorMessagePattern)
-      done()
     })
   }
-  it("produces the expected AST for all node types", done => {
+  it("produces the expected AST for all node types", () => {
     assert.deepStrictEqual(util.format(parse(source)), expectedAst)
-    done()
   })
 })

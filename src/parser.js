@@ -8,22 +8,23 @@ import * as ast from "./ast.js"
 
 const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Program   = Statement+
-  Statement = VarDecl
+  Statement = TypeDecl
+            | VarDecl
             | FunDecl
-            | (Exp6_subscript | id) "=" Exp   --assign
-            | id "(" Args ")"                 --call
+            | Var "=" Exp                     --assign
+            | Var "(" Args ")"                --call
             | print Exp                       --print
             | WhileStmt
             | IfStmt
             | break                           --break
             | continue                        --continue
             | return Exp?                     --return
+  TypeDecl  = type id "=" TypeId array
   VarDecl   = (let | const) id "=" Exp
-  FunDecl   = function id Params (":" TypeExp)? Block
+  FunDecl   = function id Params (":" TypeId)? Block
   Params    = "(" ListOf<Param, ","> ")"
-  Param     = id ":" TypeExp
-  TypeExp   = TypeExp "[]"                    --arr
-            | id                              --named
+  Param     = id ":" TypeId
+  TypeId    = id
   WhileStmt = while Exp Block
   IfStmt    = if Exp Block (else (Block | IfStmt))?
   Block     = "{" Statement* "}"
@@ -38,34 +39,34 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
             | Exp4
   Exp4      = Exp5 "**" Exp4                  --binary
             | Exp5
-            | ("-" | abs | sqrt) Exp5         --unary
-  Exp5      = true
+            | "-" Exp5                        --unary
+  Exp5      = Var
+            | true
             | false
             | num
-            | Exp6
             | "(" Exp ")"                     --parens
-  Exp6      = Exp6 "[" Exp "]"                --subscript
-            | (Exp6 | TypeExp) "(" Args ")"   --call
+  Var       = id "(" Args ")" "[" Exp "]"     --call
+            | Var "[" Exp "]"                 --subscript
             | id
   Args      = ListOf<Exp, ",">
   relop     = "<=" | "<" | "==" | "!=" | ">=" | ">"
   num       = digit+ ("." digit+)? (("E" | "e") ("+" | "-")? digit+)?
+  type      = "type" ~alnum
+  array     = "array" ~alnum
   let       = "let" ~alnum
   const     = "const" ~alnum
   function  = "function" ~alnum
   print     = "print" ~alnum
   if        = "if" ~alnum
-  while     = "while" ~alnum
   else      = "else" ~alnum
+  while     = "while" ~alnum
   break     = "break" ~alnum
   continue  = "continue" ~alnum
   return    = "return" ~alnum
-  abs       = "abs" ~alnum
-  sqrt      = "sqrt" ~alnum
   true      = "true" ~alnum
   false     = "false" ~alnum
-  keyword   = let | const | print | if | while | else | return
-            | break | continue | abs | sqrt | true | false
+  keyword   = type | array | let | const | function | print | if | else 
+            | while | return | break | continue | true | false
   id        = ~keyword letter alnum*
   space    += "//" (~"\n" any)* ("\n" | end)  --comment
 }`)
@@ -74,34 +75,35 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Program(body) {
     return new ast.Program(body.ast())
   },
+  TypeDecl(_type, id, _eq, baseTypeName, _array) {
+    return new ast.TypeDeclaration(id.sourceString, baseTypeName.sourceString)
+  },
   VarDecl(kind, id, _eq, initializer) {
     const readOnly = kind.sourceString === "const"
     return new ast.Variable(id.sourceString, readOnly, initializer.ast())
   },
-  FunDecl(_fun, id, parameters, _colon, type, body) {
-    const name = id.sourceString
-    const parametersTree = parameters.ast()
-    const typeTree = type.ast().length === 0 ? null : type.ast()[0]
-    const bodyTree = body.ast()
-    return new ast.Function(name, parametersTree, typeTree, bodyTree)
+  FunDecl(_fun, id, parameters, _colons, typeNames, body) {
+    return new ast.Function(
+      id.sourceString,
+      parameters.ast(),
+      typeNames.ast().length === 0 ? null : typeNames.ast()[0],
+      body.ast()
+    )
   },
   Params(_left, bindings, _right) {
     return bindings.asIteration().ast()
   },
-  Param(id, _colon, type) {
-    return new ast.Parameter(id.sourceString, type.ast())
+  Param(id, _colon, typeName) {
+    return new ast.Parameter(id.sourceString, typeName.ast())
   },
-  TypeExp_arr(type, _brackets) {
-    return new ast.ArrayTypeExpression(type.ast())
+  TypeId(id) {
+    return id.sourceString
   },
-  TypeExp_named(id) {
-    return new ast.NamedTypeExpression(id.sourceString)
+  Statement_assign(variable, _eq, expression) {
+    return new ast.Assignment(variable.ast(), expression.ast())
   },
-  Statement_assign(target, _eq, source) {
-    return new ast.Assignment(target.ast(), source.ast())
-  },
-  Statement_call(id, _left, args, _right) {
-    return new ast.Call(id.ast(), args.ast())
+  Statement_call(callee, _left, args, _right) {
+    return new ast.Call(callee.ast(), args.ast())
   },
   Statement_print(_print, expression) {
     return new ast.PrintStatement(expression.ast())
@@ -157,26 +159,26 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Exp5_parens(_open, expression, _close) {
     return expression.ast()
   },
-  Exp6_call(callee, _left, args, _right) {
+  Var_call(callee, _left, args, _right) {
     return new ast.Call(callee.ast(), args.ast())
   },
-  Exp6_subscript(array, _left, subscript, _right) {
+  Var_subscript(array, _left, subscript, _right) {
     return new ast.SubscriptExpression(array.ast(), subscript.ast())
+  },
+  Var(id) {
+    return new ast.IdentifierExpression(id.sourceString)
   },
   Args(expressions) {
     return expressions.asIteration().ast()
   },
-  num(_whole, _point, _fraction, _e, _sign, _exponent) {
-    return new ast.Literal(Number(this.sourceString))
-  },
   true(_) {
-    return new ast.Literal(true)
+    return true
   },
   false(_) {
-    return new ast.Literal(false)
+    return false
   },
-  id(_firstChar, _restChars) {
-    return new ast.IdentifierExpression(this.sourceString)
+  num(_whole, _point, _fraction, _e, _sign, _exponent) {
+    return Number(this.sourceString)
   },
 })
 
