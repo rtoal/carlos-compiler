@@ -74,11 +74,12 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
     const readOnly = kind.sourceString === "const"
     return new ast.Variable(id.sourceString, readOnly, initializer.ast())
   },
-  FunDecl(_fun, id, parameters, _colons, typeNames, body) {
+  FunDecl(_fun, id, parameters, _colons, optionalReturnTypeName, body) {
+    const returnTypeNameTree = optionalReturnTypeName.ast()
     return new ast.Function(
       id.sourceString,
       parameters.ast(),
-      typeNames.ast().length === 0 ? null : typeNames.ast()[0],
+      returnTypeNameTree.length === 0 ? null : returnTypeNameTree[0],
       body.ast()
     )
   },

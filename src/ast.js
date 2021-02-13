@@ -30,6 +30,21 @@ export class Type {
   static TYPE = new Type("type")
 }
 
+// A function type node can only be created in the Semantic Analyzer, never
+// from syntax processing. Thus we can take advantage of the fact that when
+// we are creating them, the parameter types and return types will have
+// already been analyzed and will be in good shape.
+export class FunctionType extends Type {
+  constructor(parameterTypes, returnType) {
+    super(
+      `(${parameterTypes.map(t => t.name).join(",")})->${
+        returnType?.name ?? "void"
+      }`
+    )
+    Object.assign(this, { parameterTypes, returnType })
+  }
+}
+
 export class Variable {
   constructor(name, readOnly, initializer) {
     Object.assign(this, { name, readOnly, initializer })
@@ -37,8 +52,8 @@ export class Variable {
 }
 
 export class Function {
-  constructor(name, parameters, typeName, body) {
-    Object.assign(this, { name, parameters, typeName, body })
+  constructor(name, parameters, returnTypeName, body) {
+    Object.assign(this, { name, parameters, returnTypeName, body })
   }
 }
 

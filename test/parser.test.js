@@ -24,7 +24,7 @@ const source = `let x = 1024
 
 const expectedAst = `   1 | Program statements=[#2,#3,#8]
    2 | Variable name='x' readOnly=false initializer=1024
-   3 | Function name='next' parameters=[#4] typeName='number' body=[#5]
+   3 | Function name='next' parameters=[#4] returnTypeName='number' body=[#5]
    4 | Parameter name='n' typeName='number'
    5 | ReturnStatement expression=#6
    6 | BinaryExpression op='+' left=#7 right=1
@@ -47,7 +47,7 @@ const expectedAst = `   1 | Program statements=[#2,#3,#8]
   23 | IdentifierExpression name='next'
   24 | IfStatement test=false consequent=[#25,#26,#30] alternative=#31
   25 | Variable name='hello' readOnly=true initializer=5
-  26 | Function name='g' parameters=[] typeName=null body=[#27,#29]
+  26 | Function name='g' parameters=[] returnTypeName=null body=[#27,#29]
   27 | PrintStatement argument=#28
   28 | IdentifierExpression name='hello'
   29 | ReturnStatement expression=null

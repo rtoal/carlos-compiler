@@ -2,7 +2,7 @@
 //
 // Analyzes the AST by looking for semantic errors and resolving references.
 
-import { Type, Function } from "./ast.js"
+import { Type, Function, FunctionType } from "./ast.js"
 
 function check(condition, errorMessage) {
   if (!condition) {
@@ -26,9 +26,23 @@ function checkSameTypes(e1, e2, op) {
   check(e1.type === e2.type, `'${op}' operands must have same types`)
 }
 
+// Covariance for parameters and contravariance for return types
 function checkAssignable(targetType, sourceType) {
+  function isAssignable(targetType, sourceType) {
+    if (targetType.constructor === FunctionType) {
+      return (
+        sourceType.constructor === FunctionType &&
+        isAssignable(sourceType.returnType, targetType.returnType) &&
+        sourceType.parameterTypes.length !== targetType.parameterTypes &&
+        sourceType.parameterTypes.every((t, i) =>
+          isAssignable(targetType.parameterTypes[i], t)
+        )
+      )
+    }
+    return targetType === sourceType
+  }
   check(
-    targetType === sourceType,
+    isAssignable(targetType, sourceType),
     `Expected type ${targetType.name}, got type ${sourceType.name}`
   )
 }
@@ -127,11 +141,16 @@ class Context {
     this.add(v.name, v)
   }
   Function(f) {
-    f.type = f.typeName ? this.lookup(f.typeName) : null
+    f.returnType = f.returnTypeName ? this.lookup(f.returnTypeName) : null
     this.add(f.name, f)
-    // When entering a function body, we must reset the inLoop setting!
+    // When entering a function body, we must reset the inLoop setting,
+    // because it is possible to declare a function inside a loop!
     const childContext = this.newChild({ inLoop: false, forFunction: f })
     f.parameters.forEach(p => childContext.analyze(p))
+    f.type = new FunctionType(
+      f.parameters.map(p => p.type),
+      f.returnType
+    )
     childContext.analyze(f.body)
   }
   Parameter(p) {
@@ -172,10 +191,10 @@ class Context {
   }
   ReturnStatement(s) {
     checkInFunction(this)
-    if (this.function.type) {
+    if (this.function.returnType) {
       checkReturnHasExpression(s)
       this.analyze(s.expression)
-      checkAssignable(this.function.type, s.expression.type)
+      checkAssignable(this.function.returnType, s.expression.type)
     } else {
       checkReturnHasNoExpression(s)
     }
@@ -186,7 +205,7 @@ class Context {
     checkArgumentCount(c.callee.referent.parameters.length, c.args.length)
     c.args.forEach(arg => this.analyze(arg))
     checkArgumentMatching(c.callee.referent.parameters, c.args)
-    c.type = c.callee.referent.type
+    c.type = c.callee.referent.returnType
   }
   BreakStatement(s) {
     checkInLoop(this, "break")
