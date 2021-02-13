@@ -248,6 +248,7 @@ class Context {
 export default function analyze(node) {
   Number.prototype.type = Type.NUMBER
   Boolean.prototype.type = Type.BOOLEAN
+  Type.prototype.type = Type.TYPE
   Context.initial.analyze(node)
   return node
 }
