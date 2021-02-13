@@ -25,9 +25,11 @@ function checkSameTypes(e1, e2, op) {
 function checkNotReadOnly(e) {
   check(!e.readOnly, `Cannot assign to constant ${e.name}`)
 }
+
 function checkInLoop(context, disruptor) {
   check(context.inLoop, `'${disruptor}' can only appear in a loop`)
 }
+
 class Context {
   constructor(parent = null, { inLoop } = {}) {
     // This is where we maintain the local variables of a block as well as
