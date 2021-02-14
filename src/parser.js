@@ -11,7 +11,7 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Statement = VarDecl
             | FunDecl
             | Var "=" Exp                     --assign
-            | Callable "(" Args ")"           --call
+            | Exp6_call
             | print Exp                       --print
             | WhileStmt
             | IfStmt
@@ -38,16 +38,17 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Exp4      = Exp5 "**" Exp4                  --binary
             | Exp5
             | "-" Exp5                        --unary
-  Exp5      = Callable "(" Args ")"           --call
-            | Var
-            | true
+  Exp5      = Exp6
+            | Exp7
+  Exp6      = Exp6 "(" Args ")"               --call
+            | id                              --id
+  Exp7      = true
             | false
             | num
             | "(" Exp ")"                     --parens
   Args      = ListOf<Exp, ",">
   relop     = "<=" | "<" | "==" | "!=" | ">=" | ">"
-  Callable  = id
-  Var       = id
+  Var       = Exp6_id
   num       = digit+ ("." digit+)? (("E" | "e") ("+" | "-")? digit+)?
   let       = "let" ~alnum
   const     = "const" ~alnum
@@ -95,9 +96,6 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   },
   Statement_assign(variable, _eq, expression) {
     return new ast.Assignment(variable.ast(), expression.ast())
-  },
-  Statement_call(callee, _left, args, _right) {
-    return new ast.Call(callee.ast(), args.ast())
   },
   Statement_print(_print, expression) {
     return new ast.PrintStatement(expression.ast())
@@ -150,19 +148,16 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Exp4_unary(op, operand) {
     return new ast.UnaryExpression(op.sourceString, operand.ast())
   },
-  Exp5_call(callee, _left, args, _right) {
+  Exp6_call(callee, _left, args, _right) {
     return new ast.Call(callee.ast(), args.ast())
   },
-  Exp5_parens(_open, expression, _close) {
+  Exp7_parens(_open, expression, _close) {
     return expression.ast()
   },
   Args(expressions) {
     return expressions.asIteration().ast()
   },
-  Callable(id) {
-    return new ast.IdentifierExpression(id.sourceString)
-  },
-  Var(id) {
+  Exp6_id(id) {
     return new ast.IdentifierExpression(id.sourceString)
   },
   true(_) {
