@@ -7,68 +7,68 @@ import ohm from "ohm-js"
 import * as ast from "./ast.js"
 
 const carlosGrammar = ohm.grammar(String.raw`Carlos {
-  Program      = Statement+
-  Statement    = VarDecl
-               | FunDecl
-               | Var "=" Exp                     --assign
-               | Exp6_call
-               | print Exp                       --print
-               | WhileStmt
-               | IfStmt
-               | break                           --break
-               | continue                        --continue
-               | return Exp?                     --return
-  VarDecl      = (let | const) id "=" Exp
-  FunDecl      = function id Params (":" TypeExp)? Block
-  Params       = "(" ListOf<Param, ","> ")"
-  Param        = id ":" TypeExp
-  TypeExp      = FunTypeExp | TupleTypeExp | TypeId
-  FunTypeExp   = TupleTypeExp "->" TypeExp
-  TupleTypeExp = "(" ListOf<TypeExp, ","> ")"
-  TypeId       = id
-  WhileStmt    = while Exp Block
-  IfStmt       = if Exp Block (else (Block | IfStmt))?
-  Block        = "{" Statement* "}"
-  Exp          = Exp1 ("||" Exp1)+               --or
-               | Exp1 ("&&" Exp1)+               --and
-               | Exp1
-  Exp1         = Exp2 relop Exp2                 --binary
-               | Exp2
-  Exp2         = Exp2 ("+" | "-") Exp3           --binary
-               | Exp3
-  Exp3         = Exp3 ("*"| "/") Exp4            --binary
-               | Exp4
-  Exp4         = Exp5 "**" Exp4                  --binary
-               | Exp5
-               | "-" Exp5                        --unary
-  Exp5         = Exp6
-               | Exp7
-  Exp6         = Exp6 "(" Args ")"               --call
-               | id                              --id
-  Exp7         = true
-               | false
-               | num
-               | "(" Exp ")"                     --parens
-  Args         = ListOf<Exp, ",">
-  relop        = "<=" | "<" | "==" | "!=" | ">=" | ">"
-  Var          = Exp6_id
-  num          = digit+ ("." digit+)? (("E" | "e") ("+" | "-")? digit+)?
-  let          = "let" ~alnum
-  const        = "const" ~alnum
-  function     = "function" ~alnum
-  print        = "print" ~alnum
-  if           = "if" ~alnum
-  while        = "while" ~alnum
-  else         = "else" ~alnum
-  break        = "break" ~alnum
-  continue     = "continue" ~alnum
-  return       = "return" ~alnum
-  true         = "true" ~alnum
-  false        = "false" ~alnum
-  keyword      = let | const | function | print | if | while | else 
-               | return | break | continue | true | false
-  id           = ~keyword letter alnum*
-  space       += "//" (~"\n" any)* ("\n" | end)  --comment
+  Program   = Statement+
+  Statement = VarDecl
+            | FunDecl
+            | Var "=" Exp                         --assign
+            | Exp6_call
+            | print Exp                           --print
+            | WhileStmt
+            | IfStmt
+            | break
+            | continue
+            | return Exp?                         --return
+  VarDecl   = (let | const) id "=" Exp
+  FunDecl   = function id Params (":" TypeExp)? Block
+  Params    = "(" ListOf<Param, ","> ")"
+  Param     = id ":" TypeExp
+  TypeExp   = "(" ListOf<TypeExp, ","> ")"        --tuple
+            | TypeExp_tuple "->" TypeExp          --function
+            | id                                  --named
+  WhileStmt = while Exp Block
+  IfStmt    = if Exp Block else (Block | IfStmt)  --long
+            | if Exp Block                        --short
+  Block     = "{" Statement* "}"
+  Exp       = Exp1 ("||" Exp1)+                   --or
+            | Exp1 ("&&" Exp1)+                   --and
+            | Exp1
+  Exp1      = Exp2 relop Exp2                     --binary
+            | Exp2
+  Exp2      = Exp2 ("+" | "-") Exp3               --binary
+            | Exp3
+  Exp3      = Exp3 ("*"| "/") Exp4                --binary
+            | Exp4
+  Exp4      = Exp5 "**" Exp4                      --binary
+            | Exp5
+            | "-" Exp5                            --unary
+  Exp5      = Exp6
+            | Exp7
+  Exp6      = Exp6 "(" Args ")"                   --call
+            | id                                  --id
+  Exp7      = true
+            | false
+            | num
+            | "(" Exp ")"                         --parens
+  Args      = ListOf<Exp, ",">
+  relop     = "<=" | "<" | "==" | "!=" | ">=" | ">"
+  Var       = Exp6_id
+  num       = digit+ ("." digit+)? (("E" | "e") ("+" | "-")? digit+)?
+  let       = "let" ~alnum
+  const     = "const" ~alnum
+  function  = "function" ~alnum
+  print     = "print" ~alnum
+  if        = "if" ~alnum
+  while     = "while" ~alnum
+  else      = "else" ~alnum
+  break     = "break" ~alnum
+  continue  = "continue" ~alnum
+  return    = "return" ~alnum
+  true      = "true" ~alnum
+  false     = "false" ~alnum
+  keyword   = let | const | function | print | if | while | else 
+            | return | break | continue | true | false
+  id        = ~keyword letter alnum*
+  space     += "//" (~"\n" any)* ("\n" | end)   --comment
 }`)
 
 const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
@@ -94,13 +94,13 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Param(id, _colon, typeExp) {
     return new ast.Parameter(id.sourceString, typeExp.ast())
   },
-  FunTypeExp(inputType, _arrow, outputType) {
-    return new ast.FunctionTypeExpression(inputType.ast(), outputType.ast())
-  },
-  TupleTypeExp(_left, memberTypeList, _right) {
+  TypeExp_tuple(_left, memberTypeList, _right) {
     return memberTypeList.asIteration().ast()
   },
-  TypeId(id) {
+  TypeExp_function(inputType, _arrow, outputType) {
+    return new ast.FunctionTypeExpression(inputType.ast(), outputType.ast())
+  },
+  TypeExp_named(id) {
     return id.sourceString
   },
   Statement_assign(variable, _eq, expression) {
@@ -112,19 +112,16 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   WhileStmt(_while, test, body) {
     return new ast.WhileStatement(test.ast(), body.ast())
   },
-  IfStmt(_if, test, consequent, _elses, alternatives) {
-    const testTree = test.ast()
-    const consequentTree = consequent.ast()
-    const alternativesTree = alternatives.ast()
-    if (alternativesTree.length === 0) {
-      return new ast.ShortIfStatement(testTree, consequentTree)
-    }
-    return new ast.IfStatement(testTree, consequentTree, alternativesTree[0])
+  IfStmt_long(_if, test, consequent, _else, alternative) {
+    return new ast.IfStatement(test.ast(), consequent.ast(), alternative.ast())
   },
-  Statement_break(_break) {
+  IfStmt_short(_if, test, consequent) {
+    return new ast.ShortIfStatement(test.ast(), consequent.ast())
+  },
+  break(_) {
     return new ast.BreakStatement()
   },
-  Statement_continue(_continue) {
+  continue(_) {
     return new ast.ContinueStatement()
   },
   Statement_return(_return, expression) {
