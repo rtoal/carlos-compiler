@@ -59,7 +59,7 @@ class Context {
     this.analyze(e.operand)
   }
   IdentifierExpression(e) {
-    // Find out which actual variable is being referred to
+    // Record what this identifier is referring to
     e.referent = this.lookup(e.name)
   }
   Number(e) {
