@@ -11,7 +11,7 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Statement = VarDecl
             | FunDecl
             | Var "=" Exp                     --assign
-            | Var "(" Args ")"                --call
+            | Callable "(" Args ")"           --call
             | print Exp                       --print
             | WhileStmt
             | IfStmt
@@ -38,7 +38,7 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Exp4      = Exp5 "**" Exp4                  --binary
             | Exp5
             | "-" Exp5                        --unary
-  Exp5      = Var "(" Args ")"                --call
+  Exp5      = Callable "(" Args ")"           --call
             | Var
             | true
             | false
@@ -46,6 +46,7 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
             | "(" Exp ")"                     --parens
   Args      = ListOf<Exp, ",">
   relop     = "<=" | "<" | "==" | "!=" | ">=" | ">"
+  Callable  = id
   Var       = id
   num       = digit+ ("." digit+)? (("E" | "e") ("+" | "-")? digit+)?
   let       = "let" ~alnum
@@ -157,6 +158,9 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   },
   Args(expressions) {
     return expressions.asIteration().ast()
+  },
+  Callable(id) {
+    return new ast.IdentifierExpression(id.sourceString)
   },
   Var(id) {
     return new ast.IdentifierExpression(id.sourceString)
