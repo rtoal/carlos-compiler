@@ -78,10 +78,10 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   IfStmt_short(_if, test, consequent) {
     return new ast.ShortIfStatement(test.ast(), consequent.ast())
   },
-  break() {
+  break(_) {
     return new ast.BreakStatement()
   },
-  continue() {
+  continue(_) {
     return new ast.ContinueStatement()
   },
   Block(_open, body, _close) {
