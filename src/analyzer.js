@@ -2,7 +2,9 @@
 //
 // Analyzes the AST by looking for semantic errors and resolving references.
 
-import { Type, Function } from "./ast.js"
+import { config } from "process"
+import util from "util"
+import { Type, Function, FunctionType } from "./ast.js"
 
 function check(condition, errorMessage) {
   if (!condition) {
@@ -18,17 +20,32 @@ function checkBoolean(e, op) {
   check(e.type === Type.BOOLEAN, `'${op}' operand must be a boolean`)
 }
 
-function checkIsFunction(e) {
-  check(e.constructor == Function, "Call of non-function")
+function checkIsCallable(e) {
+  check(e.type.constructor === FunctionType, "Call of non-function")
 }
 
 function checkSameTypes(e1, e2, op) {
   check(e1.type === e2.type, `'${op}' operands must have same types`)
 }
 
+// Covariance for parameters and contravariance for return types
 function checkAssignable(targetType, sourceType) {
+  function isAssignable(targetType, sourceType) {
+    console.log(`Checking ${targetType.name} vs ${sourceType.name}`)
+    if (targetType.constructor === FunctionType) {
+      return (
+        sourceType.constructor === FunctionType &&
+        isAssignable(sourceType.returnType, targetType.returnType) &&
+        sourceType.parameterTypes.length === targetType.parameterTypes.length &&
+        sourceType.parameterTypes.every((t, i) =>
+          isAssignable(targetType.parameterTypes[i], t)
+        )
+      )
+    }
+    return targetType === sourceType
+  }
   check(
-    targetType === sourceType,
+    isAssignable(targetType, sourceType),
     `Expected type ${targetType.name}, got type ${sourceType.name}`
   )
 }
@@ -56,19 +73,22 @@ function checkReturnHasNoExpression(returnStatement) {
   check(!returnStatement.expression, "Cannot return a value here")
 }
 
-function checkArgumentCount(paramCount, argCount) {
+function checkArgumentCount(callee, args) {
+  const parameterCount = callee.type.parameterTypes.length
+  const argumentCount = args.length
   check(
-    paramCount === argCount,
-    `${paramCount} parameter(s) required, but ${argCount} argument(s) passed`
+    parameterCount === argumentCount,
+    `${parameterCount} parameter(s) required, ` +
+      `but ${argumentCount} argument(s) passed`
   )
 }
 
-function checkArgumentMatching(parameters, args) {
-  parameters.forEach((p, i) => checkAssignable(p.type, args[i].type))
+function checkArgumentMatching(callee, args) {
+  callee.type.parameterTypes.forEach((t, i) => checkAssignable(t, args[i].type))
 }
 
 class Context {
-  constructor(parent = null, { inLoop, forFunction } = {}) {
+  constructor(parent = null, configuration = {}) {
     // Parent (enclosing scope) for static scope analysis
     this.parent = parent
     // All local declarations. Names map to variable declarations, types, and
@@ -76,10 +96,10 @@ class Context {
     this.locals = new Map()
     // Whether we are in a loop, so that we know whether breaks and continues
     // are legal here
-    this.inLoop = inLoop ?? parent?.inLoop ?? false
+    this.inLoop = configuration.inLoop ?? parent?.inLoop ?? false
     // Whether we are in a function, so that we know whether a return
     // statement can appear here, and if so, how we typecheck it
-    this.function = forFunction ?? parent?.function ?? null
+    this.function = configuration.forFunction ?? parent?.function ?? null
   }
   sees(name) {
     // Search "outward" through enclosing scopes
@@ -101,10 +121,10 @@ class Context {
     }
     throw new Error(`Identifier ${name} not declared`)
   }
-  newChild({ inLoop, forFunction } = {}) {
+  newChild(configuration = {}) {
     // Create new (nested) context, which is just like the current context
     // except that certain fields can be overridden
-    return new Context(this, { inLoop, forFunction })
+    return new Context(this, configuration)
   }
   static get initial() {
     // The initial context for a compilation holds all the predefined
@@ -127,11 +147,16 @@ class Context {
     this.add(v.name, v)
   }
   Function(f) {
-    f.type = f.typeName ? this.lookup(f.typeName) : null
+    f.returnType = f.returnTypeName ? this.lookup(f.returnTypeName) : Type.VOID
     this.add(f.name, f)
-    // When entering a function body, we must reset the inLoop setting!
+    // When entering a function body, we must reset the inLoop setting,
+    // because it is possible to declare a function inside a loop!
     const childContext = this.newChild({ inLoop: false, forFunction: f })
     f.parameters.forEach(p => childContext.analyze(p))
+    f.type = new FunctionType(
+      f.parameters.map(p => p.type),
+      f.returnType
+    )
     childContext.analyze(f.body)
   }
   Parameter(p) {
@@ -168,25 +193,25 @@ class Context {
   ShortIfStatement(s) {
     this.analyze(s.test)
     checkBoolean(s.test, "if")
-    analyze(s.consequent, this.newChild())
+    this.analyze(s.consequent, this.newChild())
   }
   ReturnStatement(s) {
     checkInFunction(this)
-    if (this.function.type) {
+    if (this.function.returnType !== Type.VOID) {
       checkReturnHasExpression(s)
       this.analyze(s.expression)
-      checkAssignable(this.function.type, s.expression.type)
+      checkAssignable(this.function.returnType, s.expression.type)
     } else {
       checkReturnHasNoExpression(s)
     }
   }
   Call(c) {
     this.analyze(c.callee)
-    checkIsFunction(c.callee.referent)
-    checkArgumentCount(c.callee.referent.parameters.length, c.args.length)
+    checkIsCallable(c.callee.referent)
+    checkArgumentCount(c.callee.referent, c.args)
     c.args.forEach(arg => this.analyze(arg))
-    checkArgumentMatching(c.callee.referent.parameters, c.args)
-    c.type = c.callee.referent.type
+    checkArgumentMatching(c.callee.referent, c.args)
+    c.type = c.callee.referent.returnType
   }
   BreakStatement(s) {
     checkInLoop(this, "break")
@@ -248,6 +273,7 @@ class Context {
 export default function analyze(node) {
   Number.prototype.type = Type.NUMBER
   Boolean.prototype.type = Type.BOOLEAN
+  Type.prototype.type = Type.TYPE
   Context.initial.analyze(node)
   return node
 }

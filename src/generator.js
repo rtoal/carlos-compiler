@@ -3,7 +3,7 @@
 // Invoke generate(program) with the program node to get back the JavaScript
 // translation as a string.
 
-import { IfStatement } from "./ast.js"
+import { IfStatement, Type } from "./ast.js"
 
 export default function generate(program) {
   const output = []
@@ -81,7 +81,7 @@ export default function generate(program) {
     },
     Call(c) {
       const targetCode = `${gen(c.callee)}(${c.args.map(gen).join(", ")})`
-      if (c.type) {
+      if (c.type !== Type.VOID) {
         return targetCode
       }
       output.push(`${targetCode};`)
