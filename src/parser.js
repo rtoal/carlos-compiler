@@ -22,9 +22,9 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   FunDecl   = function id Params (":" TypeExp)? Block
   Params    = "(" ListOf<Param, ","> ")"
   Param     = id ":" TypeExp
-  TypeExp   = "(" ListOf<TypeExp, ","> ")"        --tuple
-            | TypeExp_tuple "->" TypeExp          --function
+  TypeExp   = TypeExps "->" TypeExp               --function
             | id                                  --named
+  TypeExps  = "(" ListOf<TypeExp, ","> ")"
   WhileStmt = while Exp Block
   IfStmt    = if Exp Block else (Block | IfStmt)  --long
             | if Exp Block                        --short
@@ -94,14 +94,14 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Param(id, _colon, typeExp) {
     return new ast.Parameter(id.sourceString, typeExp.ast())
   },
-  TypeExp_tuple(_left, memberTypeList, _right) {
-    return memberTypeList.asIteration().ast()
-  },
   TypeExp_function(inputType, _arrow, outputType) {
     return new ast.FunctionTypeExpression(inputType.ast(), outputType.ast())
   },
   TypeExp_named(id) {
     return id.sourceString
+  },
+  TypeExps(_left, memberTypeList, _right) {
+    return memberTypeList.asIteration().ast()
   },
   Statement_assign(variable, _eq, expression) {
     return new ast.Assignment(variable.ast(), expression.ast())
