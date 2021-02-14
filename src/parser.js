@@ -7,65 +7,68 @@ import ohm from "ohm-js"
 import * as ast from "./ast.js"
 
 const carlosGrammar = ohm.grammar(String.raw`Carlos {
-  Program   = Statement+
-  Statement = VarDecl
-            | FunDecl
-            | Var "=" Exp                     --assign
-            | Exp6_call
-            | print Exp                       --print
-            | WhileStmt
-            | IfStmt
-            | break                           --break
-            | continue                        --continue
-            | return Exp?                     --return
-  VarDecl   = (let | const) id "=" Exp
-  FunDecl   = function id Params (":" TypeId)? Block
-  Params    = "(" ListOf<Param, ","> ")"
-  Param     = id ":" TypeId
-  TypeId    = id
-  WhileStmt = while Exp Block
-  IfStmt    = if Exp Block (else (Block | IfStmt))?
-  Block     = "{" Statement* "}"
-  Exp       = Exp1 ("||" Exp1)+               --or
-            | Exp1 ("&&" Exp1)+               --and
-            | Exp1
-  Exp1      = Exp2 relop Exp2                 --binary
-            | Exp2
-  Exp2      = Exp2 ("+" | "-") Exp3           --binary
-            | Exp3
-  Exp3      = Exp3 ("*"| "/") Exp4            --binary
-            | Exp4
-  Exp4      = Exp5 "**" Exp4                  --binary
-            | Exp5
-            | "-" Exp5                        --unary
-  Exp5      = Exp6
-            | Exp7
-  Exp6      = Exp6 "(" Args ")"               --call
-            | id                              --id
-  Exp7      = true
-            | false
-            | num
-            | "(" Exp ")"                     --parens
-  Args      = ListOf<Exp, ",">
-  relop     = "<=" | "<" | "==" | "!=" | ">=" | ">"
-  Var       = Exp6_id
-  num       = digit+ ("." digit+)? (("E" | "e") ("+" | "-")? digit+)?
-  let       = "let" ~alnum
-  const     = "const" ~alnum
-  function  = "function" ~alnum
-  print     = "print" ~alnum
-  if        = "if" ~alnum
-  while     = "while" ~alnum
-  else      = "else" ~alnum
-  break     = "break" ~alnum
-  continue  = "continue" ~alnum
-  return    = "return" ~alnum
-  true      = "true" ~alnum
-  false     = "false" ~alnum
-  keyword   = let | const | function | print | if | while | else 
-            | return | break | continue | true | false
-  id        = ~keyword letter alnum*
-  space    += "//" (~"\n" any)* ("\n" | end)  --comment
+  Program      = Statement+
+  Statement    = VarDecl
+               | FunDecl
+               | Var "=" Exp                     --assign
+               | Exp6_call
+               | print Exp                       --print
+               | WhileStmt
+               | IfStmt
+               | break                           --break
+               | continue                        --continue
+               | return Exp?                     --return
+  VarDecl      = (let | const) id "=" Exp
+  FunDecl      = function id Params (":" TypeExp)? Block
+  Params       = "(" ListOf<Param, ","> ")"
+  Param        = id ":" TypeExp
+  TypeExp      = FunTypeExp | TupleTypeExp | TypeId
+  FunTypeExp   = TupleTypeExp "->" TypeExp
+  TupleTypeExp = "(" ListOf<TypeExp, ","> ")"
+  TypeId       = id
+  WhileStmt    = while Exp Block
+  IfStmt       = if Exp Block (else (Block | IfStmt))?
+  Block        = "{" Statement* "}"
+  Exp          = Exp1 ("||" Exp1)+               --or
+               | Exp1 ("&&" Exp1)+               --and
+               | Exp1
+  Exp1         = Exp2 relop Exp2                 --binary
+               | Exp2
+  Exp2         = Exp2 ("+" | "-") Exp3           --binary
+               | Exp3
+  Exp3         = Exp3 ("*"| "/") Exp4            --binary
+               | Exp4
+  Exp4         = Exp5 "**" Exp4                  --binary
+               | Exp5
+               | "-" Exp5                        --unary
+  Exp5         = Exp6
+               | Exp7
+  Exp6         = Exp6 "(" Args ")"               --call
+               | id                              --id
+  Exp7         = true
+               | false
+               | num
+               | "(" Exp ")"                     --parens
+  Args         = ListOf<Exp, ",">
+  relop        = "<=" | "<" | "==" | "!=" | ">=" | ">"
+  Var          = Exp6_id
+  num          = digit+ ("." digit+)? (("E" | "e") ("+" | "-")? digit+)?
+  let          = "let" ~alnum
+  const        = "const" ~alnum
+  function     = "function" ~alnum
+  print        = "print" ~alnum
+  if           = "if" ~alnum
+  while        = "while" ~alnum
+  else         = "else" ~alnum
+  break        = "break" ~alnum
+  continue     = "continue" ~alnum
+  return       = "return" ~alnum
+  true         = "true" ~alnum
+  false        = "false" ~alnum
+  keyword      = let | const | function | print | if | while | else 
+               | return | break | continue | true | false
+  id           = ~keyword letter alnum*
+  space       += "//" (~"\n" any)* ("\n" | end)  --comment
 }`)
 
 const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
@@ -76,20 +79,26 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
     const readOnly = kind.sourceString === "const"
     return new ast.Variable(id.sourceString, readOnly, initializer.ast())
   },
-  FunDecl(_fun, id, parameters, _colons, optionalReturnTypeName, body) {
-    const returnTypeNameTree = optionalReturnTypeName.ast()
+  FunDecl(_fun, id, parameters, _colons, returnTypeExp, body) {
+    const returnTypeExpTree = returnTypeExp.ast()
     return new ast.Function(
       id.sourceString,
       parameters.ast(),
-      returnTypeNameTree.length === 0 ? null : returnTypeNameTree[0],
+      returnTypeExpTree.length === 0 ? null : returnTypeExpTree[0],
       body.ast()
     )
   },
   Params(_left, bindings, _right) {
     return bindings.asIteration().ast()
   },
-  Param(id, _colon, typeName) {
-    return new ast.Parameter(id.sourceString, typeName.ast())
+  Param(id, _colon, typeExp) {
+    return new ast.Parameter(id.sourceString, typeExp.ast())
+  },
+  FunTypeExp(inputType, _arrow, outputType) {
+    return new ast.FunctionTypeExpression(inputType.ast(), outputType.ast())
+  },
+  TupleTypeExp(_left, memberTypeList, _right) {
+    return memberTypeList.asIteration().ast()
   },
   TypeId(id) {
     return id.sourceString
