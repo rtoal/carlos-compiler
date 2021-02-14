@@ -82,11 +82,6 @@ const semanticChecks = [
   ],
 ]
 
-const semanticChecks = [
-  ["break in nested if", "while false {if true {break}}"],
-  ["continue in nested if", "while false {if true {continue}}"],
-]
-
 const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
   ["non declared ids", "let x = 1\nlet x = 1", /Identifier x already declared/],
