@@ -2,6 +2,8 @@
 //
 // Analyzes the AST by looking for semantic errors and resolving references.
 
+import { config } from "process"
+import util from "util"
 import { Type, Function, FunctionType } from "./ast.js"
 
 function check(condition, errorMessage) {
@@ -82,7 +84,7 @@ function checkArgumentMatching(parameters, args) {
 }
 
 class Context {
-  constructor(parent = null, { inLoop, forFunction } = {}) {
+  constructor(parent = null, configuration = {}) {
     // Parent (enclosing scope) for static scope analysis
     this.parent = parent
     // All local declarations. Names map to variable declarations, types, and
@@ -90,10 +92,10 @@ class Context {
     this.locals = new Map()
     // Whether we are in a loop, so that we know whether breaks and continues
     // are legal here
-    this.inLoop = inLoop ?? parent?.inLoop ?? false
+    this.inLoop = configuration.inLoop ?? parent?.inLoop ?? false
     // Whether we are in a function, so that we know whether a return
     // statement can appear here, and if so, how we typecheck it
-    this.function = forFunction ?? parent?.function ?? null
+    this.function = configuration.forFunction ?? parent?.function ?? null
   }
   sees(name) {
     // Search "outward" through enclosing scopes
@@ -115,10 +117,10 @@ class Context {
     }
     throw new Error(`Identifier ${name} not declared`)
   }
-  newChild({ inLoop, forFunction } = {}) {
+  newChild(configuration = {}) {
     // Create new (nested) context, which is just like the current context
     // except that certain fields can be overridden
-    return new Context(this, { inLoop, forFunction })
+    return new Context(this, configuration)
   }
   static get initial() {
     // The initial context for a compilation holds all the predefined
@@ -141,7 +143,7 @@ class Context {
     this.add(v.name, v)
   }
   Function(f) {
-    f.returnType = f.returnTypeName ? this.lookup(f.returnTypeName) : null
+    f.returnType = f.returnTypeName ? this.lookup(f.returnTypeName) : Type.VOID
     this.add(f.name, f)
     // When entering a function body, we must reset the inLoop setting,
     // because it is possible to declare a function inside a loop!
@@ -187,11 +189,11 @@ class Context {
   ShortIfStatement(s) {
     this.analyze(s.test)
     checkBoolean(s.test, "if")
-    analyze(s.consequent, this.newChild())
+    this.analyze(s.consequent, this.newChild())
   }
   ReturnStatement(s) {
     checkInFunction(this)
-    if (this.function.returnType) {
+    if (this.function.returnType !== Type.VOID) {
       checkReturnHasExpression(s)
       this.analyze(s.expression)
       checkAssignable(this.function.returnType, s.expression.type)

@@ -27,6 +27,7 @@ export class Type {
   }
   static BOOLEAN = new Type("boolean")
   static NUMBER = new Type("number")
+  static VOID = new Type("void")
   static TYPE = new Type("type")
 }
 

@@ -32,7 +32,7 @@ const expectedAst = String.raw`   1 | Program statements=[#2,#4,#10]
    7 | BinaryExpression op='+' left=#8 right=1 type=#3
    8 | IdentifierExpression name='n' referent=#5 type=#3
    9 | FunctionType name='(number)->number' parameterTypes=[#3] returnType=#3
-  10 | WhileStatement test=#11 body=[#14,#19,#27,#41]
+  10 | WhileStatement test=#11 body=[#14,#19,#27,#42]
   11 | BinaryExpression op='>' left=#12 right=3 type=#13
   12 | IdentifierExpression name='x' referent=#2 type=#3
   13 | Type name='boolean'
@@ -49,27 +49,30 @@ const expectedAst = String.raw`   1 | Program statements=[#2,#4,#10]
   24 | BinaryExpression op='**' left=2 right=#25 type=#3
   25 | Call callee=#26 args=[0] type=#3
   26 | IdentifierExpression name='next' referent=#4 type=#9
-  27 | IfStatement test=false consequent=[#28,#29,#34] alternative=#35
+  27 | IfStatement test=false consequent=[#28,#29,#35] alternative=#36
   28 | Variable name='hello' readOnly=true initializer=5 type=#3
-  29 | Function name='g' parameters=[] returnTypeName=null body=[#30,#32] returnType=null type=#33
+  29 | Function name='g' parameters=[] returnTypeName=null body=[#30,#32] returnType=#33 type=#34
   30 | PrintStatement argument=#31
   31 | IdentifierExpression name='hello' referent=#28 type=#3
   32 | ReturnStatement expression=null
-  33 | FunctionType name='()->void' parameterTypes=[] returnType=null
-  34 | BreakStatement
-  35 | IfStatement test=true consequent=[#36,#38] alternative=[#40]
-  36 | Call callee=#37 args=[99] type=#3
-  37 | IdentifierExpression name='next' referent=#4 type=#9
-  38 | Variable name='hello' readOnly=false initializer=#39 type=#13
-  39 | IdentifierExpression name='y' referent=#14 type=#13
-  40 | ContinueStatement
-  41 | PrintStatement argument=#42
-  42 | IdentifierExpression name='x' referent=#2 type=#3`
+  33 | Type name='void'
+  34 | FunctionType name='()->void' parameterTypes=[] returnType=#33
+  35 | BreakStatement
+  36 | IfStatement test=true consequent=[#37,#39] alternative=[#41]
+  37 | Call callee=#38 args=[99] type=#3
+  38 | IdentifierExpression name='next' referent=#4 type=#9
+  39 | Variable name='hello' readOnly=false initializer=#40 type=#13
+  40 | IdentifierExpression name='y' referent=#14 type=#13
+  41 | ContinueStatement
+  42 | PrintStatement argument=#43
+  43 | IdentifierExpression name='x' referent=#2 type=#3`
 
 const semanticChecks = [
   ["return in nested if", "function f() {if true {return}}"],
   ["break in nested if", "while false {if true {break}}"],
   ["continue in nested if", "while false {if true {continue}}"],
+  ["assigned functions", "function f() {}\nlet g = f\ng = f"],
+  ["call of assigned functions", "function f(x: number) {}\nlet g=f\ng(1)"],
 ]
 
 const semanticErrors = [
@@ -143,7 +146,7 @@ const semanticErrors = [
 describe("The analyzer", () => {
   for (const [scenario, source] of semanticChecks) {
     it(`recognizes ${scenario}`, () => {
-      assert(parse(source))
+      assert.ok(analyze(parse(source)))
     })
   }
   for (const [scenario, source, errorMessagePattern] of semanticErrors) {
