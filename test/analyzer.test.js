@@ -46,6 +46,11 @@ const expectedAst = String.raw`   1 | Program statements=[#2,#5]
   26 | PrintStatement argument=#27
   27 | IdentifierExpression name='x' referent=#2 type=#4`
 
+const semanticChecks = [
+  ["break in nested if", "while false {if true {break}}"],
+  ["continue in nested if", "while false {if true {continue}}"],
+]
+
 const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
   ["non declared ids", "let x = 1\nlet x = 1", /Identifier x already declared/],
@@ -75,6 +80,11 @@ const semanticErrors = [
 ]
 
 describe("The analyzer", () => {
+  for (const [scenario, source] of semanticChecks) {
+    it(`recognizes ${scenario}`, () => {
+      assert.ok(analyze(parse(source)))
+    })
+  }
   for (const [scenario, source, errorMessagePattern] of semanticErrors) {
     it(`throws on ${scenario}`, () => {
       assert.throws(() => analyze(parse(source)), errorMessagePattern)
