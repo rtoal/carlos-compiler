@@ -85,10 +85,10 @@ const syntaxChecks = [
   ["function with no params + return type", "function f(): number {}"],
   ["call in exp", "print 5 * f(x, y, 2 * y)"],
   ["call in statement", "let x = 1\nf(100)\nprint 1"],
-  ["array type for param", "function f(x: boolean[][][]) {}"],
-  ["array type returned", "function f(): number[][] {}"],
-  ["empty array literal", "print number[]()"],
-  ["nonempty array literal", "print number[](1, 2, 3)"],
+  ["array type for param", "function f(x: [[[boolean]]]) {}"],
+  ["array type returned", "function f(): [[number]] {}"],
+  ["empty array literal", "print [number]()"],
+  ["nonempty array literal", "print [number](1, 2, 3)"],
   ["subscript", "print a[100 - (3 * x)]"],
   ["subscript exp is writable", "a[2] = 50"],
   ["boolean literals", "let x = false || true"],
@@ -114,15 +114,15 @@ const syntaxErrors = [
   ["while as identifier", "let while = 3", /Line 1, col 5/],
   ["if as identifier", "let if = 8", /Line 1, col 5/],
   ["unbalanced brackets", "function f(): number[", /Line 1, col 21/],
-  ["array lit w/o type", "print [1,2]", /Line 1, col 7/],
-  ["empty subscript", "print a[]", /Line 1, col 10/],
+  ["fake array literal", "print [1,2]", /Line 1, col 8/],
+  ["empty subscript", "print a[]", /Line 1, col 9/],
   ["true is reserved", "true = 1", /Line 1, col 1/],
   ["false is reserved", "true = 1", /Line 1, col 1/],
 ]
 
 describe("The parser", () => {
   for (const [scenario, source] of syntaxChecks) {
-    it(`recognizes that ${scenario}`, () => {
+    it(`recognizes ${scenario}`, () => {
       assert(parse(source))
     })
   }

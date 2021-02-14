@@ -42,7 +42,7 @@ export class FunctionType extends Type {
   }
 }
 
-export class TypeDeclaration {
+export class ArrayType {
   constructor(baseTypeName) {
     this.baseType = baseTypeName
   }
@@ -143,6 +143,12 @@ export class UnaryExpression {
 export class SubscriptExpression {
   constructor(array, element) {
     Object.assign(this, { array, element })
+  }
+}
+
+export class ArrayLiteral {
+  constructor(arrayType, args) {
+    Object.assign(this, { arrayType, args })
   }
 }
 

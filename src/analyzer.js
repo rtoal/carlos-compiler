@@ -31,7 +31,6 @@ function checkSameTypes(e1, e2, op) {
 // Covariance for parameters and contravariance for return types
 function checkAssignable(targetType, sourceType) {
   function isAssignable(targetType, sourceType) {
-    console.log(`Checking ${targetType.name} vs ${sourceType.name}`)
     if (targetType.constructor === FunctionType) {
       return (
         sourceType.constructor === FunctionType &&
