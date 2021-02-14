@@ -24,44 +24,50 @@ const source = `let x = 1024
     print x   // TADA 🥑
   }`
 
-const expectedAst = `   1 | Program statements=[#2,#3,#8]
+const expectedAst = `   1 | Program statements=[#2,#3,#14]
    2 | Variable name='x' readOnly=false initializer=1024
-   3 | Function name='next' parameters=[#4] returnTypeName='number' body=[#5]
+   3 | Function name='next' parameters=[#4] returnTypeName=#5 body=[#6,#9,#12]
    4 | Parameter name='n' typeName='number'
-   5 | ReturnStatement expression=#6
-   6 | BinaryExpression op='+' left=#7 right=1
-   7 | IdentifierExpression name='n'
-   8 | WhileStatement test=#9 body=[#11,#16,#24,#37]
-   9 | BinaryExpression op='>' left=#10 right=3
-  10 | IdentifierExpression name='x'
-  11 | Variable name='y' readOnly=false initializer=#12
-  12 | AndExpression conjuncts=[false,#13]
-  13 | OrExpression disjuncts=[true,#14]
-  14 | BinaryExpression op='>=' left=2 right=#15
-  15 | IdentifierExpression name='x'
-  16 | Assignment target=#17 source=#18
-  17 | IdentifierExpression name='x'
-  18 | BinaryExpression op='/' left=#19 right=#21
-  19 | BinaryExpression op='+' left=0 right=#20
-  20 | IdentifierExpression name='x'
-  21 | BinaryExpression op='**' left=2 right=#22
-  22 | Call callee=#23 args=[0]
-  23 | IdentifierExpression name='next'
-  24 | IfStatement test=false consequent=[#25,#26,#30] alternative=#31
-  25 | Variable name='hello' readOnly=true initializer=5
-  26 | Function name='g' parameters=[] returnTypeName=null body=[#27,#29]
-  27 | PrintStatement argument=#28
-  28 | IdentifierExpression name='hello'
-  29 | ReturnStatement expression=null
-  30 | BreakStatement
-  31 | IfStatement test=true consequent=[#32,#34] alternative=[#36]
-  32 | Call callee=#33 args=[99]
-  33 | IdentifierExpression name='next'
-  34 | Variable name='hello' readOnly=false initializer=#35
-  35 | IdentifierExpression name='y'
-  36 | ContinueStatement
-  37 | PrintStatement argument=#38
-  38 | IdentifierExpression name='x'`
+   5 | ArrayType baseType='number'
+   6 | Variable name='a' readOnly=false initializer=#7
+   7 | ArrayLiteral arrayType=#8 args=[1,2,3]
+   8 | ArrayType baseType='number'
+   9 | Assignment target=#10 source=100
+  10 | SubscriptExpression array=#11 element=1
+  11 | IdentifierExpression name='a'
+  12 | ReturnStatement expression=#13
+  13 | IdentifierExpression name='a'
+  14 | WhileStatement test=#15 body=[#17,#22,#30,#43]
+  15 | BinaryExpression op='>' left=#16 right=3
+  16 | IdentifierExpression name='x'
+  17 | Variable name='y' readOnly=false initializer=#18
+  18 | AndExpression conjuncts=[false,#19]
+  19 | OrExpression disjuncts=[true,#20]
+  20 | BinaryExpression op='>=' left=2 right=#21
+  21 | IdentifierExpression name='x'
+  22 | Assignment target=#23 source=#24
+  23 | IdentifierExpression name='x'
+  24 | BinaryExpression op='/' left=#25 right=#27
+  25 | BinaryExpression op='+' left=0 right=#26
+  26 | IdentifierExpression name='x'
+  27 | BinaryExpression op='**' left=2 right=#28
+  28 | Call callee=#29 args=[0]
+  29 | IdentifierExpression name='next'
+  30 | IfStatement test=false consequent=[#31,#32,#36] alternative=#37
+  31 | Variable name='hello' readOnly=true initializer=5
+  32 | Function name='g' parameters=[] returnTypeName=null body=[#33,#35]
+  33 | PrintStatement argument=#34
+  34 | IdentifierExpression name='hello'
+  35 | ReturnStatement expression=null
+  36 | BreakStatement
+  37 | IfStatement test=true consequent=[#38,#40] alternative=[#42]
+  38 | Call callee=#39 args=[99]
+  39 | IdentifierExpression name='next'
+  40 | Variable name='hello' readOnly=false initializer=#41
+  41 | IdentifierExpression name='y'
+  42 | ContinueStatement
+  43 | PrintStatement argument=#44
+  44 | IdentifierExpression name='x'`
 
 const syntaxChecks = [
   ["all numeric literal forms", "print 8 * 89.123 * 1.3E5 * 1.3E+5 * 1.3E-5"],
