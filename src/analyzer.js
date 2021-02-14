@@ -140,7 +140,7 @@ class Context {
     e.type = Type.NUMBER
   }
   IdentifierExpression(e) {
-    // Find out which actual variable is being referred to
+    // Record what this identifier is referring to
     e.referent = this.lookup(e.name)
     e.type = e.referent.type
   }
