@@ -8,22 +8,22 @@ import * as ast from "./ast.js"
 
 const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Program   = Statement+
-  Statement = TypeDecl
-            | VarDecl
+  Statement = VarDecl
             | FunDecl
             | Var "=" Exp                     --assign
-            | Var "(" Args ")"                --call
+            | Exp6_call
             | print Exp                       --print
             | WhileStmt
             | IfStmt
             | break                           --break
             | continue                        --continue
             | return Exp?                     --return
-  TypeDecl  = type id "=" TypeId array
   VarDecl   = (let | const) id "=" Exp
-  FunDecl   = function id Params (":" TypeId)? Block
+  FunDecl   = function id Params (":" TypeExp)? Block
   Params    = "(" ListOf<Param, ","> ")"
-  Param     = id ":" TypeId
+  Param     = id ":" TypeExp
+  TypeExp   = "[" TypeExp "]"                 --array
+            | TypeId
   TypeId    = id
   WhileStmt = while Exp Block
   IfStmt    = if Exp Block (else (Block | IfStmt))?
@@ -40,19 +40,21 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Exp4      = Exp5 "**" Exp4                  --binary
             | Exp5
             | "-" Exp5                        --unary
-  Exp5      = Var
-            | true
+  Exp5      = Exp6
+            | Exp7
+  Exp6      = Exp6 "[" Exp "]"                --subscript
+            | Exp6 "(" Args ")"               --call
+            | id
+  Exp7      = true
             | false
             | num
+            | TypeExp_array "(" Args ")"      --arraylit
             | "(" Exp ")"                     --parens
-  Var       = id "(" Args ")" "[" Exp "]"     --call
-            | Var "[" Exp "]"                 --subscript
+  Var       = Exp6 "[" Exp "]"                --subscript
             | id
   Args      = ListOf<Exp, ",">
   relop     = "<=" | "<" | "==" | "!=" | ">=" | ">"
   num       = digit+ ("." digit+)? (("E" | "e") ("+" | "-")? digit+)?
-  type      = "type" ~alnum
-  array     = "array" ~alnum
   let       = "let" ~alnum
   const     = "const" ~alnum
   function  = "function" ~alnum
@@ -65,7 +67,7 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   return    = "return" ~alnum
   true      = "true" ~alnum
   false     = "false" ~alnum
-  keyword   = type | array | let | const | function | print | if | else 
+  keyword   = let | const | function | print | if | else 
             | while | return | break | continue | true | false
   id        = ~keyword letter alnum*
   space    += "//" (~"\n" any)* ("\n" | end)  --comment
@@ -74,9 +76,6 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
 const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Program(body) {
     return new ast.Program(body.ast())
-  },
-  TypeDecl(_type, id, _eq, baseTypeName, _array) {
-    return new ast.TypeDeclaration(id.sourceString, baseTypeName.sourceString)
   },
   VarDecl(kind, id, _eq, initializer) {
     const readOnly = kind.sourceString === "const"
@@ -97,14 +96,14 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Param(id, _colon, typeName) {
     return new ast.Parameter(id.sourceString, typeName.ast())
   },
+  TypeExp_array(_left, baseType, _right) {
+    return new ast.ArrayType(baseType.ast())
+  },
   TypeId(id) {
     return id.sourceString
   },
   Statement_assign(variable, _eq, expression) {
     return new ast.Assignment(variable.ast(), expression.ast())
-  },
-  Statement_call(callee, _left, args, _right) {
-    return new ast.Call(callee.ast(), args.ast())
   },
   Statement_print(_print, expression) {
     return new ast.PrintStatement(expression.ast())
@@ -157,14 +156,17 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Exp4_unary(op, operand) {
     return new ast.UnaryExpression(op.sourceString, operand.ast())
   },
-  Exp5_parens(_open, expression, _close) {
-    return expression.ast()
-  },
-  Var_call(callee, _left, args, _right) {
+  Exp6_call(callee, _left, args, _right) {
     return new ast.Call(callee.ast(), args.ast())
   },
-  Var_subscript(array, _left, subscript, _right) {
+  Exp6_subscript(array, _left, subscript, _right) {
     return new ast.SubscriptExpression(array.ast(), subscript.ast())
+  },
+  Exp6(id) {
+    return new ast.IdentifierExpression(id.sourceString)
+  },
+  Exp7_parens(_open, expression, _close) {
+    return expression.ast()
   },
   Var(id) {
     return new ast.IdentifierExpression(id.sourceString)
