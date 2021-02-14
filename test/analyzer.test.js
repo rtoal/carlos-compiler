@@ -73,6 +73,13 @@ const semanticChecks = [
   ["continue in nested if", "while false {if true {continue}}"],
   ["assigned functions", "function f() {}\nlet g = f\ng = f"],
   ["call of assigned functions", "function f(x: number) {}\nlet g=f\ng(1)"],
+  [
+    "call of assigned function in expression",
+    `function f(x: number, y: boolean): number {}
+    let g = f
+    print g(1, true)
+    f = g // Type check here`,
+  ],
 ]
 
 const semanticErrors = [

@@ -20,8 +20,8 @@ function checkBoolean(e, op) {
   check(e.type === Type.BOOLEAN, `'${op}' operand must be a boolean`)
 }
 
-function checkIsFunction(e) {
-  check(e.constructor == Function, "Call of non-function")
+function checkIsCallable(e) {
+  check(e.type.constructor === FunctionType, "Call of non-function")
 }
 
 function checkSameTypes(e1, e2, op) {
@@ -31,11 +31,12 @@ function checkSameTypes(e1, e2, op) {
 // Covariance for parameters and contravariance for return types
 function checkAssignable(targetType, sourceType) {
   function isAssignable(targetType, sourceType) {
+    console.log(`Checking ${targetType.name} vs ${sourceType.name}`)
     if (targetType.constructor === FunctionType) {
       return (
         sourceType.constructor === FunctionType &&
         isAssignable(sourceType.returnType, targetType.returnType) &&
-        sourceType.parameterTypes.length !== targetType.parameterTypes &&
+        sourceType.parameterTypes.length === targetType.parameterTypes.length &&
         sourceType.parameterTypes.every((t, i) =>
           isAssignable(targetType.parameterTypes[i], t)
         )
@@ -72,15 +73,18 @@ function checkReturnHasNoExpression(returnStatement) {
   check(!returnStatement.expression, "Cannot return a value here")
 }
 
-function checkArgumentCount(paramCount, argCount) {
+function checkArgumentCount(callee, args) {
+  const parameterCount = callee.type.parameterTypes.length
+  const argumentCount = args.length
   check(
-    paramCount === argCount,
-    `${paramCount} parameter(s) required, but ${argCount} argument(s) passed`
+    parameterCount === argumentCount,
+    `${parameterCount} parameter(s) required, ` +
+      `but ${argumentCount} argument(s) passed`
   )
 }
 
-function checkArgumentMatching(parameters, args) {
-  parameters.forEach((p, i) => checkAssignable(p.type, args[i].type))
+function checkArgumentMatching(callee, args) {
+  callee.type.parameterTypes.forEach((t, i) => checkAssignable(t, args[i].type))
 }
 
 class Context {
@@ -203,10 +207,10 @@ class Context {
   }
   Call(c) {
     this.analyze(c.callee)
-    checkIsFunction(c.callee.referent)
-    checkArgumentCount(c.callee.referent.parameters.length, c.args.length)
+    checkIsCallable(c.callee.referent)
+    checkArgumentCount(c.callee.referent, c.args)
     c.args.forEach(arg => this.analyze(arg))
-    checkArgumentMatching(c.callee.referent.parameters, c.args)
+    checkArgumentMatching(c.callee.referent, c.args)
     c.type = c.callee.referent.returnType
   }
   BreakStatement(s) {

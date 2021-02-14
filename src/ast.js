@@ -37,11 +37,7 @@ export class Type {
 // already been analyzed and will be in good shape.
 export class FunctionType extends Type {
   constructor(parameterTypes, returnType) {
-    super(
-      `(${parameterTypes.map(t => t.name).join(",")})->${
-        returnType?.name ?? "void"
-      }`
-    )
+    super(`(${parameterTypes.map(t => t.name).join(",")})->${returnType.name}`)
     Object.assign(this, { parameterTypes, returnType })
   }
 }
