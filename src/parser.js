@@ -13,8 +13,8 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
             | print Exp                           --print
             | WhileStmt
             | IfStmt
-            | break                           --break
-            | continue                        --continue
+            | break
+            | continue
   WhileStmt = while Exp Block
   IfStmt    = if Exp Block else (Block | IfStmt)  --long
             | if Exp Block                        --short
@@ -78,10 +78,10 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   IfStmt_short(_if, test, consequent) {
     return new ast.ShortIfStatement(test.ast(), consequent.ast())
   },
-  Statement_break(_break) {
+  break() {
     return new ast.BreakStatement()
   },
-  Statement_continue(_continue) {
+  continue() {
     return new ast.ContinueStatement()
   },
   Block(_open, body, _close) {
