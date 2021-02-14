@@ -8,33 +8,34 @@ import * as ast from "./ast.js"
 
 const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Program   = Statement+
-  Statement = (let | const) id "=" Exp        --vardec
-            | Var "=" Exp                     --assign
-            | print Exp                       --print
+  Statement = (let | const) id "=" Exp            --vardec
+            | Var "=" Exp                         --assign
+            | print Exp                           --print
             | WhileStmt
             | IfStmt
             | break                           --break
             | continue                        --continue
   WhileStmt = while Exp Block
-  IfStmt    = if Exp Block (else (Block | IfStmt))?
+  IfStmt    = if Exp Block else (Block | IfStmt)  --long
+            | if Exp Block                        --short
   Block     = "{" Statement* "}"
-  Exp       = Exp1 ("||" Exp1)+               --or
-            | Exp1 ("&&" Exp1)+               --and
+  Exp       = Exp1 ("||" Exp1)+                   --or
+            | Exp1 ("&&" Exp1)+                   --and
             | Exp1
-  Exp1      = Exp2 relop Exp2                 --binary
+  Exp1      = Exp2 relop Exp2                     --binary
             | Exp2
-  Exp2      = Exp2 ("+" | "-") Exp3           --binary
+  Exp2      = Exp2 ("+" | "-") Exp3               --binary
             | Exp3
-  Exp3      = Exp3 ("*"| "/") Exp4            --binary
+  Exp3      = Exp3 ("*"| "/") Exp4                --binary
             | Exp4
-  Exp4      = Exp5 "**" Exp4                  --binary
+  Exp4      = Exp5 "**" Exp4                      --binary
             | Exp5
-            | "-" Exp5                        --unary
+            | "-" Exp5                            --unary
   Exp5      = Var
             | true
             | false
             | num
-            | "(" Exp ")"                     --parens
+            | "(" Exp ")"                         --parens
   relop     = "<=" | "<" | "==" | "!=" | ">=" | ">"
   Var       = id
   num       = digit+ ("." digit+)? (("E" | "e") ("+" | "-")? digit+)?
@@ -51,7 +52,7 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   keyword   = let | const | print | if | while | else 
             | break | continue | true | false
   id        = ~keyword letter alnum*
-  space    += "//" (~"\n" any)* ("\n" | end)  --comment
+  space    += "//" (~"\n" any)* ("\n" | end)      --comment
 }`)
 
 const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
@@ -71,14 +72,11 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   WhileStmt(_while, test, body) {
     return new ast.WhileStatement(test.ast(), body.ast())
   },
-  IfStmt(_if, test, consequent, _elses, alternatives) {
-    let testTree = test.ast()
-    let consequentTree = consequent.ast()
-    let alternativesTree = alternatives.ast()
-    if (alternativesTree.length === 0) {
-      return new ast.ShortIfStatement(testTree, consequentTree)
-    }
-    return new ast.IfStatement(testTree, consequentTree, alternativesTree[0])
+  IfStmt_long(_if, test, consequent, _else, alternative) {
+    return new ast.IfStatement(test.ast(), consequent.ast(), alternative.ast())
+  },
+  IfStmt_short(_if, test, consequent) {
+    return new ast.ShortIfStatement(test.ast(), consequent.ast())
   },
   Statement_break(_break) {
     return new ast.BreakStatement()
