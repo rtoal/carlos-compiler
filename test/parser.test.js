@@ -6,7 +6,7 @@ const source = `let count = 101.3E-5 - 0
   print(1 * count)   // TADA 🥑`
 
 const expectedAst = `   1 | Program statements=[#2,#4]
-   2 | Variable name='count' initializer=#3
+   2 | VariableDeclaration name='count' initializer=#3
    3 | BinaryExpression op='-' left=0.001013 right=0
    4 | PrintStatement argument=#5
    5 | BinaryExpression op='*' left=1 right=#6
