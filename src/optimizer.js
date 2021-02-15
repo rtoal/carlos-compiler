@@ -30,7 +30,7 @@ const optimizers = {
   Assignment(s) {
     s.source = optimize(s.source)
     s.target = optimize(s.target)
-    if (s.target.constructor == Variable) {
+    if (s.target.constructor === Variable) {
       if (s.source === s.target) {
         return null
       }

@@ -32,8 +32,8 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Program(body) {
     return new ast.Program(body.ast())
   },
-  Statement_vardec(_let, id, _eq, expression) {
-    return new ast.VariableDeclaration(id.sourceString, expression.ast())
+  Statement_vardec(_let, id, _eq, initializer) {
+    return new ast.VariableDeclaration(id.sourceString, initializer.ast())
   },
   Statement_assign(variable, _eq, expression) {
     return new ast.Assignment(variable.ast(), expression.ast())
