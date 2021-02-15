@@ -7,18 +7,19 @@ const source = `let count = 101.3E-5 - 0
   print(1 ** count)   // TADA 🥑
   const x = 1 < 5 || false == true`
 
-const expectedAst = String.raw`   1 | Program statements=[#2,#5,#8]
-   2 | Variable name='count' readOnly=false initializer=#3 type=#4
+const expectedAst = String.raw`   1 | Program statements=[#2,#6,#8]
+   2 | VariableDeclaration name='count' readOnly=false initializer=#3 variable=#5
    3 | BinaryExpression op='-' left=0.001013 right=0 type=#4
    4 | Type name='number'
-   5 | PrintStatement argument=#6
-   6 | BinaryExpression op='**' left=1 right=#7 type=#4
-   7 | IdentifierExpression name='count' referent=#2 type=#4
-   8 | Variable name='x' readOnly=true initializer=#9 type=#11
+   5 | Variable name='count' readOnly=false type=#4
+   6 | PrintStatement argument=#7
+   7 | BinaryExpression op='**' left=1 right=#5 type=#4
+   8 | VariableDeclaration name='x' readOnly=true initializer=#9 variable=#13
    9 | OrExpression disjuncts=[#10,#12] type=#11
   10 | BinaryExpression op='<' left=1 right=5 type=#11
   11 | Type name='boolean'
-  12 | BinaryExpression op='==' left=false right=true type=#11`
+  12 | BinaryExpression op='==' left=false right=true type=#11
+  13 | Variable name='x' readOnly=true type=#11`
 
 const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
