@@ -47,6 +47,7 @@ class Context {
     if (s.target.readOnly) {
       throw new Error(`Cannot assign to constant ${s.target.name}`)
     }
+    return s
   }
   PrintStatement(s) {
     s.argument = this.analyze(s.argument)
