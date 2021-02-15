@@ -6,12 +6,12 @@ import analyze from "../src/analyzer.js"
 const source = `let count = 101.3 - 0
   print(1 * count)   // TADA 🥑`
 
-const expectedAst = String.raw`   1 | Program statements=[#2,#4]
-   2 | Variable name='count' initializer=#3
+const expectedAst = String.raw`   1 | Program statements=[#2,#5]
+   2 | VariableDeclaration name='count' initializer=#3 variable=#4
    3 | BinaryExpression op='-' left=101.3 right=0
-   4 | PrintStatement argument=#5
-   5 | BinaryExpression op='*' left=1 right=#6
-   6 | IdentifierExpression name='count' referent=#2`
+   4 | Variable name='count'
+   5 | PrintStatement argument=#6
+   6 | BinaryExpression op='*' left=1 right=#4`
 
 const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
