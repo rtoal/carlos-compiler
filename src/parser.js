@@ -60,8 +60,8 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
     return new ast.Program(body.ast())
   },
   Statement_vardec(kind, id, _eq, initializer) {
-    const readOnly = kind.sourceString === "const"
-    return new ast.Variable(id.sourceString, readOnly, initializer.ast())
+    const [name, readOnly] = [id.sourceString, kind.sourceString == "const"]
+    return new ast.VariableDeclaration(name, readOnly, initializer.ast())
   },
   Statement_assign(variable, _eq, expression) {
     return new ast.Assignment(variable.ast(), expression.ast())

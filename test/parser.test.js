@@ -18,25 +18,25 @@ const source = `let x = 1024 - 0
   }`
 
 const expectedAst = `   1 | Program statements=[#2,#4]
-   2 | Variable name='x' readOnly=false initializer=#3
+   2 | VariableDeclaration name='x' readOnly=false initializer=#3
    3 | BinaryExpression op='-' left=1024 right=0
    4 | WhileStatement test=#5 body=[#7,#12,#24]
    5 | BinaryExpression op='>' left=#6 right=3
    6 | IdentifierExpression name='x'
-   7 | Variable name='y' readOnly=false initializer=#8
+   7 | VariableDeclaration name='y' readOnly=false initializer=#8
    8 | AndExpression conjuncts=[false,#9]
    9 | OrExpression disjuncts=[true,#10]
   10 | BinaryExpression op='>=' left=2 right=#11
   11 | IdentifierExpression name='x'
   12 | IfStatement test=false consequent=[#13,#18] alternative=#19
-  13 | Variable name='hello' readOnly=true initializer=#14
+  13 | VariableDeclaration name='hello' readOnly=true initializer=#14
   14 | BinaryExpression op='/' left=#15 right=#17
   15 | BinaryExpression op='+' left=0 right=#16
   16 | IdentifierExpression name='x'
   17 | BinaryExpression op='**' left=2 right=1
   18 | BreakStatement
   19 | IfStatement test=true consequent=[#20] alternative=[#21,#23]
-  20 | Variable name='hello' readOnly=false initializer=false
+  20 | VariableDeclaration name='hello' readOnly=false initializer=false
   21 | PrintStatement argument=#22
   22 | IdentifierExpression name='y'
   23 | ContinueStatement

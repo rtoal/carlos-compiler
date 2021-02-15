@@ -2,9 +2,8 @@ import assert from "assert"
 import optimize from "../src/optimizer.js"
 import * as ast from "../src/ast.js"
 
-const x = new ast.IdentifierExpression("x", 0)
+const x = new ast.Variable("x")
 const print1 = new ast.PrintStatement(1)
-const print2 = new ast.PrintStatement(2)
 
 const tests = [
   ["folds +", new ast.BinaryExpression("+", 5, 8), 13],

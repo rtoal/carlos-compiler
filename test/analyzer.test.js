@@ -18,33 +18,32 @@ const source = `let x = 1024 - 0
     print x   // TADA 🥑
   }`
 
-const expectedAst = String.raw`   1 | Program statements=[#2,#5]
-   2 | Variable name='x' readOnly=false initializer=#3 type=#4
+const expectedAst = String.raw`   1 | Program statements=[#2,#6]
+   2 | VariableDeclaration name='x' readOnly=false initializer=#3 variable=#5
    3 | BinaryExpression op='-' left=1024 right=0 type=#4
    4 | Type name='number'
-   5 | WhileStatement test=#6 body=[#9,#14,#26]
-   6 | BinaryExpression op='>' left=#7 right=3 type=#8
-   7 | IdentifierExpression name='x' referent=#2 type=#4
+   5 | Variable name='x' readOnly=false type=#4
+   6 | WhileStatement test=#7 body=[#9,#14,#26]
+   7 | BinaryExpression op='>' left=#5 right=3 type=#8
    8 | Type name='boolean'
-   9 | Variable name='y' readOnly=false initializer=#10 type=#8
+   9 | VariableDeclaration name='y' readOnly=false initializer=#10 variable=#13
   10 | AndExpression conjuncts=[false,#11] type=#8
   11 | OrExpression disjuncts=[true,#12] type=#8
-  12 | BinaryExpression op='>=' left=2 right=#13 type=#8
-  13 | IdentifierExpression name='x' referent=#2 type=#4
+  12 | BinaryExpression op='>=' left=2 right=#5 type=#8
+  13 | Variable name='y' readOnly=false type=#8
   14 | IfStatement test=false consequent=[#15,#20] alternative=#21
-  15 | Variable name='hello' readOnly=true initializer=#16 type=#4
-  16 | BinaryExpression op='/' left=#17 right=#19 type=#4
-  17 | BinaryExpression op='+' left=0 right=#18 type=#4
-  18 | IdentifierExpression name='x' referent=#2 type=#4
-  19 | BinaryExpression op='**' left=2 right=1 type=#4
+  15 | VariableDeclaration name='hello' readOnly=true initializer=#16 variable=#19
+  16 | BinaryExpression op='/' left=#17 right=#18 type=#4
+  17 | BinaryExpression op='+' left=0 right=#5 type=#4
+  18 | BinaryExpression op='**' left=2 right=1 type=#4
+  19 | Variable name='hello' readOnly=true type=#4
   20 | BreakStatement
-  21 | IfStatement test=true consequent=[#22] alternative=[#23,#25]
-  22 | Variable name='hello' readOnly=false initializer=false type=#8
-  23 | PrintStatement argument=#24
-  24 | IdentifierExpression name='y' referent=#9 type=#8
+  21 | IfStatement test=true consequent=[#22] alternative=[#24,#25]
+  22 | VariableDeclaration name='hello' readOnly=false initializer=false variable=#23
+  23 | Variable name='hello' readOnly=false type=#8
+  24 | PrintStatement argument=#13
   25 | ContinueStatement
-  26 | PrintStatement argument=#27
-  27 | IdentifierExpression name='x' referent=#2 type=#4`
+  26 | PrintStatement argument=#5`
 
 const semanticChecks = [
   ["break in nested if", "while false {if true {break}}"],
