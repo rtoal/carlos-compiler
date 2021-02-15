@@ -26,12 +26,12 @@ const source = `let x = 1024
 const expectedAst = String.raw`   1 | Program statements=[#2,#4,#10]
    2 | Variable name='x' readOnly=false initializer=1024 type=#3
    3 | Type name='number'
-   4 | Function name='next' parameters=[#5] returnTypeName='number' body=[#6] returnType=#3 type=#9
-   5 | Parameter name='n' typeName='number' type=#3
+   4 | Function name='next' parameters=[#5] returnType=#3 body=[#6] type=#9
+   5 | Parameter name='n' type=#3
    6 | ReturnStatement expression=#7
    7 | BinaryExpression op='+' left=#8 right=1 type=#3
    8 | IdentifierExpression name='n' referent=#5 type=#3
-   9 | FunctionType name='(number)->number' parameterTypes=[#3] returnType=#3
+   9 | FunctionType parameterTypes=[#3] returnType=#3
   10 | WhileStatement test=#11 body=[#14,#19,#27,#42]
   11 | BinaryExpression op='>' left=#12 right=3 type=#13
   12 | IdentifierExpression name='x' referent=#2 type=#3
@@ -51,12 +51,12 @@ const expectedAst = String.raw`   1 | Program statements=[#2,#4,#10]
   26 | IdentifierExpression name='next' referent=#4 type=#9
   27 | IfStatement test=false consequent=[#28,#29,#35] alternative=#36
   28 | Variable name='hello' readOnly=true initializer=5 type=#3
-  29 | Function name='g' parameters=[] returnTypeName=null body=[#30,#32] returnType=#33 type=#34
-  30 | PrintStatement argument=#31
-  31 | IdentifierExpression name='hello' referent=#28 type=#3
-  32 | ReturnStatement expression=null
-  33 | Type name='void'
-  34 | FunctionType name='()->void' parameterTypes=[] returnType=#33
+  29 | Function name='g' parameters=[] returnType=#30 body=[#31,#33] type=#34
+  30 | Type name='void'
+  31 | PrintStatement argument=#32
+  32 | IdentifierExpression name='hello' referent=#28 type=#3
+  33 | ReturnStatement expression=null
+  34 | FunctionType parameterTypes=[] returnType=#30
   35 | BreakStatement
   36 | IfStatement test=true consequent=[#37,#39] alternative=[#41]
   37 | Call callee=#38 args=[99] type=#3
