@@ -27,8 +27,11 @@ export default function generate(program) {
     Program(p) {
       gen(p.statements)
     },
+    VariableDeclaration(d) {
+      output.push(`let ${gen(d.variable)} = ${gen(d.initializer)};`)
+    },
     Variable(v) {
-      output.push(`let ${targetName(v)} = ${gen(v.initializer)};`)
+      return targetName(v)
     },
     Function(f) {
       output.push(
@@ -98,9 +101,6 @@ export default function generate(program) {
     },
     UnaryExpression(e) {
       return `${e.op}(${gen(e.operand)})`
-    },
-    IdentifierExpression(e) {
-      return targetName(e.referent)
     },
     Number(e) {
       return e

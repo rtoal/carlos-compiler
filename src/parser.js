@@ -76,8 +76,8 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
     return new ast.Program(body.ast())
   },
   VarDecl(kind, id, _eq, initializer) {
-    const readOnly = kind.sourceString === "const"
-    return new ast.Variable(id.sourceString, readOnly, initializer.ast())
+    const [name, readOnly] = [id.sourceString, kind.sourceString == "const"]
+    return new ast.VariableDeclaration(name, readOnly, initializer.ast())
   },
   FunDecl(_fun, id, parameters, _colons, returnType, body) {
     const returnTypeTree = returnType.ast()

@@ -23,7 +23,7 @@ const source = `let x = 1024
   }`
 
 const expectedAst = `   1 | Program statements=[#2,#3,#10]
-   2 | Variable name='x' readOnly=false initializer=1024
+   2 | VariableDeclaration name='x' readOnly=false initializer=1024
    3 | Function name='next' parameters=[#4] returnType=#6 body=[#7]
    4 | Parameter name='n' type=#5
    5 | NamedType name='number'
@@ -34,7 +34,7 @@ const expectedAst = `   1 | Program statements=[#2,#3,#10]
   10 | WhileStatement test=#11 body=[#13,#18,#26,#40]
   11 | BinaryExpression op='>' left=#12 right=3
   12 | IdentifierExpression name='x'
-  13 | Variable name='y' readOnly=false initializer=#14
+  13 | VariableDeclaration name='y' readOnly=false initializer=#14
   14 | AndExpression conjuncts=[false,#15]
   15 | OrExpression disjuncts=[true,#16]
   16 | BinaryExpression op='>=' left=2 right=#17
@@ -48,7 +48,7 @@ const expectedAst = `   1 | Program statements=[#2,#3,#10]
   24 | Call callee=#25 args=[0]
   25 | IdentifierExpression name='next'
   26 | IfStatement test=false consequent=[#27,#28,#33] alternative=#34
-  27 | Variable name='hello' readOnly=true initializer=5
+  27 | VariableDeclaration name='hello' readOnly=true initializer=5
   28 | Function name='g' parameters=[] returnType=#29 body=[#30,#32]
   29 | NamedType name='void'
   30 | PrintStatement argument=#31
@@ -58,7 +58,7 @@ const expectedAst = `   1 | Program statements=[#2,#3,#10]
   34 | IfStatement test=true consequent=[#35,#37] alternative=[#39]
   35 | Call callee=#36 args=[99]
   36 | IdentifierExpression name='next'
-  37 | Variable name='hello' readOnly=false initializer=#38
+  37 | VariableDeclaration name='hello' readOnly=false initializer=#38
   38 | IdentifierExpression name='y'
   39 | ContinueStatement
   40 | PrintStatement argument=#41

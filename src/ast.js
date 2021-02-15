@@ -48,9 +48,15 @@ export class FunctionType {
   }
 }
 
-export class Variable {
+export class VariableDeclaration {
   constructor(name, readOnly, initializer) {
     Object.assign(this, { name, readOnly, initializer })
+  }
+}
+
+export class Variable {
+  constructor(name, readOnly) {
+    Object.assign(this, { name, readOnly })
   }
 }
 
