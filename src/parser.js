@@ -79,26 +79,28 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
     const readOnly = kind.sourceString === "const"
     return new ast.Variable(id.sourceString, readOnly, initializer.ast())
   },
-  FunDecl(_fun, id, parameters, _colons, returnTypeExp, body) {
-    const returnTypeExpTree = returnTypeExp.ast()
+  FunDecl(_fun, id, parameters, _colons, returnType, body) {
+    const returnTypeTree = returnType.ast()
     return new ast.Function(
       id.sourceString,
       parameters.ast(),
-      returnTypeExpTree.length === 0 ? null : returnTypeExpTree[0],
+      returnTypeTree.length === 0
+        ? new ast.NamedType("void")
+        : returnTypeTree[0],
       body.ast()
     )
   },
   Params(_left, bindings, _right) {
     return bindings.asIteration().ast()
   },
-  Param(id, _colon, typeExp) {
-    return new ast.Parameter(id.sourceString, typeExp.ast())
+  Param(id, _colon, type) {
+    return new ast.Parameter(id.sourceString, type.ast())
   },
   TypeExp_function(inputType, _arrow, outputType) {
-    return new ast.FunctionTypeExpression(inputType.ast(), outputType.ast())
+    return new ast.FunctionType(inputType.ast(), outputType.ast())
   },
   TypeExp_named(id) {
-    return id.sourceString
+    return new ast.NamedType(id.sourceString)
   },
   TypeExps(_left, memberTypeList, _right) {
     return memberTypeList.asIteration().ast()
@@ -157,14 +159,14 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   Exp6_call(callee, _left, args, _right) {
     return new ast.Call(callee.ast(), args.ast())
   },
+  Exp6_id(id) {
+    return new ast.IdentifierExpression(id.sourceString)
+  },
   Exp7_parens(_open, expression, _close) {
     return expression.ast()
   },
   Args(expressions) {
     return expressions.asIteration().ast()
-  },
-  Exp6_id(id) {
-    return new ast.IdentifierExpression(id.sourceString)
   },
   true(_) {
     return true
