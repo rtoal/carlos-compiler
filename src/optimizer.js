@@ -36,6 +36,9 @@ const optimizers = {
     f.body = optimize(f.body)
     return f
   },
+  Parameter(p) {
+    return p
+  },
   Assignment(s) {
     s.source = optimize(s.source)
     s.target = optimize(s.target)

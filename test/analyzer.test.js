@@ -23,38 +23,43 @@ const source = `let x = 1024
     print x   // TADA 🥑
   }`
 
-const expectedAst = String.raw`   1 | Program statements=[#2,undefined,#5]
+const expectedAst = String.raw`   1 | Program statements=[#2,#5,#10]
    2 | VariableDeclaration name='x' readOnly=false initializer=1024 variable=#3
    3 | Variable name='x' readOnly=false type=#4
    4 | Type name='number'
-   5 | WhileStatement test=#6 body=[#8,#13,#23,#32]
-   6 | BinaryExpression op='>' left=#3 right=3 type=#7
-   7 | Type name='boolean'
-   8 | VariableDeclaration name='y' readOnly=false initializer=#9 variable=#12
-   9 | AndExpression conjuncts=[false,#10] type=#7
-  10 | OrExpression disjuncts=[true,#11] type=#7
-  11 | BinaryExpression op='>=' left=2 right=#3 type=#7
-  12 | Variable name='y' readOnly=false type=#7
-  13 | Assignment target=#3 source=#14
-  14 | BinaryExpression op='/' left=#15 right=#16 type=#4
-  15 | BinaryExpression op='+' left=0 right=#3 type=#4
-  16 | BinaryExpression op='**' left=2 right=#17 type=#4
-  17 | Call callee=#18 args=[0] type=#4
-  18 | Function name='next' parameters=[#19] returnType=#4 body=[#20] type=#22
-  19 | Parameter name='n' type=#4
-  20 | ReturnStatement expression=#21
-  21 | BinaryExpression op='+' left=#19 right=1 type=#4
-  22 | FunctionType parameterTypes=[#4] returnType=#4
-  23 | IfStatement test=false consequent=[#24,undefined,#26] alternative=#27
+   5 | Function name='next' parameters=[#6] returnType=#4 body=[#7] type=#9
+   6 | Parameter name='n' type=#4
+   7 | ReturnStatement expression=#8
+   8 | BinaryExpression op='+' left=#6 right=1 type=#4
+   9 | FunctionType parameterTypes=[#4] returnType=#4
+  10 | WhileStatement test=#11 body=[#13,#18,#23,#37]
+  11 | BinaryExpression op='>' left=#3 right=3 type=#12
+  12 | Type name='boolean'
+  13 | VariableDeclaration name='y' readOnly=false initializer=#14 variable=#17
+  14 | AndExpression conjuncts=[false,#15] type=#12
+  15 | OrExpression disjuncts=[true,#16] type=#12
+  16 | BinaryExpression op='>=' left=2 right=#3 type=#12
+  17 | Variable name='y' readOnly=false type=#12
+  18 | Assignment target=#3 source=#19
+  19 | BinaryExpression op='/' left=#20 right=#21 type=#4
+  20 | BinaryExpression op='+' left=0 right=#3 type=#4
+  21 | BinaryExpression op='**' left=2 right=#22 type=#4
+  22 | Call callee=#5 args=[0] type=#4
+  23 | IfStatement test=false consequent=[#24,#26,#31] alternative=#32
   24 | VariableDeclaration name='hello' readOnly=true initializer=5 variable=#25
   25 | Variable name='hello' readOnly=true type=#4
-  26 | BreakStatement
-  27 | IfStatement test=true consequent=[#28,#29] alternative=[#31]
-  28 | Call callee=#18 args=[99] type=#4
-  29 | VariableDeclaration name='hello' readOnly=false initializer=#12 variable=#30
-  30 | Variable name='hello' readOnly=false type=#7
-  31 | ContinueStatement
-  32 | PrintStatement argument=#3`
+  26 | Function name='g' parameters=[] returnType=#27 body=[#28,#29] type=#30
+  27 | Type name='void'
+  28 | PrintStatement argument=#25
+  29 | ReturnStatement expression=null
+  30 | FunctionType parameterTypes=[] returnType=#27
+  31 | BreakStatement
+  32 | IfStatement test=true consequent=[#33,#34] alternative=[#36]
+  33 | Call callee=#5 args=[99] type=#4
+  34 | VariableDeclaration name='hello' readOnly=false initializer=#17 variable=#35
+  35 | Variable name='hello' readOnly=false type=#12
+  36 | ContinueStatement
+  37 | PrintStatement argument=#3`
 
 const semanticChecks = [
   ["return in nested if", "function f() {if true {return}}"],

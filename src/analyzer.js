@@ -148,10 +148,11 @@ class Context {
     // When entering a function body, we must reset the inLoop setting,
     // because it is possible to declare a function inside a loop!
     const childContext = this.newChild({ inLoop: false, forFunction: f })
-    f.parameters.forEach(p => childContext.analyze(p))
+    f.parameters = childContext.analyze(f.parameters)
     const parameterTypes = f.parameters.map(p => p.type)
     f.type = new FunctionType(parameterTypes, f.returnType)
     childContext.analyze(f.body)
+    return f
   }
   NamedType(t) {
     t = this.lookup(t.name)
@@ -166,6 +167,7 @@ class Context {
   Parameter(p) {
     p.type = this.analyze(p.type)
     this.add(p.name, p)
+    return p
   }
   Assignment(s) {
     s.source = this.analyze(s.source)
@@ -218,7 +220,7 @@ class Context {
     c.callee = this.analyze(c.callee)
     checkIsCallable(c.callee)
     checkArgumentCount(c.callee, c.args)
-    c.args.forEach(arg => this.analyze(arg))
+    c.args = this.analyze(c.args)
     checkArgumentMatching(c.callee, c.args)
     c.type = c.callee.returnType
     return c
