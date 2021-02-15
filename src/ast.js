@@ -31,14 +31,20 @@ export class Type {
   static TYPE = new Type("type")
 }
 
-// A function type node can only be created in the Semantic Analyzer, never
-// from syntax processing. Thus we can take advantage of the fact that when
-// we are creating them, the parameter types and return types will have
-// already been analyzed and will be in good shape.
-export class FunctionType extends Type {
+export class NamedType {
+  constructor(name) {
+    this.name = name
+  }
+}
+
+export class FunctionType {
   constructor(parameterTypes, returnType) {
-    super(`(${parameterTypes.map(t => t.name).join(",")})->${returnType.name}`)
     Object.assign(this, { parameterTypes, returnType })
+  }
+  get name() {
+    return `(${this.parameterTypes.map(t => t.name).join(",")})->${
+      this.returnType.name
+    }`
   }
 }
 
@@ -55,14 +61,14 @@ export class Variable {
 }
 
 export class Function {
-  constructor(name, parameters, returnTypeName, body) {
-    Object.assign(this, { name, parameters, returnTypeName, body })
+  constructor(name, parameters, returnType, body) {
+    Object.assign(this, { name, parameters, returnType, body })
   }
 }
 
 export class Parameter {
-  constructor(name, typeName) {
-    Object.assign(this, { name, typeName })
+  constructor(name, type) {
+    Object.assign(this, { name, type })
   }
 }
 
@@ -162,32 +168,29 @@ function prettied(node) {
   // Return a compact and pretty string representation of the node graph,
   // taking care of cycles. Written here from scratch because the built-in
   // inspect function, while nice, isn't nice enough.
-  const seen = new Map()
+  const tags = new Map()
 
-  function setIds(node) {
-    if (seen.has(node) || typeof node !== "object" || node === null) return
-    seen.set(node, seen.size + 1)
+  function tag(node) {
+    if (tags.has(node) || typeof node !== "object" || node === null) return
+    tags.set(node, tags.size + 1)
     for (const child of Object.values(node)) {
-      if (Array.isArray(child)) child.forEach(setIds)
-      else setIds(child)
+      Array.isArray(child) ? child.forEach(tag) : tag(child)
     }
   }
 
   function* lines() {
     function view(e) {
-      if (seen.has(e)) return `#${seen.get(e)}`
+      if (tags.has(e)) return `#${tags.get(e)}`
       if (Array.isArray(e)) return `[${e.map(view)}]`
       return util.inspect(e)
     }
-    for (let [node, id] of [...seen.entries()].sort((a, b) => a[1] - b[1])) {
+    for (let [node, id] of [...tags.entries()].sort((a, b) => a[1] - b[1])) {
       let [type, props] = [node.constructor.name, ""]
-      for (const [prop, child] of Object.entries(node)) {
-        props += ` ${prop}=${view(child)}`
-      }
+      Object.entries(node).forEach(([k, v]) => (props += ` ${k}=${view(v)}`))
       yield `${String(id).padStart(4, " ")} | ${type}${props}`
     }
   }
 
-  setIds(node)
+  tag(node)
   return [...lines()].join("\n")
 }

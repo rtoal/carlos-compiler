@@ -2,8 +2,6 @@
 //
 // Analyzes the AST by looking for semantic errors and resolving references.
 
-import { config } from "process"
-import util from "util"
 import { Type, Function, FunctionType } from "./ast.js"
 
 function check(condition, errorMessage) {
@@ -22,6 +20,10 @@ function checkBoolean(e, op) {
 
 function checkIsCallable(e) {
   check(e.type.constructor === FunctionType, "Call of non-function")
+}
+
+function checkIsType(t) {
+  check([Type, FunctionType].includes(t.constructor), "Type expected")
 }
 
 function checkSameTypes(e1, e2, op) {
@@ -125,17 +127,8 @@ class Context {
     // except that certain fields can be overridden
     return new Context(this, configuration)
   }
-  static get initial() {
-    // The initial context for a compilation holds all the predefined
-    // identifiers. In our case, so far, the only predefined identifiers
-    // are the *types* number and boolean.
-    const context = new Context()
-    context.add("number", Type.NUMBER)
-    context.add("boolean", Type.BOOLEAN)
-    return context
-  }
   analyze(node) {
-    this[node.constructor.name](node)
+    return this[node.constructor.name](node)
   }
   Program(p) {
     this.analyze(p.statements)
@@ -146,20 +139,29 @@ class Context {
     this.add(v.name, v)
   }
   Function(f) {
-    f.returnType = f.returnTypeName ? this.lookup(f.returnTypeName) : Type.VOID
+    f.returnType = this.analyze(f.returnType)
     this.add(f.name, f)
     // When entering a function body, we must reset the inLoop setting,
     // because it is possible to declare a function inside a loop!
     const childContext = this.newChild({ inLoop: false, forFunction: f })
     f.parameters.forEach(p => childContext.analyze(p))
-    f.type = new FunctionType(
-      f.parameters.map(p => p.type),
-      f.returnType
-    )
+    const parameterTypes = f.parameters.map(p => p.type)
+    f.type = new FunctionType(parameterTypes, f.returnType)
     childContext.analyze(f.body)
   }
+  NamedType(t) {
+    t.referent = this.lookup(t.name)
+    checkIsType(t.referent)
+    // Types in the AST always get replaced with their analyzed forms
+    return t.referent
+  }
+  FunctionType(t) {
+    t.parameterTypes = t.parameterTypes.map(p => this.analyze(p))
+    t.returnType = this.analyze(t.returnType)
+    return t
+  }
   Parameter(p) {
-    p.type = this.lookup(p.typeName)
+    p.type = this.analyze(p.type)
     this.add(p.name, p)
   }
   Assignment(s) {
@@ -254,7 +256,7 @@ class Context {
     e.type = Type.NUMBER
   }
   IdentifierExpression(e) {
-    // Find out which actual variable is being referred to
+    // Record what this identifier is referring to
     e.referent = this.lookup(e.name)
     e.type = e.referent.type
   }
@@ -273,6 +275,10 @@ export default function analyze(node) {
   Number.prototype.type = Type.NUMBER
   Boolean.prototype.type = Type.BOOLEAN
   Type.prototype.type = Type.TYPE
-  Context.initial.analyze(node)
+  const initialContext = new Context()
+  initialContext.add("number", Type.NUMBER)
+  initialContext.add("boolean", Type.BOOLEAN)
+  initialContext.add("void", Type.VOID)
+  initialContext.analyze(node)
   return node
 }

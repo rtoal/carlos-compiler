@@ -10,46 +10,48 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Program   = Statement+
   Statement = VarDecl
             | FunDecl
-            | Var "=" Exp                     --assign
+            | Var "=" Exp                         --assign
             | Exp6_call
-            | print Exp                       --print
+            | print Exp                           --print
             | WhileStmt
             | IfStmt
-            | break                           --break
-            | continue                        --continue
-            | return Exp?                     --return
+            | break
+            | continue
+            | return Exp?                         --return
   VarDecl   = (let | const) id "=" Exp
   FunDecl   = function id Params (":" TypeExp)? Block
   Params    = "(" ListOf<Param, ","> ")"
   Param     = id ":" TypeExp
-  TypeExp   = "[" TypeExp "]"                 --array
-            | TypeId
-  TypeId    = id
+  TypeExp   = "[" TypeExp "]"                     --array
+            | TypeExps "->" TypeExp               --function
+            | id                                  --named
+  TypeExps  = "(" ListOf<TypeExp, ","> ")"
   WhileStmt = while Exp Block
-  IfStmt    = if Exp Block (else (Block | IfStmt))?
+  IfStmt    = if Exp Block else (Block | IfStmt)  --long
+            | if Exp Block                        --short
   Block     = "{" Statement* "}"
-  Exp       = Exp1 ("||" Exp1)+               --or
-            | Exp1 ("&&" Exp1)+               --and
+  Exp       = Exp1 ("||" Exp1)+                   --or
+            | Exp1 ("&&" Exp1)+                   --and
             | Exp1
-  Exp1      = Exp2 relop Exp2                 --binary
+  Exp1      = Exp2 relop Exp2                     --binary
             | Exp2
-  Exp2      = Exp2 ("+" | "-") Exp3           --binary
+  Exp2      = Exp2 ("+" | "-") Exp3               --binary
             | Exp3
-  Exp3      = Exp3 ("*"| "/") Exp4            --binary
+  Exp3      = Exp3 ("*"| "/") Exp4                --binary
             | Exp4
-  Exp4      = Exp5 "**" Exp4                  --binary
+  Exp4      = Exp5 "**" Exp4                      --binary
             | Exp5
-            | "-" Exp5                        --unary
+            | "-" Exp5                            --unary
   Exp5      = Exp6
             | Exp7
-  Exp6      = Exp6 "[" Exp "]"                --subscript
-            | Exp6 "(" Args ")"               --call
-            | id                              --id
+  Exp6      = Exp6 "(" Args ")"                   --call
+            | Exp6 "[" Exp "]"                    --subscript
+            | id                                  --id
   Exp7      = true
             | false
             | num
-            | TypeExp_array "(" Args ")"      --arraylit
-            | "(" Exp ")"                     --parens
+            | TypeExp_array "(" Args ")"          --arraylit
+            | "(" Exp ")"                         --parens
   Var       = Exp6_subscript
             | Exp6_id
   Args      = ListOf<Exp, ",">
@@ -70,7 +72,7 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   keyword   = let | const | function | print | if | else 
             | while | return | break | continue | true | false
   id        = ~keyword letter alnum*
-  space    += "//" (~"\n" any)* ("\n" | end)  --comment
+  space     += "//" (~"\n" any)* ("\n" | end)   --comment
 }`)
 
 const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
@@ -81,26 +83,34 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
     const readOnly = kind.sourceString === "const"
     return new ast.Variable(id.sourceString, readOnly, initializer.ast())
   },
-  FunDecl(_fun, id, parameters, _colons, optionalReturnTypeName, body) {
-    const returnTypeNameTree = optionalReturnTypeName.ast()
+  FunDecl(_fun, id, parameters, _colons, returnType, body) {
+    const returnTypeTree = returnType.ast()
     return new ast.Function(
       id.sourceString,
       parameters.ast(),
-      returnTypeNameTree.length === 0 ? null : returnTypeNameTree[0],
+      returnTypeTree.length === 0
+        ? new ast.NamedType("void")
+        : returnTypeTree[0],
       body.ast()
     )
   },
   Params(_left, bindings, _right) {
     return bindings.asIteration().ast()
   },
-  Param(id, _colon, typeName) {
-    return new ast.Parameter(id.sourceString, typeName.ast())
+  Param(id, _colon, type) {
+    return new ast.Parameter(id.sourceString, type.ast())
   },
   TypeExp_array(_left, baseType, _right) {
     return new ast.ArrayType(baseType.ast())
   },
-  TypeId(id) {
-    return id.sourceString
+  TypeExp_function(inputType, _arrow, outputType) {
+    return new ast.FunctionType(inputType.ast(), outputType.ast())
+  },
+  TypeExp_named(id) {
+    return new ast.NamedType(id.sourceString)
+  },
+  TypeExps(_left, memberTypeList, _right) {
+    return memberTypeList.asIteration().ast()
   },
   Statement_assign(variable, _eq, expression) {
     return new ast.Assignment(variable.ast(), expression.ast())
@@ -111,19 +121,16 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   WhileStmt(_while, test, body) {
     return new ast.WhileStatement(test.ast(), body.ast())
   },
-  IfStmt(_if, test, consequent, _elses, alternatives) {
-    const testTree = test.ast()
-    const consequentTree = consequent.ast()
-    const alternativesTree = alternatives.ast()
-    if (alternativesTree.length === 0) {
-      return new ast.ShortIfStatement(testTree, consequentTree)
-    }
-    return new ast.IfStatement(testTree, consequentTree, alternativesTree[0])
+  IfStmt_long(_if, test, consequent, _else, alternative) {
+    return new ast.IfStatement(test.ast(), consequent.ast(), alternative.ast())
   },
-  Statement_break(_break) {
+  IfStmt_short(_if, test, consequent) {
+    return new ast.ShortIfStatement(test.ast(), consequent.ast())
+  },
+  break(_) {
     return new ast.BreakStatement()
   },
-  Statement_continue(_continue) {
+  continue(_) {
     return new ast.ContinueStatement()
   },
   Statement_return(_return, expression) {
