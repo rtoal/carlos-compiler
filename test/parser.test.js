@@ -87,6 +87,8 @@ const syntaxChecks = [
   ["call in exp", "print 5 * f(x, y, 2 * y)"],
   ["call in statement", "let x = 1\nf(100)\nprint 1"],
   ["boolean literals", "let x = false || true"],
+  ["function types in params", "function f(g: (number)->boolean) {}"],
+  ["function types returned", "function f(): (number)->(number)->void {}"],
 ]
 
 const syntaxErrors = [
@@ -110,6 +112,11 @@ const syntaxErrors = [
   ["if as identifier", "let if = 8", /Line 1, col 5/],
   ["true is reserved", "true = 1", /Line 1, col 1/],
   ["false is reserved", "true = 1", /Line 1, col 1/],
+  [
+    "non-parenthesized function type",
+    "function f(g:number->number) {}",
+    /Line 1, col 20/,
+  ],
 ]
 
 describe("The parser", () => {

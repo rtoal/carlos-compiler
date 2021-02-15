@@ -80,6 +80,17 @@ const semanticChecks = [
     print g(1, true)
     f = g // Type check here`,
   ],
+  [
+    "pass a function to a function",
+    `function f(x: number, y: (boolean)->void): number { return 1 }
+     function g(z: boolean) {}
+     f(2, g)`,
+  ],
+  [
+    "function return types",
+    `function square(x: number): number { return x * x }
+     function compose(): (number)->number { return square }`,
+  ],
 ]
 
 const semanticErrors = [
@@ -148,6 +159,13 @@ const semanticErrors = [
     /Expected type number, got type boolean/,
   ],
   ["call of non-function", "let x = 1\nprint x()", /Call of non-function/],
+  [
+    "function type mismatch",
+    `function f(x: number, y: (boolean)->void): number { return 1 }
+     function g(z: boolean): number { return 5 }
+     f(2, g)`,
+    /Expected type \(boolean\)->void, got type \(boolean\)->number/,
+  ],
 ]
 
 describe("The analyzer", () => {
