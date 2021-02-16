@@ -85,17 +85,17 @@ const optimizers = {
           return e.left / e.right
         } else if (e.op === "**") {
           return e.left ** e.right
-        } else if (e.op == "<") {
+        } else if (e.op === "<") {
           return e.left < e.right
-        } else if (e.op == "<=") {
+        } else if (e.op === "<=") {
           return e.left <= e.right
-        } else if (e.op == "==") {
+        } else if (e.op === "==") {
           return e.left === e.right
-        } else if (e.op == "!=") {
+        } else if (e.op === "!=") {
           return e.left !== e.right
-        } else if (e.op == ">=") {
+        } else if (e.op === ">=") {
           return e.left >= e.right
-        } else if (e.op == ">") {
+        } else if (e.op === ">") {
           return e.left > e.right
         }
       } else if (e.left === 0 && e.op === "+") {
