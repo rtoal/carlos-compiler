@@ -67,9 +67,9 @@ export class FunctionDeclaration {
 }
 
 export class Function {
-  constructor(name, returnType) {
+  constructor(name) {
     // All other properties added during semantic analysis
-    Object.assign(this, { name, returnType })
+    Object.assign(this, { name })
   }
 }
 

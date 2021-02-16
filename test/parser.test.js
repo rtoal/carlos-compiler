@@ -24,14 +24,14 @@ const source = `let x = 1024
 
 const expectedAst = `   1 | Program statements=[#2,#3,#10]
    2 | VariableDeclaration name='x' readOnly=false initializer=1024
-   3 | Function name='next' parameters=[#4] returnType=#6 body=[#7]
+   3 | FunctionDeclaration name='next' parameters=[#4] returnType=#6 body=[#7]
    4 | Parameter name='n' type=#5
    5 | NamedType name='number'
    6 | NamedType name='number'
    7 | ReturnStatement expression=#8
    8 | BinaryExpression op='+' left=#9 right=1
    9 | IdentifierExpression name='n'
-  10 | WhileStatement test=#11 body=[#13,#18,#26,#40]
+  10 | WhileStatement test=#11 body=[#13,#18,#26,#39]
   11 | BinaryExpression op='>' left=#12 right=3
   12 | IdentifierExpression name='x'
   13 | VariableDeclaration name='y' readOnly=false initializer=#14
@@ -47,22 +47,21 @@ const expectedAst = `   1 | Program statements=[#2,#3,#10]
   23 | BinaryExpression op='**' left=2 right=#24
   24 | Call callee=#25 args=[0]
   25 | IdentifierExpression name='next'
-  26 | IfStatement test=false consequent=[#27,#28,#33] alternative=#34
+  26 | IfStatement test=false consequent=[#27,#28,#32] alternative=#33
   27 | VariableDeclaration name='hello' readOnly=true initializer=5
-  28 | Function name='g' parameters=[] returnType=#29 body=[#30,#32]
-  29 | NamedType name='void'
-  30 | PrintStatement argument=#31
-  31 | IdentifierExpression name='hello'
-  32 | ReturnStatement expression=null
-  33 | BreakStatement
-  34 | IfStatement test=true consequent=[#35,#37] alternative=[#39]
-  35 | Call callee=#36 args=[99]
-  36 | IdentifierExpression name='next'
-  37 | VariableDeclaration name='hello' readOnly=false initializer=#38
-  38 | IdentifierExpression name='y'
-  39 | ContinueStatement
-  40 | PrintStatement argument=#41
-  41 | IdentifierExpression name='x'`
+  28 | FunctionDeclaration name='g' parameters=[] returnType=null body=[#29,#31]
+  29 | PrintStatement argument=#30
+  30 | IdentifierExpression name='hello'
+  31 | ReturnStatement expression=null
+  32 | BreakStatement
+  33 | IfStatement test=true consequent=[#34,#36] alternative=[#38]
+  34 | Call callee=#35 args=[99]
+  35 | IdentifierExpression name='next'
+  36 | VariableDeclaration name='hello' readOnly=false initializer=#37
+  37 | IdentifierExpression name='y'
+  38 | ContinueStatement
+  39 | PrintStatement argument=#40
+  40 | IdentifierExpression name='x'`
 
 const syntaxChecks = [
   ["all numeric literal forms", "print 8 * 89.123 * 1.3E5 * 1.3E+5 * 1.3E-5"],

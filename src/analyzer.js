@@ -145,19 +145,19 @@ class Context {
   FunctionDeclaration(d) {
     d.returnType = d.returnType ? this.analyze(d.returnType) : Type.VOID
     // Declarations generate brand new function objects
-    const f = (d.function = new Function(d.name, d.returnType))
+    const f = (d.function = new Function(d.name))
     // When entering a function body, we must reset the inLoop setting,
     // because it is possible to declare a function inside a loop!
     const childContext = this.newChild({ inLoop: false, forFunction: f })
-    f.parameters = d.parameters = childContext.analyze(d.parameters)
+    d.parameters = childContext.analyze(d.parameters)
     f.type = new FunctionType(
-      f.parameters.map(p => p.type),
-      f.returnType
+      d.parameters.map(p => p.type),
+      d.returnType
     )
     // Add before analyzing the body to allow recursion
     this.add(f.name, f)
-    f.body = d.body = childContext.analyze(d.body)
-    return f
+    d.body = childContext.analyze(d.body)
+    return d
   }
   NamedType(t) {
     t = this.lookup(t.name)
@@ -212,10 +212,10 @@ class Context {
   }
   ReturnStatement(s) {
     checkInFunction(this)
-    if (this.function.returnType !== Type.VOID) {
+    if (this.function.type.returnType !== Type.VOID) {
       checkReturnHasExpression(s)
       s.expression = this.analyze(s.expression)
-      checkAssignable(this.function.returnType, s.expression.type)
+      checkAssignable(this.function.type.returnType, s.expression.type)
     } else {
       checkReturnHasNoExpression(s)
     }
@@ -227,7 +227,7 @@ class Context {
     checkArgumentCount(c.callee, c.args)
     c.args = this.analyze(c.args)
     checkArgumentMatching(c.callee, c.args)
-    c.type = c.callee.returnType
+    c.type = c.callee.type.returnType
     return c
   }
   BreakStatement(s) {
