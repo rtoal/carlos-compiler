@@ -2,7 +2,7 @@
 //
 // Analyzes the AST by looking for semantic errors and resolving references.
 
-import { Variable, Type, FunctionType } from "./ast.js"
+import { Variable, Type, FunctionType, Function } from "./ast.js"
 
 function check(condition, errorMessage) {
   if (!condition) {
@@ -142,16 +142,21 @@ class Context {
     this.add(d.variable.name, d.variable)
     return d
   }
-  Function(f) {
-    f.returnType = this.analyze(f.returnType)
-    this.add(f.name, f)
+  FunctionDeclaration(d) {
+    d.returnType = d.returnType ? this.analyze(d.returnType) : Type.VOID
+    // Declarations generate brand new function objects
+    const f = (d.function = new Function(d.name, d.returnType))
     // When entering a function body, we must reset the inLoop setting,
     // because it is possible to declare a function inside a loop!
     const childContext = this.newChild({ inLoop: false, forFunction: f })
-    f.parameters = childContext.analyze(f.parameters)
-    const parameterTypes = f.parameters.map(p => p.type)
-    f.type = new FunctionType(parameterTypes, f.returnType)
-    childContext.analyze(f.body)
+    f.parameters = d.parameters = childContext.analyze(d.parameters)
+    f.type = new FunctionType(
+      f.parameters.map(p => p.type),
+      f.returnType
+    )
+    // Add before analyzing the body to allow recursion
+    this.add(f.name, f)
+    f.body = d.body = childContext.analyze(d.body)
     return f
   }
   NamedType(t) {

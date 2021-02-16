@@ -60,9 +60,16 @@ export class Variable {
   }
 }
 
-export class Function {
+export class FunctionDeclaration {
   constructor(name, parameters, returnType, body) {
     Object.assign(this, { name, parameters, returnType, body })
+  }
+}
+
+export class Function {
+  constructor(name, returnType) {
+    // All other properties added during semantic analysis
+    Object.assign(this, { name, returnType })
   }
 }
 

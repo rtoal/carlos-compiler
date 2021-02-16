@@ -81,12 +81,10 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   },
   FunDecl(_fun, id, parameters, _colons, returnType, body) {
     const returnTypeTree = returnType.ast()
-    return new ast.Function(
+    return new ast.FunctionDeclaration(
       id.sourceString,
       parameters.ast(),
-      returnTypeTree.length === 0
-        ? new ast.NamedType("void")
-        : returnTypeTree[0],
+      returnTypeTree.length === 0 ? null : returnTypeTree[0],
       body.ast()
     )
   },

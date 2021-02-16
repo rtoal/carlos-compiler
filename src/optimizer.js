@@ -32,6 +32,10 @@ const optimizers = {
   Variable(v) {
     return v
   },
+  FunctionDeclaration(f) {
+    f.function = optimize(f.function)
+    return f
+  },
   Function(f) {
     f.body = optimize(f.body)
     return f
