@@ -49,20 +49,33 @@ export class FunctionType {
 }
 
 export class ArrayType {
-  constructor(baseTypeName) {
-    this.baseType = baseTypeName
+  constructor(baseType) {
+    this.baseType = baseType
   }
 }
 
-export class Variable {
+export class VariableDeclaration {
   constructor(name, readOnly, initializer) {
     Object.assign(this, { name, readOnly, initializer })
   }
 }
 
-export class Function {
+export class Variable {
+  constructor(name, readOnly) {
+    Object.assign(this, { name, readOnly })
+  }
+}
+
+export class FunctionDeclaration {
   constructor(name, parameters, returnType, body) {
     Object.assign(this, { name, parameters, returnType, body })
+  }
+}
+
+export class Function {
+  constructor(name) {
+    // All other properties added during semantic analysis
+    Object.assign(this, { name })
   }
 }
 

@@ -14,7 +14,7 @@
 //   - while-false becomes a no-op
 //   - if-true and if-false reduce to only the taken arm
 
-import { IdentifierExpression, UnaryExpression } from "./ast.js"
+import { Variable, UnaryExpression } from "./ast.js"
 
 export default function optimize(node) {
   return optimizers[node.constructor.name](node)
@@ -25,19 +25,28 @@ const optimizers = {
     p.statements = optimize(p.statements)
     return p
   },
+  VariableDeclaration(d) {
+    d.initializer = optimize(d.initializer)
+    return d
+  },
   Variable(v) {
-    v.initializer = optimize(v.initializer)
     return v
   },
+  FunctionDeclaration(d) {
+    d.body = optimize(d.body)
+    return d
+  },
   Function(f) {
-    f.body = optimize(f.body)
     return f
+  },
+  Parameter(p) {
+    return p
   },
   Assignment(s) {
     s.source = optimize(s.source)
     s.target = optimize(s.target)
-    if (s.target.constructor == IdentifierExpression) {
-      if (s.source.referent === s.target.referent) {
+    if (s.target.constructor === Variable) {
+      if (s.source === s.target) {
         return null
       }
     }
@@ -123,27 +132,27 @@ const optimizers = {
     e.right = optimize(e.right)
     if (e.left.constructor === Number) {
       if (e.right.constructor === Number) {
-        if (e.op == "+") {
+        if (e.op === "+") {
           return e.left + e.right
-        } else if (e.op == "-") {
+        } else if (e.op === "-") {
           return e.left - e.right
-        } else if (e.op == "*") {
+        } else if (e.op === "*") {
           return e.left * e.right
-        } else if (e.op == "/") {
+        } else if (e.op === "/") {
           return e.left / e.right
-        } else if (e.op == "**") {
+        } else if (e.op === "**") {
           return e.left ** e.right
-        } else if (e.op == "<") {
+        } else if (e.op === "<") {
           return e.left < e.right
-        } else if (e.op == "<=") {
+        } else if (e.op === "<=") {
           return e.left <= e.right
-        } else if (e.op == "==") {
+        } else if (e.op === "==") {
           return e.left === e.right
-        } else if (e.op == "!=") {
+        } else if (e.op === "!=") {
           return e.left !== e.right
-        } else if (e.op == ">=") {
+        } else if (e.op === ">=") {
           return e.left >= e.right
-        } else if (e.op == ">") {
+        } else if (e.op === ">") {
           return e.left > e.right
         }
       } else if (e.left === 0 && e.op === "+") {
@@ -177,9 +186,6 @@ const optimizers = {
         return -e.operand
       }
     }
-    return e
-  },
-  IdentifierExpression(e) {
     return e
   },
   Number(e) {

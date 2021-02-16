@@ -25,13 +25,13 @@ const source = `let x = 1024
   }`
 
 const expectedAst = `   1 | Program statements=[#2,#3,#17]
-   2 | Variable name='x' readOnly=false initializer=1024
-   3 | Function name='next' parameters=[#4] returnType=#6 body=[#8,#12,#15]
+   2 | VariableDeclaration name='x' readOnly=false initializer=1024
+   3 | FunctionDeclaration name='next' parameters=[#4] returnType=#6 body=[#8,#12,#15]
    4 | Parameter name='n' type=#5
    5 | NamedType name='number'
    6 | ArrayType baseType=#7
    7 | NamedType name='number'
-   8 | Variable name='a' readOnly=false initializer=#9
+   8 | VariableDeclaration name='a' readOnly=false initializer=#9
    9 | ArrayLiteral arrayType=#10 args=[1,2,3]
   10 | ArrayType baseType=#11
   11 | NamedType name='number'
@@ -40,10 +40,10 @@ const expectedAst = `   1 | Program statements=[#2,#3,#17]
   14 | IdentifierExpression name='a'
   15 | ReturnStatement expression=#16
   16 | IdentifierExpression name='a'
-  17 | WhileStatement test=#18 body=[#20,#25,#33,#47]
+  17 | WhileStatement test=#18 body=[#20,#25,#33,#46]
   18 | BinaryExpression op='>' left=#19 right=3
   19 | IdentifierExpression name='x'
-  20 | Variable name='y' readOnly=false initializer=#21
+  20 | VariableDeclaration name='y' readOnly=false initializer=#21
   21 | AndExpression conjuncts=[false,#22]
   22 | OrExpression disjuncts=[true,#23]
   23 | BinaryExpression op='>=' left=2 right=#24
@@ -56,22 +56,21 @@ const expectedAst = `   1 | Program statements=[#2,#3,#17]
   30 | BinaryExpression op='**' left=2 right=#31
   31 | Call callee=#32 args=[0]
   32 | IdentifierExpression name='next'
-  33 | IfStatement test=false consequent=[#34,#35,#40] alternative=#41
-  34 | Variable name='hello' readOnly=true initializer=5
-  35 | Function name='g' parameters=[] returnType=#36 body=[#37,#39]
-  36 | NamedType name='void'
-  37 | PrintStatement argument=#38
-  38 | IdentifierExpression name='hello'
-  39 | ReturnStatement expression=null
-  40 | BreakStatement
-  41 | IfStatement test=true consequent=[#42,#44] alternative=[#46]
-  42 | Call callee=#43 args=[99]
-  43 | IdentifierExpression name='next'
-  44 | Variable name='hello' readOnly=false initializer=#45
-  45 | IdentifierExpression name='y'
-  46 | ContinueStatement
-  47 | PrintStatement argument=#48
-  48 | IdentifierExpression name='x'`
+  33 | IfStatement test=false consequent=[#34,#35,#39] alternative=#40
+  34 | VariableDeclaration name='hello' readOnly=true initializer=5
+  35 | FunctionDeclaration name='g' parameters=[] returnType=null body=[#36,#38]
+  36 | PrintStatement argument=#37
+  37 | IdentifierExpression name='hello'
+  38 | ReturnStatement expression=null
+  39 | BreakStatement
+  40 | IfStatement test=true consequent=[#41,#43] alternative=[#45]
+  41 | Call callee=#42 args=[99]
+  42 | IdentifierExpression name='next'
+  43 | VariableDeclaration name='hello' readOnly=false initializer=#44
+  44 | IdentifierExpression name='y'
+  45 | ContinueStatement
+  46 | PrintStatement argument=#47
+  47 | IdentifierExpression name='x'`
 
 const syntaxChecks = [
   ["all numeric literal forms", "print 8 * 89.123 * 1.3E5 * 1.3E+5 * 1.3E-5"],

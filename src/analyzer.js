@@ -2,7 +2,7 @@
 //
 // Analyzes the AST by looking for semantic errors and resolving references.
 
-import { Type, Function, FunctionType } from "./ast.js"
+import { Variable, Type, FunctionType, Function } from "./ast.js"
 
 function check(condition, errorMessage) {
   if (!condition) {
@@ -131,29 +131,38 @@ class Context {
     return this[node.constructor.name](node)
   }
   Program(p) {
-    this.analyze(p.statements)
+    p.statements = this.analyze(p.statements)
+    return p
   }
-  Variable(v) {
-    this.analyze(v.initializer)
-    v.type = v.initializer.type
-    this.add(v.name, v)
+  VariableDeclaration(d) {
+    // Declarations generate brand new variable objects
+    d.initializer = this.analyze(d.initializer)
+    d.variable = new Variable(d.name, d.readOnly)
+    d.variable.type = d.initializer.type
+    this.add(d.variable.name, d.variable)
+    return d
   }
-  Function(f) {
-    f.returnType = this.analyze(f.returnType)
-    this.add(f.name, f)
+  FunctionDeclaration(d) {
+    d.returnType = d.returnType ? this.analyze(d.returnType) : Type.VOID
+    // Declarations generate brand new function objects
+    const f = (d.function = new Function(d.name))
     // When entering a function body, we must reset the inLoop setting,
     // because it is possible to declare a function inside a loop!
     const childContext = this.newChild({ inLoop: false, forFunction: f })
-    f.parameters.forEach(p => childContext.analyze(p))
-    const parameterTypes = f.parameters.map(p => p.type)
-    f.type = new FunctionType(parameterTypes, f.returnType)
-    childContext.analyze(f.body)
+    d.parameters = childContext.analyze(d.parameters)
+    f.type = new FunctionType(
+      d.parameters.map(p => p.type),
+      d.returnType
+    )
+    // Add before analyzing the body to allow recursion
+    this.add(f.name, f)
+    d.body = childContext.analyze(d.body)
+    return d
   }
   NamedType(t) {
-    t.referent = this.lookup(t.name)
-    checkIsType(t.referent)
-    // Types in the AST always get replaced with their analyzed forms
-    return t.referent
+    t = this.lookup(t.name)
+    checkIsType(t)
+    return t
   }
   FunctionType(t) {
     t.parameterTypes = t.parameterTypes.map(p => this.analyze(p))
@@ -163,80 +172,87 @@ class Context {
   Parameter(p) {
     p.type = this.analyze(p.type)
     this.add(p.name, p)
+    return p
   }
   Assignment(s) {
-    this.analyze(s.source)
-    this.analyze(s.target)
+    s.source = this.analyze(s.source)
+    s.target = this.analyze(s.target)
     checkAssignable(s.target.type, s.source.type)
-    checkNotReadOnly(s.target.referent)
+    checkNotReadOnly(s.target)
+    return s
   }
   PrintStatement(s) {
-    this.analyze(s.argument)
+    s.argument = this.analyze(s.argument)
+    return s
   }
   WhileStatement(s) {
-    this.analyze(s.test)
+    s.test = this.analyze(s.test)
     checkBoolean(s.test, "while")
-    const bodyContext = this.newChild({ inLoop: true })
-    s.body.forEach(s => bodyContext.analyze(s))
+    s.body = this.newChild({ inLoop: true }).analyze(s.body)
+    return s
   }
   IfStatement(s) {
-    this.analyze(s.test)
+    s.test = this.analyze(s.test)
     checkBoolean(s.test, "if")
-    this.newChild().analyze(s.consequent)
+    s.consequent = this.newChild().analyze(s.consequent)
     if (s.alternative.constructor === Array) {
       // It's a block of statements, make a new context
-      this.newChild().analyze(s.alternative)
+      s.alternative = this.newChild().analyze(s.alternative)
     } else if (s.alternative) {
       // It's a trailing if-statement, so same context
-      this.analyze(s.alternative)
+      s.alternative = this.analyze(s.alternative)
     }
+    return s
   }
   ShortIfStatement(s) {
-    this.analyze(s.test)
+    s.test = this.analyze(s.test)
     checkBoolean(s.test, "if")
-    this.analyze(s.consequent, this.newChild())
+    s.consequent = this.newChild().analyze(s.consequent)
+    return s
   }
   ReturnStatement(s) {
     checkInFunction(this)
-    if (this.function.returnType !== Type.VOID) {
+    if (this.function.type.returnType !== Type.VOID) {
       checkReturnHasExpression(s)
-      this.analyze(s.expression)
-      checkAssignable(this.function.returnType, s.expression.type)
+      s.expression = this.analyze(s.expression)
+      checkAssignable(this.function.type.returnType, s.expression.type)
     } else {
       checkReturnHasNoExpression(s)
     }
+    return s
   }
   Call(c) {
-    this.analyze(c.callee)
-    checkIsCallable(c.callee.referent)
-    checkArgumentCount(c.callee.referent, c.args)
-    c.args.forEach(arg => this.analyze(arg))
-    checkArgumentMatching(c.callee.referent, c.args)
-    c.type = c.callee.referent.returnType
+    c.callee = this.analyze(c.callee)
+    checkIsCallable(c.callee)
+    checkArgumentCount(c.callee, c.args)
+    c.args = this.analyze(c.args)
+    checkArgumentMatching(c.callee, c.args)
+    c.type = c.callee.type.returnType
+    return c
   }
   BreakStatement(s) {
     checkInLoop(this, "break")
+    return s
   }
   ContinueStatement(s) {
     checkInLoop(this, "continue")
+    return s
   }
   OrExpression(e) {
-    for (const disjunct of e.disjuncts) {
-      this.analyze(disjunct)
-      checkBoolean(disjunct, "||")
-    }
+    e.disjuncts = this.analyze(e.disjuncts)
+    e.disjuncts.forEach(disjunct => checkBoolean(disjunct, "||"))
     e.type = Type.BOOLEAN
+    return e
   }
   AndExpression(e) {
-    for (const conjunct of e.conjuncts) {
-      this.analyze(conjunct)
-      checkBoolean(conjunct, "&&")
-    }
+    e.conjuncts = this.analyze(e.conjuncts)
+    e.conjuncts.forEach(conjunct => checkBoolean(conjunct, "&&"))
     e.type = Type.BOOLEAN
+    return e
   }
   BinaryExpression(e) {
-    this.analyze(e.left)
-    this.analyze(e.right)
+    e.left = this.analyze(e.left)
+    e.right = this.analyze(e.right)
     if (["+", "-", "*", "/", "**"].includes(e.op)) {
       checkNumber(e.left, e.op)
       checkNumber(e.right, e.op)
@@ -249,25 +265,26 @@ class Context {
       checkSameTypes(e.left, e.right, e.op)
       e.type = Type.BOOLEAN
     }
+    return e
   }
   UnaryExpression(e) {
-    this.analyze(e.operand)
+    e.operand = this.analyze(e.operand)
     checkNumber(e.operand, e.op)
     e.type = Type.NUMBER
+    return e
   }
   IdentifierExpression(e) {
-    // Record what this identifier is referring to
-    e.referent = this.lookup(e.name)
-    e.type = e.referent.type
+    // Id expressions get "replaced" with the variables they refer to
+    return this.lookup(e.name)
   }
   Number(e) {
-    // Nothing to analyze
+    return e
   }
   Boolean(e) {
-    // Nothing to analyze
+    return e
   }
   Array(a) {
-    a.forEach(entity => this.analyze(entity))
+    return a.map(item => this.analyze(item))
   }
 }
 

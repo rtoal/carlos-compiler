@@ -2,7 +2,7 @@ import assert from "assert"
 import optimize from "../src/optimizer.js"
 import * as ast from "../src/ast.js"
 
-const x = new ast.IdentifierExpression("x", 0)
+const x = new ast.Variable("x", false)
 const print1 = new ast.PrintStatement(1)
 const return1p1 = new ast.ReturnStatement(new ast.BinaryExpression("+", 1, 1))
 
@@ -63,19 +63,13 @@ const tests = [
   ],
   [
     "passes through nonoptimizable constructs",
-    [
-      new ast.Variable("x", false, 0),
-      new ast.PrintStatement(x, new ast.BinaryExpression("*", x, 100)),
-    ],
-    [
-      new ast.Variable("x", false, 0),
-      new ast.PrintStatement(x, new ast.BinaryExpression("*", x, 100)),
-    ],
+    [x, new ast.PrintStatement(x, new ast.BinaryExpression("*", x, 100))],
+    [x, new ast.PrintStatement(x, new ast.BinaryExpression("*", x, 100))],
   ],
   [
     "optimizes in functions",
-    new ast.Function("f", [], "number", return1p1),
-    new ast.Function("f", [], "number", new ast.ReturnStatement(2)),
+    new ast.FunctionDeclaration("f", [], "number", return1p1),
+    new ast.FunctionDeclaration("f", [], "number", new ast.ReturnStatement(2)),
   ],
 ]
 

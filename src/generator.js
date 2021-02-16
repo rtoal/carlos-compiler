@@ -27,15 +27,21 @@ export default function generate(program) {
     Program(p) {
       gen(p.statements)
     },
+    VariableDeclaration(d) {
+      output.push(`let ${gen(d.variable)} = ${gen(d.initializer)};`)
+    },
     Variable(v) {
-      output.push(`let ${targetName(v)} = ${gen(v.initializer)};`)
+      return targetName(v)
+    },
+    FunctionDeclaration(d) {
+      output.push(
+        `function ${gen(d.function)}(${d.parameters.map(gen).join(", ")}) {`
+      )
+      gen(d.body)
+      output.push("}")
     },
     Function(f) {
-      output.push(
-        `function ${targetName(f)}(${f.parameters.map(gen).join(", ")}) {`
-      )
-      gen(f.body)
-      output.push("}")
+      return targetName(f)
     },
     Parameter(p) {
       return targetName(p)
@@ -81,7 +87,7 @@ export default function generate(program) {
     },
     Call(c) {
       const targetCode = `${gen(c.callee)}(${c.args.map(gen).join(", ")})`
-      if (c.type !== Type.VOID) {
+      if (c.callee.type.returnType !== Type.VOID) {
         return targetCode
       }
       output.push(`${targetCode};`)
@@ -98,9 +104,6 @@ export default function generate(program) {
     },
     UnaryExpression(e) {
       return `${e.op}(${gen(e.operand)})`
-    },
-    IdentifierExpression(e) {
-      return targetName(e.referent)
     },
     Number(e) {
       return e
