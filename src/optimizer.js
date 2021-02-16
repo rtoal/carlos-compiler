@@ -46,13 +46,13 @@ const optimizers = {
     e.right = optimize(e.right)
     if (e.left.constructor === Number) {
       if (e.right.constructor === Number) {
-        if (e.op == "+") {
+        if (e.op === "+") {
           return e.left + e.right
-        } else if (e.op == "-") {
+        } else if (e.op === "-") {
           return e.left - e.right
-        } else if (e.op == "*") {
+        } else if (e.op === "*") {
           return e.left * e.right
-        } else if (e.op == "/") {
+        } else if (e.op === "/") {
           return e.left / e.right
         } else if (e.op == "**") {
           return e.left ** e.right
