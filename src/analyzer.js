@@ -128,6 +128,6 @@ class Context {
 export default function analyze(node) {
   Number.prototype.type = Type.NUMBER
   Boolean.prototype.type = Type.BOOLEAN
-  new Context().analyze(node)
-  return node
+  // Analyze in a fresh global context
+  return new Context().analyze(node)
 }
