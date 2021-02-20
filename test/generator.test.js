@@ -12,11 +12,11 @@ const fixtures = [
   {
     name: "small",
     source: `
-    let x = 3.1 * 7
-    let y = 3 / x
-    x = 5 ** x / -x + x - -x
-    print x
-  `,
+      let x = 3.1 * 7
+      let y = 3 / x
+      x = 5 ** x / -x + x - -x
+      print x
+    `,
     expected: dedent`
       let x_1 = 21.7;
       let y_2 = (3 / x_1);
