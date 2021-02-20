@@ -2,6 +2,7 @@ import assert from "assert"
 import optimize from "../src/optimizer.js"
 import * as ast from "../src/ast.js"
 
+// Make some test cases easier to read
 const x = new ast.Variable("x", false)
 const print1 = new ast.PrintStatement(1)
 
@@ -34,14 +35,10 @@ const tests = [
   ],
   [
     "passes through nonoptimizable constructs",
-    [
+    ...Array(2).fill([
       new ast.VariableDeclaration("x", true, 0),
       new ast.Assignment(x, new ast.BinaryExpression("*", x, 100)),
-    ],
-    [
-      new ast.VariableDeclaration("x", true, 0),
-      new ast.Assignment(x, new ast.BinaryExpression("*", x, 100)),
-    ],
+    ]),
   ],
 ]
 
