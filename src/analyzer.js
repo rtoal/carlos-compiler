@@ -10,19 +10,26 @@ function check(condition, errorMessage) {
   }
 }
 
-function checkNumber(e, op) {
-  check(e.type === Type.NUMBER, `'${op}' operand must be a number`)
+function checkIsNumber(e) {
+  check(e.type === Type.NUMBER, `Expected a number but got a ${e.type.name}`)
 }
 
-function checkBoolean(e, op) {
-  check(e.type === Type.BOOLEAN, `'${op}' operand must be a boolean`)
+function checkIsBoolean(e) {
+  check(e.type === Type.BOOLEAN, `Expected a boolean but got a ${e.type.name}`)
 }
 
-function checkSameTypes(e1, e2, op) {
-  check(e1.type === e2.type, `'${op}' operands must have same types`)
+function checkHaveSameTypes(e1, e2) {
+  check(e1.type === e2.type, "Operands do not have the same type")
 }
 
-function checkNotReadOnly(e) {
+function checkIsAssignable(source, { to: target }) {
+  check(
+    source.type === target.type,
+    `Cannot assign a ${source.type.name} to a ${target.type.name}`
+  )
+}
+
+function checkIsNotReadOnly(e) {
   check(!e.readOnly, `Cannot assign to constant ${e.name}`)
 }
 
@@ -67,8 +74,8 @@ class Context {
   Assignment(s) {
     s.source = this.analyze(s.source)
     s.target = this.analyze(s.target)
-    checkSameTypes(s.target, s.source, "=")
-    checkNotReadOnly(s.target)
+    checkIsAssignable(s.source, { to: s.target })
+    checkIsNotReadOnly(s.target)
     return s
   }
   PrintStatement(s) {
@@ -77,13 +84,13 @@ class Context {
   }
   OrExpression(e) {
     e.disjuncts = this.analyze(e.disjuncts)
-    e.disjuncts.forEach(disjunct => checkBoolean(disjunct, "||"))
+    e.disjuncts.forEach(disjunct => checkIsBoolean(disjunct))
     e.type = Type.BOOLEAN
     return e
   }
   AndExpression(e) {
     e.conjuncts = this.analyze(e.conjuncts)
-    e.conjuncts.forEach(conjunct => checkBoolean(conjunct, "&&"))
+    e.conjuncts.forEach(conjunct => checkIsBoolean(conjunct))
     e.type = Type.BOOLEAN
     return e
   }
@@ -91,22 +98,22 @@ class Context {
     e.left = this.analyze(e.left)
     e.right = this.analyze(e.right)
     if (["+", "-", "*", "/", "**"].includes(e.op)) {
-      checkNumber(e.left, e.op)
-      checkNumber(e.right, e.op)
+      checkIsNumber(e.left)
+      checkIsNumber(e.right)
       e.type = Type.NUMBER
     } else if (["<", "<=", ">", ">="].includes(e.op)) {
-      checkNumber(e.left, e.op)
-      checkNumber(e.right, e.op)
+      checkIsNumber(e.left)
+      checkIsNumber(e.right)
       e.type = Type.BOOLEAN
     } else if (["==", "!="].includes(e.op)) {
-      checkSameTypes(e.left, e.right, e.op)
+      checkHaveSameTypes(e.left, e.right)
       e.type = Type.BOOLEAN
     }
     return e
   }
   UnaryExpression(e) {
     e.operand = this.analyze(e.operand)
-    checkNumber(e.operand, e.op)
+    checkIsNumber(e.operand)
     e.type = Type.NUMBER
     return e
   }
