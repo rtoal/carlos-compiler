@@ -41,7 +41,10 @@ const check = {
     must(e1.type === e2.type, "Operands do not have the same type")
   },
   isTypeAssignable(from, { to }) {
-    must(from === to, `Cannot assign a ${from.name} to a ${to.name}`)
+    must(
+      from.isAssignableTo(to),
+      `Cannot assign a ${from.name} to a ${to.name}`
+    )
   },
   isAssignable(from, { to }) {
     check.isTypeAssignable(from.type, { to: to.type })
