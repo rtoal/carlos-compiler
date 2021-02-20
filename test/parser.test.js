@@ -45,7 +45,7 @@ const syntaxErrors = [
   ["mixing ors and ands", "print 1 || 2 && 3", /Line 1, col 14:/],
   ["associating relational operators", "print 1 < 2 < 3", /Line 1, col 13:/],
   ["true is reserved", "true = 1", /Line 1, col 1/],
-  ["false is reserved", "true = 1", /Line 1, col 1/],
+  ["false is reserved", "false = 1", /Line 1, col 1/],
 ]
 
 describe("The parser", () => {

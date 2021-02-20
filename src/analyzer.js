@@ -75,10 +75,6 @@ class Context {
     s.argument = this.analyze(s.argument)
     return s
   }
-  PrintStatement(s) {
-    s.argument = this.analyze(s.argument)
-    return s
-  }
   OrExpression(e) {
     e.disjuncts = this.analyze(e.disjuncts)
     e.disjuncts.forEach(disjunct => checkBoolean(disjunct, "||"))
