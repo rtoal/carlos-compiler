@@ -94,13 +94,13 @@ class Context {
   }
   WhileStatement(s) {
     s.test = this.analyze(s.test)
-    checkIsBoolean(s.test, "while")
+    check.isBoolean(s.test, "while")
     s.body = this.newChild().analyze(s.body)
     return s
   }
   IfStatement(s) {
     s.test = this.analyze(s.test)
-    checkIsBoolean(s.test, "if")
+    check.isBoolean(s.test, "if")
     s.consequent = this.newChild().analyze(s.consequent)
     if (s.alternative.constructor === Array) {
       // It's a block of statements, make a new context
@@ -113,7 +113,7 @@ class Context {
   }
   ShortIfStatement(s) {
     s.test = this.analyze(s.test)
-    checkIsBoolean(s.test, "if")
+    check.isBoolean(s.test, "if")
     s.consequent = this.newChild().analyze(s.consequent)
     return s
   }
