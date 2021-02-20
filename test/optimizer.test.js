@@ -2,7 +2,7 @@ import assert from "assert"
 import optimize from "../src/optimizer.js"
 import * as ast from "../src/ast.js"
 
-const x = new ast.Variable("x")
+const x = new ast.Variable("x", false)
 
 const tests = [
   ["folds +", new ast.BinaryExpression("+", 5, 8), 13],
@@ -34,18 +34,18 @@ const tests = [
     [
       new ast.PrintStatement(1),
       new ast.Assignment(x, x),
-      new ast.Variable("x", false, 1),
+      new ast.Variable("x", false),
     ],
-    [new ast.PrintStatement(1), new ast.Variable("x", false, 1)],
+    [new ast.PrintStatement(1), new ast.Variable("x", false)],
   ],
   [
     "passes through nonoptimizable constructs",
     [
-      new ast.Variable("x", false, 0),
+      new ast.Variable("x", false),
       new ast.PrintStatement(x, new ast.BinaryExpression("*", x, 100)),
     ],
     [
-      new ast.Variable("x", false, 0),
+      new ast.Variable("x", false),
       new ast.PrintStatement(x, new ast.BinaryExpression("*", x, 100)),
     ],
   ],
