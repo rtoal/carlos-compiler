@@ -4,8 +4,10 @@ import parse from "../src/parser.js"
 import analyze from "../src/analyzer.js"
 
 const source = `let x = 1024
-  function next(n: number): number {
-    return n + 1
+  function next(n: number): [number] {
+    let a = [number](1, 2, 3)
+    a[1] = 100
+    return a
   }
   while x > 3 {
     let y = false && (true || 2 >= x)

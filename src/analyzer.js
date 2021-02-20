@@ -2,7 +2,7 @@
 //
 // Analyzes the AST by looking for semantic errors and resolving references.
 
-import { Variable, Type, FunctionType, Function } from "./ast.js"
+import { Variable, Type, FunctionType, Function, ArrayType } from "./ast.js"
 
 function must(condition, errorMessage) {
   if (!condition) {
@@ -13,6 +13,10 @@ function must(condition, errorMessage) {
 // In this language, basic types are only compatible if equivalent
 Type.prototype.isAssignableTo = function (target) {
   return this === target
+}
+
+ArrayType.prototype.isAssignableTo = function (target) {
+  return this.baseType.isAssignableTo(target)
 }
 
 // Contravariance for parameters and covariance for return types
@@ -159,6 +163,10 @@ class Context {
     check.isType(t)
     return t
   }
+  ArrayType(t) {
+    t.baseType = this.analyze(t.baseType)
+    return t
+  }
   FunctionType(t) {
     t.parameterTypes = t.parameterTypes.map(p => this.analyze(p))
     t.returnType = this.analyze(t.returnType)
@@ -269,6 +277,18 @@ class Context {
     check.isNumber(e.operand)
     e.type = Type.NUMBER
     return e
+  }
+  SubscriptExpression(e) {
+    e.array = this.analyze(e.array)
+    e.element = this.analyze(e.element)
+    e.type = e.array.baseType
+    return e
+  }
+  ArrayLiteral(a) {
+    a.arrayType = this.analyze(a.arrayType)
+    a.args = this.analyze(a.args)
+    a.type = a.arrayType
+    return a
   }
   IdentifierExpression(e) {
     // Id expressions get "replaced" with the variables they refer to
