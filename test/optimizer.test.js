@@ -2,7 +2,8 @@ import assert from "assert"
 import optimize from "../src/optimizer.js"
 import * as ast from "../src/ast.js"
 
-const x = new ast.Variable("x")
+// Make some test cases easier to read
+const x = new ast.Variable("x", false)
 const print1 = new ast.PrintStatement(1)
 
 const tests = [
@@ -44,11 +45,12 @@ const tests = [
     new ast.AndExpression([new ast.BinaryExpression("<", x, 1), false, true]),
     new ast.AndExpression([new ast.BinaryExpression("<", x, 1), false]),
   ],
+  ["removes x=x at beginning", [new ast.Assignment(x, x), print1], [print1]],
   ["removes x=x at end", [print1, new ast.Assignment(x, x)], [print1]],
   [
     "removes x=x in middle",
-    [print1, new ast.Assignment(x, x), new ast.Variable("x", false, 1)],
-    [print1, new ast.Variable("x", false, 1)],
+    [print1, new ast.Assignment(x, x), print1],
+    [print1, print1],
   ],
   ["optimizes if-true", new ast.IfStatement(true, print1, []), print1],
   ["optimizes if-false", new ast.IfStatement(false, [], print1), print1],
@@ -62,14 +64,10 @@ const tests = [
   ],
   [
     "passes through nonoptimizable constructs",
-    [
-      new ast.Variable("x", false, 0),
-      new ast.PrintStatement(x, new ast.BinaryExpression("*", x, 100)),
-    ],
-    [
-      new ast.Variable("x", false, 0),
-      new ast.PrintStatement(x, new ast.BinaryExpression("*", x, 100)),
-    ],
+    ...Array(2).fill([
+      new ast.VariableDeclaration("x", true, 0),
+      new ast.Assignment(x, new ast.BinaryExpression("*", x, 100)),
+    ]),
   ],
 ]
 
