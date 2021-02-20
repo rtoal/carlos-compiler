@@ -80,7 +80,7 @@ const syntaxErrors = [
   ["while as identifier", "let while = 3", /Line 1, col 5/],
   ["if as identifier", "let if = 8", /Line 1, col 5/],
   ["true is reserved", "true = 1", /Line 1, col 1/],
-  ["false is reserved", "true = 1", /Line 1, col 1/],
+  ["false is reserved", "false = 1", /Line 1, col 1/],
 ]
 
 describe("The parser", () => {
