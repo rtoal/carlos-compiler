@@ -12,16 +12,16 @@ const fixtures = [
   {
     name: "small",
     source: `
-    let x = 3.1 * 7
-    let y = 3 / x
-    x = 5 ** x / -x + x - -x
-    print (x && x) || false || (x<2) != 5
-  `,
+      let x = 3.1 * 7
+      let y = 3 / x
+      x = 5 ** x / -x + x - -x
+      print (true && (x == 9)) || false || (x<2) != 5
+    `,
     expected: dedent`
       let x_1 = 21.7;
       let y_2 = (3 / x_1);
       x_1 = ((((5 ** x_1) / -(x_1)) + x_1) - -(x_1));
-      console.log(((x_1 && x_1) || false || ((x_1 < 2) !== 5)));
+      console.log(((true && (x_1 === 9)) || false || ((x_1 < 2) !== 5)));
     `,
   },
 ]
