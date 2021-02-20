@@ -49,6 +49,10 @@ class Context {
     }
     return s
   }
+  PrintStatement(s) {
+    s.argument = this.analyze(s.argument)
+    return s
+  }
   OrExpression(e) {
     e.disjuncts = this.analyze(e.disjuncts)
     return e
@@ -56,10 +60,6 @@ class Context {
   AndExpression(e) {
     e.conjuncts = this.analyze(e.conjuncts)
     return e
-  }
-  PrintStatement(s) {
-    s.argument = this.analyze(s.argument)
-    return s
   }
   BinaryExpression(e) {
     e.left = this.analyze(e.left)
