@@ -4,33 +4,31 @@
 
 import { Variable, Type } from "./ast.js"
 
-function check(condition, errorMessage) {
+function must(condition, errorMessage) {
   if (!condition) {
     throw new Error(errorMessage)
   }
 }
 
-function checkIsNumber(e) {
-  check(e.type === Type.NUMBER, `Expected a number but got a ${e.type.name}`)
-}
-
-function checkIsBoolean(e) {
-  check(e.type === Type.BOOLEAN, `Expected a boolean but got a ${e.type.name}`)
-}
-
-function checkHaveSameTypes(e1, e2) {
-  check(e1.type === e2.type, "Operands do not have the same type")
-}
-
-function checkIsAssignable(source, { to: target }) {
-  check(
-    source.type === target.type,
-    `Cannot assign a ${source.type.name} to a ${target.type.name}`
-  )
-}
-
-function checkIsNotReadOnly(e) {
-  check(!e.readOnly, `Cannot assign to constant ${e.name}`)
+const check = {
+  isNumber(e) {
+    must(e.type === Type.NUMBER, `Expected a number but got a ${e.type.name}`)
+  },
+  isBoolean(e) {
+    must(e.type === Type.BOOLEAN, `Expected a boolean but got a ${e.type.name}`)
+  },
+  haveSameTypes(e1, e2) {
+    must(e1.type === e2.type, "Operands do not have the same type")
+  },
+  isTypeAssignable(from, { to }) {
+    must(from === to, `Cannot assign a ${from.name} to a ${to.name}`)
+  },
+  isAssignable(from, { to }) {
+    check.isTypeAssignable(from.type, { to: to.type })
+  },
+  isNotReadOnly(e) {
+    must(!e.readOnly, `Cannot assign to constant ${e.name}`)
+  },
 }
 
 class Context {
@@ -74,8 +72,8 @@ class Context {
   Assignment(s) {
     s.source = this.analyze(s.source)
     s.target = this.analyze(s.target)
-    checkIsAssignable(s.source, { to: s.target })
-    checkIsNotReadOnly(s.target)
+    check.isAssignable(s.source, { to: s.target })
+    check.isNotReadOnly(s.target)
     return s
   }
   PrintStatement(s) {
@@ -84,13 +82,13 @@ class Context {
   }
   OrExpression(e) {
     e.disjuncts = this.analyze(e.disjuncts)
-    e.disjuncts.forEach(disjunct => checkIsBoolean(disjunct))
+    e.disjuncts.forEach(disjunct => check.isBoolean(disjunct))
     e.type = Type.BOOLEAN
     return e
   }
   AndExpression(e) {
     e.conjuncts = this.analyze(e.conjuncts)
-    e.conjuncts.forEach(conjunct => checkIsBoolean(conjunct))
+    e.conjuncts.forEach(conjunct => check.isBoolean(conjunct))
     e.type = Type.BOOLEAN
     return e
   }
@@ -98,22 +96,22 @@ class Context {
     e.left = this.analyze(e.left)
     e.right = this.analyze(e.right)
     if (["+", "-", "*", "/", "**"].includes(e.op)) {
-      checkIsNumber(e.left)
-      checkIsNumber(e.right)
+      check.isNumber(e.left)
+      check.isNumber(e.right)
       e.type = Type.NUMBER
     } else if (["<", "<=", ">", ">="].includes(e.op)) {
-      checkIsNumber(e.left)
-      checkIsNumber(e.right)
+      check.isNumber(e.left)
+      check.isNumber(e.right)
       e.type = Type.BOOLEAN
     } else if (["==", "!="].includes(e.op)) {
-      checkHaveSameTypes(e.left, e.right)
+      check.haveSameTypes(e.left, e.right)
       e.type = Type.BOOLEAN
     }
     return e
   }
   UnaryExpression(e) {
     e.operand = this.analyze(e.operand)
-    checkIsNumber(e.operand)
+    check.isNumber(e.operand)
     e.type = Type.NUMBER
     return e
   }
