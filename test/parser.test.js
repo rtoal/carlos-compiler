@@ -128,7 +128,7 @@ const syntaxErrors = [
   ["fake array literal", "print [1,2]", /Line 1, col 8/],
   ["empty subscript", "print a[]", /Line 1, col 9/],
   ["true is reserved", "true = 1", /Line 1, col 1/],
-  ["false is reserved", "true = 1", /Line 1, col 1/],
+  ["false is reserved", "false = 1", /Line 1, col 1/],
   [
     "non-parenthesized function type",
     "function f(g:number->number) {}",
