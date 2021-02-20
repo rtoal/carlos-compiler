@@ -4,91 +4,80 @@
 
 import { Variable, Type, FunctionType, Function } from "./ast.js"
 
-function check(condition, errorMessage) {
+function must(condition, errorMessage) {
   if (!condition) {
     throw new Error(errorMessage)
   }
 }
 
-function checkIsNumber(e) {
-  check(e.type === Type.NUMBER, `Expected a number but got a ${e.type.name}`)
+// In this language, basic types are only compatible if equivalent
+Type.prototype.isAssignableTo = function (target) {
+  return this === target
 }
 
-function checkIsBoolean(e) {
-  check(e.type === Type.BOOLEAN, `Expected a boolean but got a ${e.type.name}`)
-}
-
-function checkIsCallable(e) {
-  check(e.type.constructor === FunctionType, "Call of non-function")
-}
-
-function checkIsType(t) {
-  check([Type, FunctionType].includes(t.constructor), "Type expected")
-}
-
-function checkHaveSameTypes(e1, e2) {
-  check(e1.type === e2.type, "Operands do not have the same type")
-}
-
-// Covariance for parameters and contravariance for return types
-function checkIsAssignable(source, { to: target }) {
-  function isAssignable(sourceType, { to: targetType }) {
-    console.log(targetType)
-    if (targetType.constructor === FunctionType) {
-      return (
-        sourceType.constructor === FunctionType &&
-        isAssignable(sourceType.returnType, { to: targetType.returnType }) &&
-        sourceType.parameterTypes.length === targetType.parameterTypes.length &&
-        sourceType.parameterTypes.every((t, i) =>
-          isAssignable(targetType.parameterTypes[i], { to: t })
-        )
-      )
-    }
-    return targetType === sourceType
-  }
-  check(
-    isAssignable(source.type, { to: target.type }),
-    `Cannot assign a ${source.type.name} to a ${target.type.name}`
+// Contravariance for parameters and covariance for return types
+FunctionType.prototype.isAssignableTo = function (target) {
+  return (
+    target.constructor === FunctionType &&
+    this.returnType.isAssignableTo(target.returnType) &&
+    this.parameterTypes.length === target.parameterTypes.length &&
+    this.parameterTypes.every((t, i) =>
+      target.parameterTypes[i].isAssignableTo(t)
+    )
   )
 }
 
-function checkIsNotReadOnly(e) {
-  check(!e.readOnly, `Cannot assign to constant ${e.name}`)
-}
-
-function checkInLoop(context, disruptor) {
-  check(context.inLoop, `'${disruptor}' can only appear in a loop`)
-}
-
-function checkInFunction(context) {
-  check(context.function, "Return can only appear in a function")
-}
-
-function checkReturnHasExpression(returnStatement) {
-  check(
-    returnStatement.expression !== null,
-    "Something should be returned here"
-  )
-}
-
-function checkReturnHasNoExpression(returnStatement) {
-  check(!returnStatement.expression, "Cannot return a value here")
-}
-
-function checkArgumentCount({ callee, args }) {
-  const parameterCount = callee.type.parameterTypes.length
-  const argumentCount = args.length
-  check(
-    parameterCount === argumentCount,
-    `${parameterCount} parameter(s) required, ` +
-      `but ${argumentCount} argument(s) passed`
-  )
-}
-
-function checkArgumentsMatchParameters({ callee, args }) {
-  callee.type.parameterTypes.forEach((parameterType, i) =>
-    checkIsAssignable(args[i].type, { to: parameterType })
-  )
+const check = {
+  isNumber(e) {
+    must(e.type === Type.NUMBER, `Expected a number but got a ${e.type.name}`)
+  },
+  isBoolean(e) {
+    must(e.type === Type.BOOLEAN, `Expected a boolean but got a ${e.type.name}`)
+  },
+  isType(t) {
+    must([Type, FunctionType].includes(t.constructor), "Type expected")
+  },
+  haveSameTypes(e1, e2) {
+    must(e1.type === e2.type, "Operands do not have the same type")
+  },
+  isTypeAssignable(from, { to }) {
+    must(from === to, `Cannot assign a ${from.name} to a ${to.name}`)
+  },
+  isAssignable(from, { to }) {
+    check.isTypeAssignable(from.type, { to: to.type })
+  },
+  isNotReadOnly(e) {
+    must(!e.readOnly, `Cannot assign to constant ${e.name}`)
+  },
+  inLoop(context, disruptor) {
+    must(context.inLoop, `'${disruptor}' can only appear in a loop`)
+  },
+  inFunction(context) {
+    must(context.function, "Return can only appear in a function")
+  },
+  isCallable(e) {
+    must(e.type.constructor === FunctionType, "Call of non-function")
+  },
+  isLongReturnStatement(s) {
+    must(s.expression !== null, "Something should be returned here")
+  },
+  isShortReturnStatement(s) {
+    must(s.expression === null, "Cannot return a value here")
+  },
+  isReturnable(e, { from: f }) {
+    check.isTypeAssignable(e.type, { to: f.type.returnType })
+  },
+  argumentsMatchParameters({ args, callee }) {
+    const paramCount = callee.type.parameterTypes.length
+    const argCount = args.length
+    must(
+      paramCount === argCount,
+      `${paramCount} parameter(s) required but ${argCount} argument(s) passed`
+    )
+    callee.type.parameterTypes.forEach((parameterType, i) =>
+      check.isTypeAssignable(args[i].type, { to: parameterType })
+    )
+  },
 }
 
 class Context {
@@ -164,7 +153,7 @@ class Context {
   }
   NamedType(t) {
     t = this.lookup(t.name)
-    checkIsType(t)
+    check.isType(t)
     return t
   }
   FunctionType(t) {
@@ -180,8 +169,8 @@ class Context {
   Assignment(s) {
     s.source = this.analyze(s.source)
     s.target = this.analyze(s.target)
-    checkIsAssignable(s.source, { to: s.target })
-    checkIsNotReadOnly(s.target)
+    check.isAssignable(s.source, { to: s.target })
+    check.isNotReadOnly(s.target)
     return s
   }
   PrintStatement(s) {
@@ -190,13 +179,13 @@ class Context {
   }
   WhileStatement(s) {
     s.test = this.analyze(s.test)
-    checkIsBoolean(s.test, "while")
+    check.isBoolean(s.test, "while")
     s.body = this.newChild({ inLoop: true }).analyze(s.body)
     return s
   }
   IfStatement(s) {
     s.test = this.analyze(s.test)
-    checkIsBoolean(s.test, "if")
+    check.isBoolean(s.test, "if")
     s.consequent = this.newChild().analyze(s.consequent)
     if (s.alternative.constructor === Array) {
       // It's a block of statements, make a new context
@@ -209,52 +198,49 @@ class Context {
   }
   ShortIfStatement(s) {
     s.test = this.analyze(s.test)
-    checkIsBoolean(s.test, "if")
+    check.isBoolean(s.test, "if")
     s.consequent = this.newChild().analyze(s.consequent)
     return s
   }
   ReturnStatement(s) {
-    checkInFunction(this)
+    check.inFunction(this)
     if (this.function.type.returnType !== Type.VOID) {
       // If the current function isn't void, the return statement must have
       // an expression that is assignable to the return type
-      checkReturnHasExpression(s)
+      check.isLongReturnStatement(s)
       s.expression = this.analyze(s.expression)
-      checkIsAssignable(s.expression.type, {
-        to: this.function.type.returnType,
-      })
+      check.isReturnable(s.expression, { from: this.function })
     } else {
       // If the current function is void, we cannot return an expression
-      checkReturnHasNoExpression(s)
+      check.isShortReturnStatement(s)
     }
     return s
   }
   Call(c) {
     c.callee = this.analyze(c.callee)
-    checkIsCallable(c.callee)
-    checkArgumentCount({ args: c.args, callee: c.callee })
+    check.isCallable(c.callee)
     c.args = this.analyze(c.args)
-    checkArgumentsMatchParameters({ args: c.args, callee: c.callee })
+    check.argumentsMatchParameters({ args: c.args, callee: c.callee })
     c.type = c.callee.type.returnType
     return c
   }
   BreakStatement(s) {
-    checkInLoop(this, "break")
+    check.inLoop(this, "break")
     return s
   }
   ContinueStatement(s) {
-    checkInLoop(this, "continue")
+    check.inLoop(this, "continue")
     return s
   }
   OrExpression(e) {
     e.disjuncts = this.analyze(e.disjuncts)
-    e.disjuncts.forEach(disjunct => checkIsBoolean(disjunct))
+    e.disjuncts.forEach(disjunct => check.isBoolean(disjunct))
     e.type = Type.BOOLEAN
     return e
   }
   AndExpression(e) {
     e.conjuncts = this.analyze(e.conjuncts)
-    e.conjuncts.forEach(conjunct => checkIsBoolean(conjunct))
+    e.conjuncts.forEach(conjunct => check.isBoolean(conjunct))
     e.type = Type.BOOLEAN
     return e
   }
@@ -262,22 +248,22 @@ class Context {
     e.left = this.analyze(e.left)
     e.right = this.analyze(e.right)
     if (["+", "-", "*", "/", "**"].includes(e.op)) {
-      checkIsNumber(e.left)
-      checkIsNumber(e.right)
+      check.isNumber(e.left)
+      check.isNumber(e.right)
       e.type = Type.NUMBER
     } else if (["<", "<=", ">", ">="].includes(e.op)) {
-      checkIsNumber(e.left)
-      checkIsNumber(e.right)
+      check.isNumber(e.left)
+      check.isNumber(e.right)
       e.type = Type.BOOLEAN
     } else if (["==", "!="].includes(e.op)) {
-      checkHaveSameTypes(e.left, e.right)
+      check.haveSameTypes(e.left, e.right)
       e.type = Type.BOOLEAN
     }
     return e
   }
   UnaryExpression(e) {
     e.operand = this.analyze(e.operand)
-    checkIsNumber(e.operand)
+    check.isNumber(e.operand)
     e.type = Type.NUMBER
     return e
   }

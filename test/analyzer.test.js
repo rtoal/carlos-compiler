@@ -140,17 +140,17 @@ const semanticErrors = [
   [
     "Too many args",
     "function f(x: number) {}\nf(1,2)",
-    /1 parameter\(s\) required, but 2 argument\(s\) passed/,
+    /1 parameter\(s\) required but 2 argument\(s\) passed/,
   ],
   [
     "Too few args",
     "function f(x: number) {}\nf()",
-    /1 parameter\(s\) required, but 0 argument\(s\) passed/,
+    /1 parameter\(s\) required but 0 argument\(s\) passed/,
   ],
   [
     "Parameter type mismatch",
     "function f(x: number) {}\nf(false)",
-    /Expected type number, got type boolean/,
+    /Cannot assign a boolean to a number/,
   ],
   ["call of non-function", "let x = 1\nprint x()", /Call of non-function/],
   [
@@ -158,7 +158,7 @@ const semanticErrors = [
     `function f(x: number, y: (boolean)->void): number { return 1 }
      function g(z: boolean): number { return 5 }
      f(2, g)`,
-    /Expected type \(boolean\)->void, got type \(boolean\)->number/,
+    /Cannot assign a \(boolean\)->number to a \(boolean\)->void/,
   ],
 ]
 
