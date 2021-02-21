@@ -16,7 +16,10 @@ Type.prototype.isAssignableTo = function (target) {
 }
 
 ArrayType.prototype.isAssignableTo = function (target) {
-  return this.baseType.isAssignableTo(target)
+  return (
+    target.constructor === ArrayType &&
+    this.baseType.isAssignableTo(target.baseType)
+  )
 }
 
 // Contravariance for parameters and covariance for return types
@@ -280,8 +283,8 @@ class Context {
   }
   SubscriptExpression(e) {
     e.array = this.analyze(e.array)
+    e.type = e.array.type.baseType
     e.element = this.analyze(e.element)
-    e.type = e.array.baseType
     return e
   }
   ArrayLiteral(a) {

@@ -188,6 +188,15 @@ const optimizers = {
     }
     return e
   },
+  SubscriptExpression(e) {
+    e.array = optimize(e.array)
+    e.element = optimize(e.element)
+    return e
+  },
+  ArrayLiteral(e) {
+    e.args = optimize(e.args)
+    return e
+  },
   Number(e) {
     return e
   },

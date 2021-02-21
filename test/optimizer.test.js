@@ -6,6 +6,7 @@ import * as ast from "../src/ast.js"
 const x = new ast.Variable("x", false)
 const print1 = new ast.PrintStatement(1)
 const return1p1 = new ast.ReturnStatement(new ast.BinaryExpression("+", 1, 1))
+const onePlusTwo = new ast.BinaryExpression("+", 1, 2)
 
 const tests = [
   ["folds +", new ast.BinaryExpression("+", 5, 8), 13],
@@ -64,16 +65,26 @@ const tests = [
     print1,
   ],
   [
+    "optimizes in functions",
+    new ast.FunctionDeclaration("f", [], "number", return1p1),
+    new ast.FunctionDeclaration("f", [], "number", new ast.ReturnStatement(2)),
+  ],
+  [
+    "optimizes in subscripts",
+    new ast.SubscriptExpression(x, onePlusTwo),
+    new ast.SubscriptExpression(x, 3),
+  ],
+  [
+    "optimizes in array literals",
+    new ast.ArrayLiteral(ast.Type.NUMBER, [0, onePlusTwo, 9]),
+    new ast.ArrayLiteral(ast.Type.NUMBER, [0, 3, 9]),
+  ],
+  [
     "passes through nonoptimizable constructs",
     ...Array(2).fill([
       new ast.VariableDeclaration("x", true, 0),
       new ast.Assignment(x, new ast.BinaryExpression("*", x, 100)),
     ]),
-  ],
-  [
-    "optimizes in functions",
-    new ast.FunctionDeclaration("f", [], "number", return1p1),
-    new ast.FunctionDeclaration("f", [], "number", new ast.ReturnStatement(2)),
   ],
 ]
 

@@ -52,6 +52,9 @@ export class ArrayType {
   constructor(baseType) {
     this.baseType = baseType
   }
+  get name() {
+    return `[${this.baseType.name}]`
+  }
 }
 
 export class VariableDeclaration {
