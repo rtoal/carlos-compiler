@@ -110,6 +110,21 @@ const fixtures = [
       f_2(z_1, g_5());
     `,
   },
+  {
+    name: "arrays",
+    source: `
+      let a = [boolean](true, false, true)
+      let b = [number](10, 40 - 20, 30)
+      const c = [[number]]()
+      print a[1] || (b[0] < 88)
+    `,
+    expected: dedent`
+      let a_1 = [true,false,true];
+      let b_2 = [10,20,30];
+      let c_3 = [];
+      console.log((a_1[1] || (b_2[0] < 88)));
+    `,
+  },
 ]
 
 describe("The code generator", () => {

@@ -105,6 +105,12 @@ export default function generate(program) {
     UnaryExpression(e) {
       return `${e.op}(${gen(e.operand)})`
     },
+    SubscriptExpression(e) {
+      return `${gen(e.array)}[${gen(e.element)}]`
+    },
+    ArrayLiteral(e) {
+      return `[${gen(e.args).join(",")}]`
+    },
     Number(e) {
       return e
     },
