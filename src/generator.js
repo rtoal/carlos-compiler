@@ -38,10 +38,10 @@ export default function generate(program) {
       output.push(`console.log(${gen(s.argument)});`)
     },
     OrExpression(e) {
-      return `(${e.disjuncts.map(gen).join(" || ")})`
+      return `(${gen(e.disjuncts).join(" || ")})`
     },
     AndExpression(e) {
-      return `(${e.conjuncts.map(gen).join(" && ")})`
+      return `(${gen(e.conjuncts).join(" && ")})`
     },
     BinaryExpression(e) {
       const op = { "==": "===", "!=": "!==" }[e.op] ?? e.op
@@ -57,7 +57,7 @@ export default function generate(program) {
       return e
     },
     Array(a) {
-      a.forEach(gen)
+      return a.map(gen)
     },
   }
 
