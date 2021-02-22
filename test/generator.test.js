@@ -15,12 +15,14 @@ const fixtures = [
       let x = 3.1 * 7
       let y = true
       y = 5 ** -x / -100 > - x || false
-      print (y && y) || false || (x*2) != 5`,
+      print (y && y) || false || (x*2) != 5
+    `,
     expected: dedent`
       let x_1 = 21.7;
       let y_2 = true;
       y_2 = ((((5 ** -(x_1)) / -100) > -(x_1)) || false);
-      console.log(((y_2 && y_2) || false || ((x_1 * 2) !== 5)));`,
+      console.log(((y_2 && y_2) || false || ((x_1 * 2) !== 5)));
+    `,
   },
 ]
 
