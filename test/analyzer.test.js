@@ -3,7 +3,8 @@ import util from "util"
 import parse from "../src/parser.js"
 import analyze from "../src/analyzer.js"
 
-const source = `let x = 1024 - 0
+const source = `
+  let x = 1024 - 0
   while x > 3 {
     let y = false && (true || 2 >= x)
     if false {
@@ -16,9 +17,11 @@ const source = `let x = 1024 - 0
       continue
     }
     print x   // TADA 🥑
-  }`
+  }
+`
 
-const expectedAst = String.raw`   1 | Program statements=[#2,#6]
+const expectedAst = `
+   1 | Program statements=[#2,#6]
    2 | VariableDeclaration name='x' readOnly=false initializer=#3 variable=#5
    3 | BinaryExpression op='-' left=1024 right=0 type=#4
    4 | Type name='number'
@@ -43,13 +46,13 @@ const expectedAst = String.raw`   1 | Program statements=[#2,#6]
   23 | Variable name='hello' readOnly=false type=#8
   24 | PrintStatement argument=#13
   25 | ContinueStatement
-  26 | PrintStatement argument=#5`
+  26 | PrintStatement argument=#5
+`.slice(1, -1)
 
 const semanticChecks = [
   ["break in nested if", "while false {if true {break}}"],
   ["continue in nested if", "while false {if true {continue}}"],
 ]
-
 const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
   ["non declared ids", "let x = 1\nlet x = 1", /Identifier x already declared/],
