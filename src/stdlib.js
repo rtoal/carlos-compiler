@@ -15,7 +15,7 @@ const numNumType = new FunctionType([Type.NUMBER], Type.NUMBER)
 const numNumNumType = new FunctionType([Type.NUMBER, Type.NUMBER], Type.NUMBER)
 
 export const functions = {
-  sin: [numNumType, Math.sin],
-  cos: [numNumType, Math.cos],
-  hypot: [numNumNumType, Math.hypot],
+  sin: [numNumType, `Math.sin($0)`],
+  cos: [numNumType, `Math.cos($0)`],
+  hypot: [numNumNumType, `Math.hypot($0,$1)`],
 }
