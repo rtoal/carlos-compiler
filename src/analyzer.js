@@ -3,6 +3,7 @@
 // Analyzes the AST by looking for semantic errors and resolving references.
 
 import { Variable, Type, FunctionType, Function, ArrayType } from "./ast.js"
+import * as stdlib from "./stdlib.js"
 
 function must(condition, errorMessage) {
   if (!condition) {
@@ -312,10 +313,21 @@ export default function analyze(node) {
   Number.prototype.type = Type.NUMBER
   Boolean.prototype.type = Type.BOOLEAN
   Type.prototype.type = Type.TYPE
-  // The initial context has some pre-defined identifiers
   const initialContext = new Context()
-  initialContext.add("number", Type.NUMBER)
-  initialContext.add("boolean", Type.BOOLEAN)
-  initialContext.add("void", Type.VOID)
+
+  // Add in all the predefined identifiers from the stdlib module
+  for (const [name, type] of Object.entries(stdlib.types)) {
+    initialContext.add(name, type)
+  }
+  for (const [name, [value, type]] of Object.entries(stdlib.constants)) {
+    const variable = new Variable(name, true, value)
+    variable.type = type
+    initialContext.add(name, variable)
+  }
+  for (const [name, [type, _]] of Object.entries(stdlib.functions)) {
+    const functionObject = new Function(name)
+    functionObject.type = type
+    initialContext.add(name, functionObject)
+  }
   return initialContext.analyze(node)
 }
