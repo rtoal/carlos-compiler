@@ -92,16 +92,16 @@ const fixtures = [
   {
     name: "functions",
     source: `
-    let z = 0
-    function f(x: number, y: boolean) {
-      print(x > 1)
-      return
-    }
-    function g(): boolean {
-      return false
-    }
-    f(z, g())
-  `,
+      let z = 0
+      function f(x: number, y: boolean) {
+        print(x > 1)
+        return
+      }
+      function g(): boolean {
+        return false
+      }
+      f(z, g())
+    `,
     expected: dedent`
       let z_1 = 0;
       function f_2(x_3, y_4) {
