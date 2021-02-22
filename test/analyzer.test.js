@@ -100,7 +100,12 @@ const semanticChecks = [
     `function square(x: number): number { return x * x }
      function compose(): (number)->number { return square }`,
   ],
+  ["built-in constants", "print e + π"],
+  ["built-in sin", "print sin(π)"],
+  ["built-in cos", "print cos(93.999)"],
+  ["built-in hypot", "print hypot(-4, 3.00001)"],
 ]
+
 const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
   ["non declared ids", "let x = 1\nlet x = 1", /Identifier x already declared/],

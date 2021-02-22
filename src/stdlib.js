@@ -1,8 +1,8 @@
 import { Type, FunctionType } from "./ast.js"
 
 export const constants = {
-  π: [Math.PI, Type.NUMBER],
-  e: [Math.E, Type.NUMBER],
+  π: [Type.NUMBER, Math.PI],
+  e: [Type.NUMBER, Math.E],
 }
 
 export const types = {
@@ -15,7 +15,7 @@ const numNumType = new FunctionType([Type.NUMBER], Type.NUMBER)
 const numNumNumType = new FunctionType([Type.NUMBER, Type.NUMBER], Type.NUMBER)
 
 export const functions = {
-  sin: ["sin", [numNumType, Math.sin]],
-  cos: ["cos", [numNumType, Math.cos]],
-  hypot: ["hypot", [numNumNumType, Math.hypot]],
+  sin: [numNumType, Math.sin],
+  cos: [numNumType, Math.cos],
+  hypot: [numNumNumType, Math.hypot],
 }
