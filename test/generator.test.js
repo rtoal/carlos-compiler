@@ -5,7 +5,7 @@ import optimize from "../src/optimizer.js"
 import generate from "../src/generator.js"
 
 function dedent(s) {
-  return `${s}`.replace(/(\n)\s+/g, "$1").trim()
+  return `${s}`.replace(/(?<=\n)\s+/g, "").trim()
 }
 
 const fixtures = [
