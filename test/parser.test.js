@@ -20,9 +20,11 @@ const source = `let x = 1024
       continue
     }
     print x   // TADA 🥑
-  }`
+  }
+`
 
-const expectedAst = `   1 | Program statements=[#2,#3,#10]
+const expectedAst = `
+   1 | Program statements=[#2,#3,#10]
    2 | VariableDeclaration name='x' readOnly=false initializer=1024
    3 | FunctionDeclaration name='next' parameters=[#4] returnType=#6 body=[#7]
    4 | Parameter name='n' type=#5
@@ -61,7 +63,8 @@ const expectedAst = `   1 | Program statements=[#2,#3,#10]
   37 | IdentifierExpression name='y'
   38 | ContinueStatement
   39 | PrintStatement argument=#40
-  40 | IdentifierExpression name='x'`
+  40 | IdentifierExpression name='x'
+`.slice(1, -1)
 
 const syntaxChecks = [
   ["all numeric literal forms", "print 8 * 89.123 * 1.3E5 * 1.3E+5 * 1.3E-5"],
