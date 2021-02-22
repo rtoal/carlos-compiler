@@ -3,15 +3,18 @@ import util from "util"
 import parse from "../src/parser.js"
 import analyze from "../src/analyzer.js"
 
-const source = `let count = 101.3E-5 - 0
-  print(1 * count)   // TADA 🥑`
+const source = `let count = 101.3 - 10.13E-5
+  print(1 * count)   // TADA 🥑
+`
 
-const expectedAst = String.raw`   1 | Program statements=[#2,#5]
+const expectedAst = `
+   1 | Program statements=[#2,#5]
    2 | VariableDeclaration name='count' initializer=#3 variable=#4
-   3 | BinaryExpression op='-' left=0.001013 right=0
+   3 | BinaryExpression op='-' left=101.3 right=0.0001013
    4 | Variable name='count'
    5 | PrintStatement argument=#6
-   6 | BinaryExpression op='*' left=1 right=#4`
+   6 | BinaryExpression op='*' left=1 right=#4
+`.slice(1, -1)
 
 const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
