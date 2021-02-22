@@ -36,6 +36,9 @@ export default function generate(program) {
     Assignment(s) {
       output.push(`${gen(s.target)} = ${gen(s.source)};`)
     },
+    PrintStatement(s) {
+      output.push(`console.log(${gen(s.argument)});`)
+    },
     IfStatement(s) {
       output.push(`if (${gen(s.test)}) {`)
       gen(s.consequent)
@@ -57,9 +60,6 @@ export default function generate(program) {
       output.push(`while (${gen(s.test)}) {`)
       gen(s.body)
       output.push("}")
-    },
-    PrintStatement(s) {
-      output.push(`console.log(${gen(s.argument)});`)
     },
     OrExpression(e) {
       return `(${gen(e.disjuncts).join(" || ")})`

@@ -14,9 +14,11 @@ const source = `let x = 1024 - 0
       print y
     }
     print x   // TADA 🥑
-  }`
+  }
+`
 
-const expectedAst = `   1 | Program statements=[#2,#4]
+const expectedAst = `
+   1 | Program statements=[#2,#4]
    2 | VariableDeclaration name='x' readOnly=false initializer=#3
    3 | BinaryExpression op='-' left=1024 right=0
    4 | WhileStatement test=#5 body=[#7,#12,#23]
@@ -39,7 +41,8 @@ const expectedAst = `   1 | Program statements=[#2,#4]
   21 | PrintStatement argument=#22
   22 | IdentifierExpression name='y'
   23 | PrintStatement argument=#24
-  24 | IdentifierExpression name='x'`
+  24 | IdentifierExpression name='x'
+`.slice(1, -1)
 
 const syntaxChecks = [
   ["all numeric literal forms", "print 8 * 89.123 * 1.3E5 * 1.3E+5 * 1.3E-5"],
