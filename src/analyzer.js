@@ -319,8 +319,8 @@ export default function analyze(node) {
   for (const [name, type] of Object.entries(stdlib.types)) {
     initialContext.add(name, type)
   }
-  for (const [name, [value, type]] of Object.entries(stdlib.constants)) {
-    const variable = new Variable(name, true, value)
+  for (const [name, [_, type]] of Object.entries(stdlib.constants)) {
+    const variable = new Variable(name, true)
     variable.type = type
     initialContext.add(name, variable)
   }
