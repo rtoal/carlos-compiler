@@ -3,7 +3,8 @@ import util from "util"
 import parse from "../src/parser.js"
 import analyze from "../src/analyzer.js"
 
-const source = `let x = 1024
+const source = `
+  let x = 1024
   function next(n: number): [number] {
     let a = [number](1, 2, 3)
     a[1] = 100
@@ -23,9 +24,11 @@ const source = `let x = 1024
       continue
     }
     print x   // TADA 🥑
-  }`
+  }
+`
 
-const expectedAst = String.raw`   1 | Program statements=[#2,#5,#17]
+const expectedAst = `
+   1 | Program statements=[#2,#5,#17]
    2 | VariableDeclaration name='x' readOnly=false initializer=1024 variable=#3
    3 | Variable name='x' readOnly=false type=#4
    4 | Type name='number'
@@ -70,7 +73,8 @@ const expectedAst = String.raw`   1 | Program statements=[#2,#5,#17]
   43 | VariableDeclaration name='hello' readOnly=false initializer=#24 variable=#44
   44 | Variable name='hello' readOnly=false type=#19
   45 | ContinueStatement
-  46 | PrintStatement argument=#3`
+  46 | PrintStatement argument=#3
+`.slice(1, -1)
 
 const semanticChecks = [
   ["return in nested if", "function f() {if true {return}}"],
@@ -97,7 +101,6 @@ const semanticChecks = [
      function compose(): (number)->number { return square }`,
   ],
 ]
-
 const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
   ["non declared ids", "let x = 1\nlet x = 1", /Identifier x already declared/],

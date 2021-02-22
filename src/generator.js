@@ -49,6 +49,9 @@ export default function generate(program) {
     Assignment(s) {
       output.push(`${gen(s.target)} = ${gen(s.source)};`)
     },
+    PrintStatement(s) {
+      output.push(`console.log(${gen(s.argument)});`)
+    },
     IfStatement(s) {
       output.push(`if (${gen(s.test)}) {`)
       gen(s.consequent)
@@ -76,9 +79,6 @@ export default function generate(program) {
     },
     ContinueStatement(s) {
       output.push("continue;")
-    },
-    PrintStatement(s) {
-      output.push(`console.log(${gen(s.argument)});`)
     },
     ReturnStatement(s) {
       output.push(
