@@ -9,8 +9,8 @@ export default function generate(program) {
   const output = []
 
   // Variable and function names in JS will be suffixed with _1, _2, _3,
-  // etc. This is because "while", for example, is a legal name in Carlos,
-  // but not in JS. So we want to generate something like "while_1".
+  // etc. This is because "switch", for example, is a legal name in Carlos,
+  // but not in JS. So we want to generate something like "switch_1".
   // We handle this by mapping each name to its suffix.
   const targetName = (mapping => {
     return entity => {
