@@ -2,17 +2,20 @@ import assert from "assert"
 import util from "util"
 import parse from "../src/parser.js"
 
-const source = `let count = 101.3E-5 - 0
+const source = `let count = 101.3 - 10.13E-5
   print(1 ** count)   // TADA 🥑
-  const x = 8`
+  const x = 8
+`
 
-const expectedAst = `   1 | Program statements=[#2,#4,#7]
+const expectedAst = `
+   1 | Program statements=[#2,#4,#7]
    2 | VariableDeclaration name='count' readOnly=false initializer=#3
-   3 | BinaryExpression op='-' left=0.001013 right=0
+   3 | BinaryExpression op='-' left=101.3 right=0.0001013
    4 | PrintStatement argument=#5
    5 | BinaryExpression op='**' left=1 right=#6
    6 | IdentifierExpression name='count'
-   7 | VariableDeclaration name='x' readOnly=true initializer=8`
+   7 | VariableDeclaration name='x' readOnly=true initializer=8
+`.slice(1, -1)
 
 const syntaxChecks = [
   ["all numeric literal forms", "print 8 * 89.123 * 1.3E5 * 1.3E+5 * 1.3E-5"],
