@@ -3,13 +3,15 @@ import util from "util"
 import parse from "../src/parser.js"
 import analyze from "../src/analyzer.js"
 
-const source = `let count = 101.3E-5 - 0
+const source = `let count = 101.3 - 10.13E-5
   print(1 ** count)   // TADA 🥑
-  const x = 1 < 5 || false == true`
+  const x = 1 < 5 || false == true
+`
 
-const expectedAst = String.raw`   1 | Program statements=[#2,#6,#8]
+const expectedAst = `
+   1 | Program statements=[#2,#6,#8]
    2 | VariableDeclaration name='count' readOnly=false initializer=#3 variable=#5
-   3 | BinaryExpression op='-' left=0.001013 right=0 type=#4
+   3 | BinaryExpression op='-' left=101.3 right=0.0001013 type=#4
    4 | Type name='number'
    5 | Variable name='count' readOnly=false type=#4
    6 | PrintStatement argument=#7
@@ -19,7 +21,8 @@ const expectedAst = String.raw`   1 | Program statements=[#2,#6,#8]
   10 | BinaryExpression op='<' left=1 right=5 type=#11
   11 | Type name='boolean'
   12 | BinaryExpression op='==' left=false right=true type=#11
-  13 | Variable name='x' readOnly=true type=#11`
+  13 | Variable name='x' readOnly=true type=#11
+`.slice(1, -1)
 
 const semanticErrors = [
   ["redeclarations", "print x", /Identifier x not declared/],
