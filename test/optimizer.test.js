@@ -1,12 +1,15 @@
 import assert from "assert"
 import optimize from "../src/optimizer.js"
 import * as ast from "../src/ast.js"
+import { constants, functions } from "../src/stdlib.js"
 
 // Make some test cases easier to read
 const x = new ast.Variable("x", false)
 const print1 = new ast.PrintStatement(1)
 const return1p1 = new ast.ReturnStatement(new ast.BinaryExpression("+", 1, 1))
 const onePlusTwo = new ast.BinaryExpression("+", 1, 2)
+const π = constants.π
+const sin = functions.sin
 
 const tests = [
   ["folds +", new ast.BinaryExpression("+", 5, 8), 13],
@@ -78,6 +81,11 @@ const tests = [
     "optimizes in array literals",
     new ast.ArrayLiteral(ast.Type.NUMBER, [0, onePlusTwo, 9]),
     new ast.ArrayLiteral(ast.Type.NUMBER, [0, 3, 9]),
+  ],
+  [
+    "optimizes in arguments to standard functions",
+    new ast.Call(sin, [new ast.BinaryExpression("*", π, 1)]),
+    new ast.Call(sin, [π]),
   ],
   [
     "passes through nonoptimizable constructs",

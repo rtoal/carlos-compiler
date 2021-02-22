@@ -319,14 +319,10 @@ export default function analyze(node) {
   for (const [name, type] of Object.entries(stdlib.types)) {
     initialContext.add(name, type)
   }
-  for (const [name, [type, _]] of Object.entries(stdlib.constants)) {
-    const variable = new Variable(name, true)
-    variable.type = type
-    initialContext.add(name, variable)
+  for (const [name, constant] of Object.entries(stdlib.constants)) {
+    initialContext.add(name, constant)
   }
-  for (const [name, [type, _]] of Object.entries(stdlib.functions)) {
-    const functionObject = new Function(name)
-    functionObject.type = type
+  for (const [name, functionObject] of Object.entries(stdlib.functions)) {
     initialContext.add(name, functionObject)
   }
   return initialContext.analyze(node)

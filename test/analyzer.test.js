@@ -100,7 +100,7 @@ const semanticChecks = [
     `function square(x: number): number { return x * x }
      function compose(): (number)->number { return square }`,
   ],
-  ["built-in constants", "print e + π"],
+  ["built-in constants", "print 25 * π"],
   ["built-in sin", "print sin(π)"],
   ["built-in cos", "print cos(93.999)"],
   ["built-in hypot", "print hypot(-4, 3.00001)"],
@@ -176,6 +176,11 @@ const semanticErrors = [
      function g(z: boolean): number { return 5 }
      f(2, g)`,
     /Cannot assign a \(boolean\)->number to a \(boolean\)->void/,
+  ],
+  [
+    "bad call to a standard library function",
+    "print(sin(true))",
+    /Cannot assign a boolean to a number/,
   ],
 ]
 
