@@ -4,7 +4,8 @@ import parse from "../src/parser.js"
 
 const source = `let count = 101.3 - 10.13E-5
   print(1 ** count)   // TADA 🥑
-  const x = 1 < 5 || false == true`
+  const x = 1 < 5 || false == true
+`
 
 const expectedAst = `
    1 | Program statements=[#2,#4,#7]
