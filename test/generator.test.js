@@ -94,7 +94,7 @@ const fixtures = [
     source: `
       let z = 0
       function f(x: number, y: boolean) {
-        print(x > 1)
+        print(sin(x) > π)
         return
       }
       function g(): boolean {
@@ -105,7 +105,7 @@ const fixtures = [
     expected: dedent`
       let z_1 = 0;
       function f_2(x_3, y_4) {
-      console.log((x_3 > 1));
+      console.log((Math.sin(x_3) > Math.PI));
       return;
       }
       function g_5() {

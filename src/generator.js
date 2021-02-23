@@ -4,9 +4,18 @@
 // translation as a string.
 
 import { IfStatement, Type } from "./ast.js"
+import * as stdlib from "./stdlib.js"
 
 export default function generate(program) {
   const output = []
+
+  const standardFunctions = new Map([
+    [stdlib.functions.sin, "Math.sin"],
+    [stdlib.functions.cos, "Math.cos"],
+    [stdlib.functions.exp, "Math.exp"],
+    [stdlib.functions.ln, "Math.log"],
+    [stdlib.functions.hypot, "Math.hypot"],
+  ])
 
   // Variable and function names in JS will be suffixed with _1, _2, _3,
   // etc. This is because "switch", for example, is a legal name in Carlos,
@@ -31,6 +40,9 @@ export default function generate(program) {
       output.push(`let ${gen(d.variable)} = ${gen(d.initializer)};`)
     },
     Variable(v) {
+      if (v === stdlib.constants.π) {
+        return "Math.PI"
+      }
       return targetName(v)
     },
     FunctionDeclaration(d) {
@@ -86,7 +98,8 @@ export default function generate(program) {
       )
     },
     Call(c) {
-      const targetCode = `${gen(c.callee)}(${c.args.map(gen).join(", ")})`
+      const callee = standardFunctions.get(c.callee) ?? gen(c.callee)
+      const targetCode = `${callee}(${c.args.map(gen).join(", ")})`
       if (c.callee.type.returnType !== Type.VOID) {
         return targetCode
       }

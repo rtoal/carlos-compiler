@@ -7,10 +7,9 @@ function makeConstant(name, type, value) {
   return constant
 }
 
-function makeFunction(name, type, pattern) {
+function makeFunction(name, type) {
   const functionObject = new Function(name)
   functionObject.type = type
-  functionObject.pattern = pattern
   return functionObject
 }
 
@@ -28,9 +27,9 @@ export const constants = {
 }
 
 export const functions = {
-  sin: makeFunction("sin", numNumType, `Math.sin($0)`),
-  cos: makeFunction("cos", numNumType, `Math.cos($0)`),
-  exp: makeFunction("exp", numNumType, `Math.exp($0)`),
-  ln: makeFunction("ln", numNumType, `Math.log($0)`),
-  hypot: makeFunction("hypot", numNumNumType, `Math.hypot($0,$1)`),
+  sin: makeFunction("sin", numNumType),
+  cos: makeFunction("cos", numNumType),
+  exp: makeFunction("exp", numNumType),
+  ln: makeFunction("ln", numNumType),
+  hypot: makeFunction("hypot", numNumNumType),
 }
