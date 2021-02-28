@@ -31,7 +31,10 @@ export class Type {
   static TYPE = new Type("type")
 }
 
-export class NamedType {
+// Not a type, but rather a wrapper for a string designating a type to be
+// looked up during static analysis. Similar to IdentifierExpressions in
+// that these are syntax nodes only disappear after analysis.
+export class TypeName {
   constructor(name) {
     this.name = name
   }
