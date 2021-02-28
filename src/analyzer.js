@@ -162,7 +162,7 @@ class Context {
     d.body = childContext.analyze(d.body)
     return d
   }
-  NamedType(t) {
+  TypeName(t) {
     t = this.lookup(t.name)
     check.isType(t)
     return t

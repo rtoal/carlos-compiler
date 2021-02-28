@@ -30,13 +30,13 @@ const expectedAst = `
    2 | VariableDeclaration name='x' readOnly=false initializer=1024
    3 | FunctionDeclaration name='next' parameters=[#4] returnType=#6 body=[#8,#12,#15]
    4 | Parameter name='n' type=#5
-   5 | NamedType name='number'
+   5 | TypeName name='number'
    6 | ArrayType baseType=#7
-   7 | NamedType name='number'
+   7 | TypeName name='number'
    8 | VariableDeclaration name='a' readOnly=false initializer=#9
    9 | ArrayLiteral arrayType=#10 args=[1,2,3]
   10 | ArrayType baseType=#11
-  11 | NamedType name='number'
+  11 | TypeName name='number'
   12 | Assignment target=#13 source=100
   13 | SubscriptExpression array=#14 element=1
   14 | IdentifierExpression name='a'
