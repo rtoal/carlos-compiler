@@ -63,7 +63,7 @@ const expectedAst = `
   35 | FunctionDeclaration name='g' parameters=[] returnType=null body=[#36,#38]
   36 | PrintStatement argument=#37
   37 | IdentifierExpression name='hello'
-  38 | ReturnStatement expression=null
+  38 | ShortReturnStatement
   39 | BreakStatement
   40 | IfStatement test=true consequent=[#41,#43] alternative=[#45]
   41 | Call callee=#42 args=[99]

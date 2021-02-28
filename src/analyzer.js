@@ -69,11 +69,11 @@ const check = {
   isCallable(e) {
     must(e.type.constructor === FunctionType, "Call of non-function")
   },
-  isLongReturnStatement(s) {
-    must(s.expression !== null, "Something should be returned here")
+  returnsNothing(f) {
+    must(f.type.returnType === Type.VOID, "Something should be returned here")
   },
-  isShortReturnStatement(s) {
-    must(s.expression === null, "Cannot return a value here")
+  returnsSomething(f) {
+    must(f.type.returnType !== Type.VOID, "Cannot return a value here")
   },
   isReturnable(e, { from: f }) {
     check.isTypeAssignable(e.type, { to: f.type.returnType })
@@ -219,16 +219,18 @@ class Context {
   }
   ReturnStatement(s) {
     check.inFunction(this)
-    if (this.function.type.returnType !== Type.VOID) {
-      // If the current function isn't void, the return statement must have
-      // an expression that is assignable to the return type
-      check.isLongReturnStatement(s)
-      s.expression = this.analyze(s.expression)
-      check.isReturnable(s.expression, { from: this.function })
-    } else {
-      // If the current function is void, we cannot return an expression
-      check.isShortReturnStatement(s)
-    }
+    check.returnsSomething(this.function)
+    s.expression = this.analyze(s.expression)
+    check.isReturnable(s.expression, { from: this.function })
+    // if (this.function.type.returnType !== Type.VOID) {
+    //   // If the current function isn't void, the return statement must have
+    //   // an expression that is assignable to the return type
+    //   check.isLongReturnStatement(s)
+    return s
+  }
+  ShortReturnStatement(s) {
+    check.inFunction(this)
+    check.returnsNothing(this.function)
     return s
   }
   Call(c) {

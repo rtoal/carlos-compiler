@@ -142,6 +142,10 @@ export class ReturnStatement {
   }
 }
 
+export class ShortReturnStatement {
+  // Intentionally empty
+}
+
 export class OrExpression {
   constructor(disjuncts) {
     this.disjuncts = disjuncts
