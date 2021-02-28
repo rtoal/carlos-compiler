@@ -304,6 +304,9 @@ class Context {
   Boolean(e) {
     return e
   }
+  String(e) {
+    return e
+  }
   Array(a) {
     return a.map(item => this.analyze(item))
   }
@@ -312,6 +315,7 @@ class Context {
 export default function analyze(node) {
   Number.prototype.type = Type.NUMBER
   Boolean.prototype.type = Type.BOOLEAN
+  String.prototype.type = Type.STRING
   Type.prototype.type = Type.TYPE
   const initialContext = new Context()
 
