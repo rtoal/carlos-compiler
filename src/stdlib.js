@@ -1,16 +1,11 @@
 import { Type, FunctionType, Variable, Function } from "./ast.js"
 
 function makeConstant(name, type, value) {
-  const constant = new Variable(name, true)
-  constant.type = type
-  constant.value = value
-  return constant
+  return Object.assign(new Variable(name, true), { type, value })
 }
 
 function makeFunction(name, type) {
-  const functionObject = new Function(name)
-  functionObject.type = type
-  return functionObject
+  return Object.assign(new Function(name), { type })
 }
 
 const numNumType = new FunctionType([Type.NUMBER], Type.NUMBER)
