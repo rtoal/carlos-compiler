@@ -12,7 +12,7 @@ const source = `let x = 1024
     let y = false && (true || 2 >= x)
     x = (0 + x) / 2 ** next(0) // call in expression
     if false {
-      const hello = 5
+      const hello = "hi"  
       function g() { print hello return }
       break
     } else if true {
@@ -59,7 +59,7 @@ const expectedAst = `
   31 | Call callee=#32 args=[0]
   32 | IdentifierExpression name='next'
   33 | IfStatement test=false consequent=[#34,#35,#39] alternative=#40
-  34 | VariableDeclaration name='hello' readOnly=true initializer=5
+  34 | VariableDeclaration name='hello' readOnly=true initializer='hi'
   35 | FunctionDeclaration name='g' parameters=[] returnType=null body=[#36,#38]
   36 | PrintStatement argument=#37
   37 | IdentifierExpression name='hello'
