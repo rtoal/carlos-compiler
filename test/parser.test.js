@@ -54,7 +54,7 @@ const expectedAst = `
   28 | FunctionDeclaration name='g' parameters=[] returnType=null body=[#29,#31]
   29 | PrintStatement argument=#30
   30 | IdentifierExpression name='hello'
-  31 | ReturnStatement expression=null
+  31 | ShortReturnStatement
   32 | BreakStatement
   33 | IfStatement test=true consequent=[#34,#36] alternative=[#38]
   34 | Call callee=#35 args=[99]

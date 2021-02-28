@@ -81,9 +81,10 @@ export default function generate(program) {
       output.push("continue;")
     },
     ReturnStatement(s) {
-      output.push(
-        `return${s.expression === null ? "" : ` ${gen(s.expression)}`};`
-      )
+      output.push(`return ${gen(s.expression)};`)
+    },
+    ShortReturnStatement(s) {
+      output.push("return;")
     },
     Call(c) {
       const targetCode = `${gen(c.callee)}(${c.args.map(gen).join(", ")})`
