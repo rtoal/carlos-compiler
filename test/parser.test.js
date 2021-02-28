@@ -28,8 +28,8 @@ const expectedAst = `
    2 | VariableDeclaration name='x' readOnly=false initializer=1024
    3 | FunctionDeclaration name='next' parameters=[#4] returnType=#6 body=[#7]
    4 | Parameter name='n' type=#5
-   5 | NamedType name='number'
-   6 | NamedType name='number'
+   5 | TypeName name='number'
+   6 | TypeName name='number'
    7 | ReturnStatement expression=#8
    8 | BinaryExpression op='+' left=#9 right=1
    9 | IdentifierExpression name='n'

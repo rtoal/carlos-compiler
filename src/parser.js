@@ -98,7 +98,7 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
     return new ast.FunctionType(inputType.ast(), outputType.ast())
   },
   TypeExp_named(id) {
-    return new ast.NamedType(id.sourceString)
+    return new ast.TypeName(id.sourceString)
   },
   TypeExps(_left, memberTypeList, _right) {
     return memberTypeList.asIteration().ast()
