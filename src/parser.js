@@ -132,9 +132,11 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
     return new ast.ContinueStatement()
   },
   Statement_return(_return, expression) {
-    return new ast.ReturnStatement(
-      expression.ast().length === 0 ? null : expression.ast()[0]
-    )
+    const returnValueTree = expression.ast()
+    if (returnValueTree.length === 0) {
+      return new ast.ShortReturnStatement()
+    }
+    return new ast.ReturnStatement(returnValueTree[0])
   },
   Block(_open, body, _close) {
     // This one is fun, don't wrap the statements, just return the list

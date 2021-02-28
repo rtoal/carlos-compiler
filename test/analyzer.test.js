@@ -64,7 +64,7 @@ const expectedAst = `
   34 | FunctionDeclaration name='g' parameters=[] returnType=#35 body=[#36,#37] function=#38
   35 | Type name='void'
   36 | PrintStatement argument=#33
-  37 | ReturnStatement expression=null
+  37 | ShortReturnStatement
   38 | Function name='g' type=#39
   39 | FunctionType parameterTypes=[] returnType=#35
   40 | BreakStatement

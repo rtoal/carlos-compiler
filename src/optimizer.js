@@ -91,9 +91,10 @@ const optimizers = {
     return s
   },
   ReturnStatement(s) {
-    if (s.expression) {
-      s.expression = optimize(s.expression)
-    }
+    s.expression = optimize(s.expression)
+    return s
+  },
+  ShortReturnStatement(s) {
     return s
   },
   Call(c) {
