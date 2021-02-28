@@ -50,6 +50,7 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Exp7      = true
             | false
             | num
+            | stringlit
             | TypeExp_array "(" Args ")"          --arraylit
             | "(" Exp ")"                         --parens
   Var       = Exp6_subscript
@@ -57,6 +58,11 @@ const carlosGrammar = ohm.grammar(String.raw`Carlos {
   Args      = ListOf<Exp, ",">
   relop     = "<=" | "<" | "==" | "!=" | ">=" | ">"
   num       = digit+ ("." digit+)? (("E" | "e") ("+" | "-")? digit+)?
+  stringlit = "\"" char* "\""
+  char      = ~"\n" ~"\r" ~"\\" ~"\"" any
+            | "\\" ("n" | "t" | "\"" | "\\")      --escape
+            | "\\u{" h h? h? h? h? h? "}"         --codepoint
+  h         = hexDigit
   let       = "let" ~alnum
   const     = "const" ~alnum
   function  = "function" ~alnum
@@ -187,6 +193,9 @@ const astBuilder = carlosGrammar.createSemantics().addOperation("ast", {
   },
   num(_whole, _point, _fraction, _e, _sign, _exponent) {
     return Number(this.sourceString)
+  },
+  stringlit(_open, chars, _close) {
+    return chars.sourceString
   },
 })
 

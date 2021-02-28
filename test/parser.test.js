@@ -106,6 +106,12 @@ const syntaxChecks = [
   ["boolean literals", "let x = false || true"],
   ["function types in params", "function f(g: (number)->boolean) {}"],
   ["function types returned", "function f(): (number)->(number)->void {}"],
+  ["simple string literal", 'print "hello😉😬💀🙅🏽‍♀️—`"'],
+  ["string literal with escapes", 'print "a\\n\\tbc\\\\de\\"fg"'],
+  [
+    "string literal code points",
+    'print "\\u{a}\\u{2c}\\u{1e5}\\u{ae89}\\u{1f4a9}\\u{10ffe8}"',
+  ],
 ]
 
 const syntaxErrors = [
@@ -137,6 +143,10 @@ const syntaxErrors = [
     "function f(g:number->number) {}",
     /Line 1, col 20/,
   ],
+  ["stringlit with unknown escape", 'print "ab\\zcdef"', /col 11/],
+  ["stringlit with newline", 'print "ab\\zcdef"', /col 11/],
+  ["stringlit with quote", 'print "ab\\zcdef"', /col 11/],
+  ["stringlit with code point too long", 'print "\\u{1111111}"', /col 17/],
 ]
 
 describe("The parser", () => {
