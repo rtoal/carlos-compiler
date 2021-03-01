@@ -99,7 +99,7 @@ const optimizers = {
   },
   Call(c) {
     c.callee = optimize(c.callee)
-    c.args = c.args.map(optimize)
+    c.args = optimize(c.args)
     return c
   },
   OrExpression(e) {

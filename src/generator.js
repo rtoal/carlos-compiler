@@ -35,7 +35,7 @@ export default function generate(program) {
     },
     FunctionDeclaration(d) {
       output.push(
-        `function ${gen(d.function)}(${d.parameters.map(gen).join(", ")}) {`
+        `function ${gen(d.function)}(${gen(d.parameters).join(", ")}) {`
       )
       gen(d.body)
       output.push("}")
@@ -87,7 +87,7 @@ export default function generate(program) {
       output.push("return;")
     },
     Call(c) {
-      const targetCode = `${gen(c.callee)}(${c.args.map(gen).join(", ")})`
+      const targetCode = `${gen(c.callee)}(${gen(c.args).join(", ")})`
       if (c.callee.type.returnType !== Type.VOID) {
         return targetCode
       }

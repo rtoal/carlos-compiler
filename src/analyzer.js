@@ -160,7 +160,7 @@ class Context {
     return t
   }
   FunctionType(t) {
-    t.parameterTypes = t.parameterTypes.map(p => this.analyze(p))
+    t.parameterTypes = this.analyze(t.parameterTypes)
     t.returnType = this.analyze(t.returnType)
     return t
   }
