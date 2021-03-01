@@ -10,11 +10,12 @@ export default function generate(program) {
   const output = []
 
   const standardFunctions = new Map([
-    [stdlib.functions.sin, "Math.sin"],
-    [stdlib.functions.cos, "Math.cos"],
-    [stdlib.functions.exp, "Math.exp"],
-    [stdlib.functions.ln, "Math.log"],
-    [stdlib.functions.hypot, "Math.hypot"],
+    [stdlib.functions.sin, x => `Math.sin(${x})`],
+    [stdlib.functions.cos, x => `Math.cos(${x})`],
+    [stdlib.functions.exp, x => `Math.exp(${x})`],
+    [stdlib.functions.ln, x => `Math.log(${x})`],
+    [stdlib.functions.hypot, (x, y) => `Math.hypot(${x},${y})`],
+    [stdlib.functions.bytes, s => `[...Buffer.from(${s}, "utf8")]`],
   ])
 
   // Variable and function names in JS will be suffixed with _1, _2, _3,
