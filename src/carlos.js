@@ -21,7 +21,7 @@ async function compileFromFile(filename, outputType) {
     const buffer = await fs.readFile(filename)
     console.log(compile(buffer.toString(), outputType))
   } catch (e) {
-    console.trace(e)
+    console.error(e)
     process.exitCode = 1
   }
 }
